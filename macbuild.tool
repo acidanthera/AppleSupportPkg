@@ -32,7 +32,7 @@ package() {
     exit 1
   fi
 
-  local ver=$(cat Platform/ApfsDriverLoader/ApfsDriverLoaderVersion.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ')
+  local ver=$(cat Platform/ApfsDriverLoader/ApfsDriverLoaderVersion.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ' | cut -f2 -d'"')
   if [ "$(echo $ver | grep -E '^[0-9]+$')" = "" ]; then
     echo "Invalid version $ver"
   fi
@@ -43,7 +43,7 @@ package() {
   mkdir -p tmp/Tools || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
   pushd tmp || exit 1
-  zip -qry ../"ApfsSupport-R${ver}-${2}.zip" * || exit 1
+  zip -qry ../"ApfsSupport-v${ver}-${2}.zip" * || exit 1
   popd || exit 1
   rm -rf tmp || exit 1
   popd || exit 1

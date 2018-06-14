@@ -3,7 +3,6 @@
 APFS Driver Loader - loads apfs.efi from JSDR section in container
 
 Copyright (c) 2017-2018, savvas
-Copyright (c) 2018, vit9696
 
 All rights reserved.
 
@@ -20,7 +19,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APFS_DRIVER_LOADER_VERSION_H
 #define APFS_DRIVER_LOADER_VERSION_H
 
-#define APFSDRIVERLOADER_VERSION  20
+#define APFSDRIVERLOADER_VERSION  "1.0.1"
 
 
 #endif // APFS_DRIVER_LOADER_VERSION_H
