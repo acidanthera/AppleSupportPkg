@@ -706,13 +706,11 @@ LoadAppleFileSystemDriverNotify (
   EFI_SYSTEM_TABLE           *NewSystemTable;
 
   if (mAppleFileSystemDriverBuffer == NULL) {
-    //Print (L"Second attempt to load apfs.efi, aborting...\n");
+    DEBUG ((DEBUG_WARN, "Second attempt to load apfs.efi, aborting...\n"));
     return;
   }
 
-  //Print (L"Loading apfs.efi from memory!\n");
-
-  
+  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
 
   Status = gBS->LoadImage (
     FALSE,
