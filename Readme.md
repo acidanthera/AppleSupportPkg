@@ -1,1 +1,1 @@
-APFS Jump Start driver, which load's apfs.efi from JSDR section inside APFS Container. 
+APFS Driver Loader, which loads apfs.efi from JSDR section in APFS Container
