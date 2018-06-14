@@ -3,7 +3,7 @@ ApfsSupportPkg
 
 [![Build Status](https://travis-ci.org/acidanthera/ApfsSupportPkg.svg?branch=master)](https://travis-ci.org/acidanthera/ApfsSupportPkg)
 
-==============
+-----
 
 ## APFS Driver Loader
 - Loads apfs.efi from ApfsContainer located on block device.
