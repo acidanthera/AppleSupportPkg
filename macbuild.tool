@@ -1,0 +1,135 @@
+#!/bin/bash
+
+BUILDDIR=$(dirname "$0")
+pushd "$BUILDDIR" >/dev/null
+BUILDDIR=$(pwd)
+popd >/dev/null
+
+NASMVER="2.13.03"
+
+cd "$BUILDDIR"
+
+prompt() {
+  echo "$1"
+  read -p "Enter [Y]es to continue: " v
+  if [ "$v" != "Y" ] && [ "$v" != "y" ]; then
+    exit 1
+  fi
+}
+
+updaterepo() {
+  if [ ! -d "$2" ]; then
+    git clone "$1" -b "$3" --depth=1 "$2" || exit 1
+  fi
+  pushd "$2" >/dev/null
+  git pull
+  popd >/dev/null
+}
+
+package() {
+  if [ ! -d "$1" ]; then
+    echo "Missing package directory"
+    exit 1
+  fi
+
+  local ver=$(cat Platform/ApfsDriverLoader/ApfsDriverLoaderVersion.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ')
+  if [ "$(echo $ver | grep -E '^[0-9]+$')" = "" ]; then
+    echo "Invalid version $ver"
+  fi
+
+  pushd "$1" || exit 1
+  rm -rf tmp || exit 1
+  mkdir -p tmp/Drivers || exit 1
+  mkdir -p tmp/Tools || exit 1
+  cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
+  pushd tmp || exit 1
+  zip -qry ../"ApfsSupport-R${ver}-${2}.zip" * || exit 1
+  popd || exit 1
+  rm -rf tmp || exit 1
+  popd || exit 1
+}
+
+if [ "$BUILDDIR" != "$(printf "%s\n" $BUILDDIR)" ]; then
+  echo "EDK2 build system may still fail to support directories with spaces!"
+  exit 1
+fi
+
+if [ "$(which clang)" = "" ] || [ "$(which git)" = "" ] || [ "$(clang -v 2>&1 | grep "no developer")" != "" ] || [ "$(git -v 2>&1 | grep "no developer")" != "" ]; then
+  echo "Missing Xcode tools, please install them!"
+  exit 1
+fi
+
+if [ "$(nasm -v)" = "" ] || [ "$(nasm -v | grep Apple)" != "" ]; then
+  echo "Missing or incompatible nasm!"
+  echo "Download the latest nasm from http://www.nasm.us/pub/nasm/releasebuilds/"
+  prompt "Last tested with nasm $NASMVER. Install it automatically?"
+  pushd /tmp >/dev/null
+  rm -rf "nasm-${NASMVER}-macosx.zip" "nasm-${NASMVER}"
+  curl -OL "http://www.nasm.us/pub/nasm/releasebuilds/${NASMVER}/macosx/nasm-${NASMVER}-macosx.zip" || exit 1
+  unzip -q "nasm-${NASMVER}-macosx.zip" "nasm-${NASMVER}/nasm" "nasm-${NASMVER}/ndisasm" || exit 1
+  sudo mkdir -p /usr/local/bin || exit 1
+  sudo mv "nasm-${NASMVER}/nasm" /usr/local/bin/ || exit 1
+  sudo mv "nasm-${NASMVER}/ndisasm" /usr/local/bin/ || exit 1
+  rm -rf "nasm-${NASMVER}-macosx.zip" "nasm-${NASMVER}"
+  popd >/dev/null
+fi
+
+if [ "$(which mtoc.NEW)" == "" ] || [ "$(which mtoc)" == "" ]; then
+  echo "Missing mtoc or mtoc.NEW!"
+  echo "To build mtoc follow: https://github.com/tianocore/tianocore.github.io/wiki/Xcode#mac-os-x-xcode"
+  prompt "Install prebuilt mtoc and mtoc.NEW automatically?"
+  rm -f mtoc mtoc.NEW
+  unzip -q external/mtoc-mac64.zip mtoc.NEW || exit 1
+  sudo mkdir -p /usr/local/bin || exit 1
+  sudo cp mtoc.NEW /usr/local/bin/mtoc || exit 1
+  sudo mv mtoc.NEW /usr/local/bin/ || exit 1
+fi
+
+if [ ! -d "Binaries" ]; then
+  mkdir Binaries || exit 1
+  cd Binaries || exit 1
+  ln -s ../UDK/Build/ApfsSupportPkg/RELEASE_XCODE5/X64 RELEASE || exit 1
+  ln -s ../UDK/Build/ApfsSupportPkg/DEBUG_XCODE5/X64 DEBUG || exit 1
+  cd .. || exit 1
+fi
+
+if [ "$1" != "" ]; then
+  MODE="$1"
+  shift
+fi
+
+if [ ! -f UDK/UDK.ready ]; then
+  rm -rf UDK
+fi
+
+updaterepo "https://github.com/tianocore/edk2" UDK UDK2018 || exit 1
+cd UDK
+updaterepo "https://github.com/CupertinoNet/CupertinoModulePkg" CupertinoModulePkg development || exit 1
+updaterepo "https://github.com/CupertinoNet/EfiMiscPkg" EfiMiscPkg development || exit 1
+updaterepo "https://github.com/CupertinoNet/EfiPkg" EfiPkg development || exit 1
+
+if [ ! -d ApfsSupportPkg ]; then
+  ln -s .. ApfsSupportPkg || exit 1
+fi
+
+source edksetup.sh || exit 1
+make -C BaseTools || exit 1
+touch UDK.ready
+
+if [ "$MODE" = "" ] || [ "$MODE" = "DEBUG" ]; then
+  build -a X64 -b DEBUG -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+fi
+
+if [ "$MODE" = "" ] || [ "$MODE" = "RELEASE" ]; then
+  build -a X64 -b RELEASE -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+fi
+
+cd .. || exit 1
+
+if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "DEBUG" ]; then
+  package "Binaries/DEBUG" "DEBUG" || exit 1
+fi
+
+if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "RELEASE" ]; then
+  package "Binaries/RELEASE" "RELEASE" || exit 1
+fi

@@ -17,7 +17,7 @@
 ##
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = APFSDriverLoader
+  BASE_NAME                      = ApfsDriverLoader
   FILE_GUID                      = BA6ED98D-D133-4F5B-8787-D2464BB21122
   MODULE_TYPE                    = UEFI_DRIVER
   VERSION_STRING                 = 1.0
@@ -32,11 +32,11 @@
   VALID_ARCHITECTURES           = X64
 #
 [Sources.common]
-  APFSDriverLoader.c
-  APFSDriverLoader.h
+  ApfsDriverLoader.c
+  ApfsDriverLoader.h
 
 [Packages]
-  AptioFixPkg/AptioFixPkg.dec
+  ApfsSupportPkg/ApfsSupportPkg.dec
   MdePkg/MdePkg.dec
   IntelFrameworkModulePkg/IntelFrameworkModulePkg.dec
 

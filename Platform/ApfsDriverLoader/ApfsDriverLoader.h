@@ -1,4 +1,4 @@
-/*
+/** @file
 
 APFS Driver Loader - loads apfs.efi from JSDR section in container
 
@@ -15,7 +15,7 @@ http://opensource.org/licenses/bsd-license.php
 THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
-*/
+**/
 
 #ifndef APFS_DRIVER_LOADER_H_
 #define APFS_DRIVER_LOADER_H_
@@ -45,6 +45,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/ComponentName.h>
 #include <Protocol/ComponentName2.h>
 #include <Protocol/LoadedImage.h>
+#include <Guid/ApfsContainerGuids.h>
 
 //
 // NXSB magic number
@@ -59,12 +60,7 @@ STATIC CONST UINT32 APSB_MN = 0x42535041;
 //
 STATIC CONST UINT32 JSDR_MN = 0x5244534a;
 
-//
-// APFS Container GUID
-//
-STATIC CONST EFI_GUID APFS_Container_GUID = \
-  {0x7C3457EF, 0x0000, 0x11AA, \
-  {0xAA, 0x11, 0x00, 0x30, 0x65, 0x43, 0xEC, 0xAC}};
+STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 
 /* NXSB Container Superblock
  * The container superblock is the entry point to the filesystem.

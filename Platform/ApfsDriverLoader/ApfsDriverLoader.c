@@ -1,4 +1,4 @@
-/*
+/** @file
 
 APFS Driver Loader - loads apfs.efi from JSDR section in container
 
@@ -15,9 +15,10 @@ http://opensource.org/licenses/bsd-license.php
 THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
-*/
+**/
 
-#include "APFSDriverLoader.h"
+#include "ApfsDriverLoader.h"
+#include "ApfsDriverLoaderVersion.h"
 
 STATIC BOOLEAN      mFoundAppleFileSystemDriver;
 STATIC EFI_EVENT    mLoadAppleFileSystemEvent;
@@ -502,7 +503,7 @@ ApfsDriverLoaderStart (
   for (Index = 0; Index < PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
     EFI_PARTITION_ENTRY *CurrentEntry = (EFI_PARTITION_ENTRY *) (Block + Index);
 
-    if (CompareMem(&CurrentEntry->PartitionTypeGUID, &APFS_Container_GUID, sizeof (EFI_GUID)) == 0) {
+    if (CompareMem(&CurrentEntry->PartitionTypeGUID, &mApfsContainerGuid, sizeof (EFI_GUID)) == 0) {
       ApfsGptEntry = CurrentEntry;
       break;
     }
