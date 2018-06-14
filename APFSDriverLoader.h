@@ -17,8 +17,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 */
 
-#ifndef APFS_STRUCTURES_H_
-#define APFS_STRUCTURES_H_
+#ifndef APFS_DRIVER_LOADER_H_
+#define APFS_DRIVER_LOADER_H_
 
 #include <Base.h>
 #include <Uefi.h>
@@ -154,4 +154,4 @@ typedef struct APFS_EFI_BOOT_RECORD_
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 
-#endif // APFS_STRUCTURES_H_
+#endif // APFS_DRIVER_LOADER_H_

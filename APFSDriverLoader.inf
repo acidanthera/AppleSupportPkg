@@ -33,7 +33,7 @@
 #
 [Sources.common]
   APFSDriverLoader.c
-  APFS_Structures.h
+  APFSDriverLoader.h
 
 [Packages]
   AptioFixPkg/AptioFixPkg.dec

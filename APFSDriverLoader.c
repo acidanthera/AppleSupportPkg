@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 */
 
-#include "APFS_Structures.h"
+#include "APFSDriverLoader.h"
 
 STATIC BOOLEAN      mFoundAppleFileSystemDriver;
 STATIC EFI_EVENT    mLoadAppleFileSystemEvent;
