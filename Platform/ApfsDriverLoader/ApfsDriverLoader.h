@@ -62,6 +62,9 @@ STATIC CONST UINT32 VsbMagic = 0x42535041;
 //
 STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
 
+//
+// Apfs container Guid
+//
 STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 
 
@@ -69,7 +72,7 @@ STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 #pragma pack(push, 1)
 typedef struct APFS_BLOCK_HEADER_
 {
-        //
+    //
     // Fletcher checksum, 64-bit. All metadata blocks
     //
     UINT64             Checksum;
@@ -126,7 +129,7 @@ typedef struct APFS_BLOCK_HEADER_
 #pragma pack(push, 1)
 typedef struct APFS_NXSB_
 {
-    APFS_BLOCK_HEADER *BlockHeader;
+    APFS_BLOCK_HEADER  BlockHeader;
     //
     // Magic: NXSB
     //
@@ -210,7 +213,7 @@ typedef struct APFS_NXSB_
 #pragma pack(push, 1)
 typedef struct APFS_APSB_
 {
-    APFS_BLOCK_HEADER *BlockHeader;
+    APFS_BLOCK_HEADER  BlockHeader;
     //
     // Volume Superblock magic
     // Magic: APSB
@@ -300,7 +303,7 @@ typedef struct APFS_APSB_
 #pragma pack(push, 1)
 typedef struct APFS_EFI_BOOT_RECORD_
 {
-    APFS_BLOCK_HEADER *BlockHeader;
+    APFS_BLOCK_HEADER  BlockHeader;
     UINT32             MagicNumber;
     UINT8              Reserved2[140];
     UINT64             BootRecordLBA;

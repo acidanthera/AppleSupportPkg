@@ -235,13 +235,26 @@ ReadDisk (
   return Status;
 }
 
-//
-// Driver Binding EFI protocol, Supported function. This function is called by EFI
-// to test if this driver can handle a certain device. Our implementation only checks
-// if the device is a disk (i.e. that it supports the Block I/O and Disk I/O protocols)
-// and implicitly checks if the disk is already in use by another driver.
-//
+/**
 
+  Routine Description:
+
+    Test to see if this driver can load ApfsDriver from Block device.
+    ControllerHandle must support both Disk IO and Block IO protocols.
+
+  Arguments:
+
+    This                  - Protocol instance pointer.
+    ControllerHandle      - Handle of device to test.
+    RemainingDevicePath   - Not used.
+
+  Returns:
+
+    EFI_SUCCESS           - This driver supports this device.
+    EFI_ALREADY_STARTED   - This driver is already running on this device.
+    other                 - This driver does not support this device.
+
+**/
 EFI_STATUS
 EFIAPI
 ApfsDriverLoaderSupported (
@@ -308,12 +321,26 @@ ApfsDriverLoaderSupported (
   return Status;
 }
 
-//
-// Driver Binding EFI protocol, Start function. This function is called by EFI
-// to start driving the given device. It is still possible at this point to
-// return EFI_UNSUPPORTED.
-//
+/**
+  Routine Description:
+  
+    Start this driver on ControllerHandle by opening a Block IO and Disk IO
+    protocol, reading ApfsContainer if present.
+  
+  Arguments:
+  
+    This                  - Protocol instance pointer.
+    ControllerHandle      - Handle of device to bind driver to.
+    RemainingDevicePath   - Not used.
+  
+  Returns:
+  
+    EFI_SUCCESS           - This driver is added to DeviceHandle.
+    EFI_ALREADY_STARTED   - This driver is already running on DeviceHandle.
+    EFI_OUT_OF_RESOURCES  - Can not allocate the memory.
+    other                 - This driver does not support this device.
 
+**/
 EFI_STATUS
 EFIAPI
 ApfsDriverLoaderStart (
@@ -513,6 +540,8 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
   }
 
+  DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
+
   ApfsBlock = AllocateZeroPool (2048);
   if (ApfsBlock == NULL) {
     FreePool (Block);
@@ -520,7 +549,7 @@ ApfsDriverLoaderStart (
   }
 
   //
-  // Read NXSB and get ApfsBlockSize.
+  // Read ContainerSuperblock and get ApfsBlockSize.
   //
   Status = ReadDisk (
     DiskIo,
@@ -538,9 +567,13 @@ ApfsDriverLoaderStart (
   }
   
   //
-  // Get NXSB header and verify magic number.
+  // Verify ContainerSuperblock magic.
   //
   ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
+
+  DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->MagicNumber));
+  DEBUG ((DEBUG_VERBOSE, "Should be: %04x\n", CsbMagic));
+
   if (ContainerSuperBlock->MagicNumber != CsbMagic) {
     FreePool (Block);
     FreePool (ApfsBlock);
@@ -552,10 +585,15 @@ ApfsDriverLoaderStart (
   //
   ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
+  DEBUG ((DEBUG_VERBOSE, "Container Blocksize: %u bytes\n", ApfsBlockSize));
+  DEBUG ((DEBUG_VERBOSE, "ContainerSuperblock checksum: %08llx \n", ContainerSuperBlock->BlockHeader.Checksum));
+
   //
   // Take pointer to EfiBootRecordBlock.
   //
   EfiBootRecordBlockPtr = ContainerSuperBlock->EfiBootRecordBlock;
+
+  DEBUG ((DEBUG_VERBOSE, "EfiBootRecord located at: %llu block\n", EfiBootRecordBlockPtr));
 
   //
   // Free ApfsBlock and allocate one of a correct size.
@@ -568,9 +606,8 @@ ApfsDriverLoaderStart (
   }
 
   //
-  // Read full NXSB with known BlockSize.
+  // Read full ContainerSuperblock with known BlockSize.
   //
-
   Status = ReadDisk (
     DiskIo,
     DiskIo2,
@@ -587,7 +624,7 @@ ApfsDriverLoaderStart (
   }
   
   //
-  // Verify NXSB checksum.
+  // Verify ContainerSuperblock checksum.
   //
   if (!ApfsBlockChecksumVerify((UINT8 *)ApfsBlock, ApfsBlockSize)) {
     FreePool (Block);
@@ -598,8 +635,11 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock...
   //
-  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
-
+  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + 
+                             MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
+  
+  DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock offset: %08llx \n", EfiBootRecordBlockOffset));
+  
   //
   // Read EfiBootRecordBlock.
   //
@@ -634,10 +674,16 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
   }
 
+  DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock checksum: %08llx\n", EfiBootRecordBlock->BlockHeader.Checksum));
+  DEBUG ((DEBUG_VERBOSE, "ApfsDriver located at: %llu block\n", EfiBootRecordBlock->BootRecordLBA));
+
   ApfsDriverBootReccordOffset = 
     MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + 
     MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
   mAppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
+
+  DEBUG ((DEBUG_VERBOSE, "ApfsDriver offset: %08llx \n", ApfsDriverBootReccordOffset));
+  DEBUG ((DEBUG_VERBOSE, "ApfsDriver size: %llu bytes\n", mAppleFileSystemDriverSize));
 
   FreePool (Block);
   FreePool (ApfsBlock);
@@ -666,6 +712,22 @@ ApfsDriverLoaderStart (
   return EFI_SUCCESS;
 }
 
+/**
+
+  Routine Description:
+    Stop this driver on ControllerHandle.
+
+  Arguments:
+    This                  - Protocol instance pointer.
+    ControllerHandle      - Handle of device to stop driver on.
+    NumberOfChildren      - Not used.
+    ChildHandleBuffer     - Not used.
+
+  Returns:
+    EFI_SUCCESS           - This driver is removed DeviceHandle.
+    other                 - This driver was not removed from this device.
+
+**/
 EFI_STATUS
 EFIAPI
 ApfsDriverLoaderStop (
@@ -675,11 +737,26 @@ ApfsDriverLoaderStop (
   IN  EFI_HANDLE                   *ChildHandleBuffer
   )
 {
-  return EFI_SUCCESS;
-}
+  //
+  // Close the bus driver
+  //
+  gBS->CloseProtocol (
+        ControllerHandle,
+        &gEfiDiskIoProtocolGuid,
+        This->DriverBindingHandle,
+        ControllerHandle
+        );
 
-EFI_STATUS EFIAPI
-NullConOutOutputString(IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This, IN CHAR16 *String) {
+  //
+  // Close Parent BlockIO2 if has.
+  //    
+  gBS->CloseProtocol (
+         ControllerHandle,
+         &gEfiDiskIo2ProtocolGuid,
+         This->DriverBindingHandle,
+         ControllerHandle
+         );
+  
   return EFI_SUCCESS;
 }
 
@@ -735,11 +812,11 @@ LoadAppleFileSystemDriverNotify (
   gBS->StartImage (ImageHandle, NULL, NULL);
 }
 
-/**
- * Interface structure for the EFI Driver Binding protocol.
- * According to UEFI Spec 2.6 , we should define Supported,Start,Stop function for
- * DriverBinding
- */
+//
+// Interface structure for the EFI Driver Binding protocol.
+// According to UEFI Spec 2.6 , we should define Supported, Start, Stop function for
+// DriverBinding
+//
 STATIC
 EFI_DRIVER_BINDING_PROTOCOL
 mApfsDriverLoaderBinding = {
@@ -752,9 +829,22 @@ mApfsDriverLoaderBinding = {
 };
 
 /**
- * Image entry point. Installs the Driver Binding and Component Name protocols
- * on the image's handle.
- */
+
+  Routine Description:
+
+    Register Driver Binding protocol for this driver.
+
+  Arguments:
+
+    ImageHandle           - Handle for the image of this driver.
+    SystemTable           - Pointer to the EFI System Table.
+
+  Returns:
+
+    EFI_SUCCESS           - Driver loaded.
+    other                 - Driver not loaded.
+
+**/
 EFI_STATUS
 EFIAPI
 ApfsDriverLoaderInit (
