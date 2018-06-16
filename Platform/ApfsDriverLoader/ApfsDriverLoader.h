@@ -72,16 +72,16 @@ typedef struct APFS_BLOCK_HEADER_
         //
     // Fletcher checksum, 64-bit. All metadata blocks
     //
-    UINT64   Checksum;
+    UINT64             Checksum;
     //
     // Probably plays a role in the Btree structure NXSB=01 00
     // APSB=02 04, 06 04 and 08 04
     //
-    UINT64   NodeId;
+    UINT64             NodeId;
     //
     // Checkpoint Id
     //
-    UINT64   CsbNodeId;
+    UINT64             CsbNodeId;
     //
     // Block type:
     //  0x01 - Container Superblock <-
@@ -93,23 +93,23 @@ typedef struct APFS_BLOCK_HEADER_
     //  0x0C - Checkpoint
     //  0x0D - Volume Superblock
     //
-    UINT16   BlockType;
+    UINT16             BlockType;
     //
     // Flags:
     // 0x8000 - superblock container
     // 0x4000 - container
     // 0x0000 - ????
     //
-    UINT16   Flags;
+    UINT16             Flags;
     //
     // ????
     //
-    UINT16   ContentType;
+    UINT16             ContentType;
     //
     // Just a padding
     // Unknown behavior
     //
-    UINT16   Padding;
+    UINT16             Padding;
 } APFS_BLOCK_HEADER;
 #pragma pack(pop)
 
@@ -130,73 +130,73 @@ typedef struct APFS_NXSB_
     //
     // Magic: NXSB
     //
-    UINT32   MagicNumber;
+    UINT32             MagicNumber;
     //
     // Size of each allocation unit: 4096 bytes
     // (by default)
     //
-    UINT32   BlockSize;
+    UINT32             BlockSize;
     //
     // Number of blocks in the container
     //
-    UINT64   TotalBlocks;
-    UINT8   Reserved_1[24];
+    UINT64             TotalBlocks;
+    UINT8              Reserved_1[24];
     //
     // GUID of the container, must be equal APFS_CONTAINER_GUID
     //
-    EFI_GUID Guid;
+    EFI_GUID           Guid;
     //
     // Next free block id
     //
-    UINT64   NextFreeBlockId;
+    UINT64             NextFreeBlockId;
     //
     // What is the next CSB id
     //
-    UINT64   NextCsbNodeId;
-    UINT64   Reserved_2;
+    UINT64             NextCsbNodeId;
+    UINT64             Reserved_2;
     //
     // The base block is used to calculate current and previous CSBD/ CSB.
     //
-    UINT32   BaseBlock;
-    UINT32   Reserved_3[3];
+    UINT32             BaseBlock;
+    UINT32             Reserved_3[3];
     //
     // This is the block where the CSBD from previous state is found and is 
     // located in block "Base block" + PreviousCsbdInBlock. The CSBD for 
     // previous state is in block PreviousCsbdInBlock+1 and the CSB for 
     // the same state in block PreviousCsbdInBlock+2
     //
-    UINT32   PreviousCsbdInBlock;
-    UINT32   Reserved_4;
+    UINT32             PreviousCsbdInBlock;
+    UINT32             Reserved_4;
     //
     // The current state CSBD is located in block "Base block" in offset 0x70,
     // 0x01 + OriginalCsbdInBlock. The CSBD for the current state of the file 
     // system is in block 0x01 + OriginalCsbdInBlock. The original CSB is in 
     // the succeeding block, 0x01 + OriginalCsbdInBlock.
     //
-    UINT32   OriginalCsbdInBlock;
+    UINT32             OriginalCsbdInBlock;
     //
     // Oldest CSBD in block "Base block" + 0x02. The oldest CSBD is in block 
     // 0x03 and the CSB for that state is in the succeeding block. OldestCsbd +  
     //  "Base block".
     //
-    UINT32   OldestCsbd;
-    UINT64   Reserved_5;
-    UINT64   SpacemanId;
-    UINT64   BlockMapBlock;
-    UINT64   UnknownId;
-    UINT32   Reserved_6;
+    UINT32             OldestCsbd;
+    UINT64             Reserved_5;
+    UINT64             SpacemanId;
+    UINT64             BlockMapBlock;
+    UINT64             UnknownId;
+    UINT32             Reserved_6;
     //
     // Count of Volume IDs
     // (by default 100)
     //
-    UINT32   ListOfVolumeIds;
+    UINT32             ListOfVolumeIds;
     //
     // Array of 8 byte VolumeRootIds
     // Length of array - ListOfVolumeIds
     //
-    UINT64   VolumesRootIds[100];
-    UINT64   UnknownBlockId;
-    UINT8    Reserved_7[280];
+    UINT64             VolumesRootIds[100];
+    UINT64             UnknownBlockId;
+    UINT8              Reserved_7[280];
     //
     // Pointer to JSDR block (EfiBootRecordBlock)
     //
@@ -215,79 +215,79 @@ typedef struct APFS_APSB_
     // Volume Superblock magic
     // Magic: APSB
     //
-    UINT32   MagicNumber;
+    UINT32             MagicNumber;
     //
     // Volume#. First volume start with 0, (0x00) 
     //
-    UINT32 VolumeNumber;
-    UINT8  Reserved_1[20];
+    UINT32             VolumeNumber;
+    UINT8              Reserved_1[20];
     //
     // Case setting of the volume.
     // 1 = Not case sensitive
     // 8 = Case sensitive (0x01, Not C.S)
     //
-    UINT32 CaseSetting;
-    UINT8  Reserved_2[12];
+    UINT32             CaseSetting;
+    UINT8              Reserved_2[12];
     //
     // Size of volume in Blocks. Last volume has no
     // size set and has available the rest of the blocks
     //
-    UINT64 VolumeSize;
-    UINT64 Reserved_3;
+    UINT64             VolumeSize;
+    UINT64             Reserved_3;
     // 
     // Blocks in use in this volumes 
     //
-    UINT64 BlocksInUseCount;
-    UINT8  Reserved_4[32];
+    UINT64             BlocksInUseCount;
+    UINT8              Reserved_4[32];
     //
     // Block# to initial block of catalog B-Tree Object
     // Map (BTOM)
     //
-    UINT64  BlockNumberToInitialBTOM;
+    UINT64             BlockNumberToInitialBTOM;
     //
     // Node Id of root-node 
     //
-    UINT64 RootNodeId;
+    UINT64             RootNodeId;
     //
     // Block# to Extents B-Tree,block#
     //
-    UINT64 BlockNumberToEBTBlockNumber;
+    UINT64             BlockNumberToEBTBlockNumber;
     //
     // Block# to list of Snapshots
     //
-    UINT64 BlockNumberToListOfSnapshots;
-    UINT8  Reserved_5[16];
+    UINT64             BlockNumberToListOfSnapshots;
+    UINT8              Reserved_5[16];
     //
     // Next CNID
     //
-    UINT64 NextCnid;
+    UINT64             NextCnid;
     //
     // Number of files on the volume
     //
-    UINT64 NumberOfFiles;
+    UINT64             NumberOfFiles;
     //
     // Number of folders on the volume
     //
-    UINT64 NumberOfFolder;
-    UINT8  Reserved_6[40];
+    UINT64             NumberOfFolder;
+    UINT8              Reserved_6[40];
     //
     // Volume UUID
     //
-    UINT8  VolumeUuid[16];
+    EFI_GUID           VolumeUuid;
     //
     // Time Volume last written/modified
     //
-    UINT64 ModificationTimestamp;
-    UINT64 Reserved_7;
+    UINT64             ModificationTimestamp;
+    UINT64             Reserved_7;
     //
     // Creator/APFS-version 
     // Ex. (hfs_convert (apfs- 687.0.0.1.7))
     //
-    UINT8 CreatorVersionInfo[32];
+    UINT8              CreatorVersionInfo[32];
     //
     // Time Volume created 
     //
-    UINT64 CreationTimestamp;
+    UINT64             CreationTimestamp;
     //
     // ???
     //

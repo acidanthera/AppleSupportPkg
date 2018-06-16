@@ -541,7 +541,7 @@ ApfsDriverLoaderStart (
   // Get NXSB header and verify magic number.
   //
   ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
-  if (ContainerSuperBlock ->MagicNumber != CsbMagic) {
+  if (ContainerSuperBlock->MagicNumber != CsbMagic) {
     FreePool (Block);
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
@@ -628,7 +628,7 @@ ApfsDriverLoaderStart (
   }
   
   EfiBootRecordBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
-  if (EfiBootRecordBlock ->MagicNumber != EfiBootRecordMagic) {
+  if (EfiBootRecordBlock->MagicNumber != EfiBootRecordMagic) {
     FreePool(Block);
     FreePool(ApfsBlock);
     return EFI_UNSUPPORTED;
