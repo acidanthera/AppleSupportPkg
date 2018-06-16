@@ -1,6 +1,6 @@
 /** @file
 
-APFS Driver Loader - loads apfs.efi from JSDR section in container
+APFS Driver Loader - loads apfs.efi from EfiBootRecord block
 
 Copyright (c) 2017-2018, savvas
 

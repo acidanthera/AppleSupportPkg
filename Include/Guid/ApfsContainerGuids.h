@@ -3,7 +3,6 @@
 Apfs specific GUIDs for UEFI Variable Storage, version 1.0.
 
 Copyright (c) 2017-2018, savvas
-Copyright (c) 2018, vit9696
 
 All rights reserved.
 

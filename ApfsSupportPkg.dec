@@ -1,6 +1,5 @@
 ## @file
 # Copyright (c) 2017-2018, savvas 
-# Copyright (c) 2018, vit9696
 #
 # All rights reserved.<BR>
 #

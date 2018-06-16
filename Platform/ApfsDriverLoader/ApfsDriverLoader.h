@@ -85,14 +85,14 @@ typedef struct APFS_NXSB_
     // Probably plays a role in the Btree structure NXSB=01 00
     // APSB=02 04, 06 04 and 08 04
     //
-    UINT64   BlockId;
+    UINT64   NodeId;
     //
     // Checkpoint Id
     //
     UINT64   CsbNodeId;
     //
     // Block type:
-    //  0x01 - Container Superblock
+    //  0x01 - Container Superblock <-
     //  0x02 - Node
     //  0x05 - Spacemanager
     //  0x07 - Allocation Info File
@@ -201,26 +201,128 @@ typedef struct APFS_NXSB_
 #pragma pack(push, 1)
 typedef struct APFS_APSB_
 {
+    //
+    // Fletcher checksum, 64-bit. All metadata blocks
+    //
     UINT64   Checksum;
-    UINT64   BlockId;
+    //
+    // Probably plays a role in the Btree structure NXSB=01 00
+    // APSB=02 04, 06 04, 08 04, 03 04
+    //
+    UINT64   NodeId;
+    //
+    // Checkpoint Id
+    // (0x5B47)
+    //
     UINT64   CsbNodeId;
+    //
+    // Block type:
+    //  0x01 - Container Superblock
+    //  0x02 - Node
+    //  0x05 - Spacemanager
+    //  0x07 - Allocation Info File
+    //  0x11 - Unknown
+    //  0x0B - B-Tree
+    //  0x0C - Checkpoint
+    //  0x0D - Volume Superblock <-
+    //
     UINT16   BlockType;
+    //
+    // Flags:
+    // 0x8000 - superblock container
+    // 0x4000 - container
+    // 0x0000 - ????
+    //
     UINT16   Flags;
+    //
+    // ????
+    //
     UINT16   ContentType;
+    //
+    // Just a padding
+    // Unknown behavior
+    //
     UINT16   Padding;
+    //
+    // Volume Superblock magic
+    // Magic: APSB
+    //
     UINT32   MagicNumber;
-    UINT8    Reserved_1[92];
-    UINT64   BlockMap;
-    UINT64   RootDirId;
-    UINT64   Pointer3;
-    UINT64   Pointer4;
-    UINT8    Reserved_2[80];
-    EFI_GUID Guid;
-    UINT64   Time1;
-    UINT8    Reserved_3[40];
-    UINT64   Time2;
-    UINT8    Reserved_4[392];
-    UINT8    PartitionName[8];
+    //
+    // Volume#. First volume start with 0, (0x00) 
+    //
+    uint32_t VolumeNumber;
+    uint8_t  Reserved_1[20];
+    //
+    // Case setting of the volume.
+    // 1 = Not case sensitive
+    // 8 = Case sensitive (0x01, Not C.S)
+    //
+    uint32_t CaseSetting;
+    uint8_t  Reserved_2[12];
+    //
+    // Size of volume in Blocks. Last volume has no
+    // size set and has available the rest of the blocks
+    //
+    uint64_t VolumeSize;
+    uint64_t Reserved_3;
+    // 
+    // Blocks in use in this volumes 
+    //
+    uint64_t BlocksInUseCount;
+    uint8_t  Reserved_4[32];
+    //
+    // Block# to initial block of catalog B-Tree Object
+    // Map (BTOM)
+    //
+    uint64_t  BlockNumberToInitialBTOM;
+    //
+    // Node Id of root-node 
+    //
+    uint64_t RootNodeId;
+    //
+    // Block# to Extents B-Tree,block#
+    //
+    uint64_t BlockNumberToEBTBlockNumber;
+    //
+    // Block# to list of Snapshots
+    //
+    uint64_t BlockNumberToListOfSnapshots;
+    uint8_t  Reserved_5[16];
+    //
+    // Next CNID
+    //
+    uint64_t NextCnid;
+    //
+    // Number of files on the volume
+    //
+    uint64_t NumberOfFiles;
+    //
+    // Number of folders on the volume
+    //
+    uint64_t NumberOfFolder;
+    uint8_t  Reserved_6[40];
+    //
+    // Volume UUID
+    //
+    uint8_t  VolumeUuid[16];
+    //
+    // Time Volume last written/modified
+    //
+    uint64_t ModificationTimestamp;
+    uint64_t Reserved_7;
+    //
+    // Creator/APFS-version 
+    // Ex. (hfs_convert (apfs- 687.0.0.1.7))
+    //
+    uint8_t CreatorVersionInfo[32];
+    //
+    // Time Volume created 
+    //
+    uint64_t CreationTimestamp;
+    //
+    // ???
+    //
 } APFS_APSB;
 #pragma pack(pop)
 
@@ -231,7 +333,7 @@ typedef struct APFS_APSB_
 typedef struct APFS_EFI_BOOT_RECORD_
 {
     UINT64   Checksum;
-    UINT64   BlockId;
+    UINT64   NodeId;
     UINT64   CsbNodeId;
     UINT16   BlockType;
     UINT16   Flags;
