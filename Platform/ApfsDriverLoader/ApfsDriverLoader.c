@@ -3,7 +3,6 @@
 APFS Driver Loader - loads apfs.efi from JSDR section in container
 
 Copyright (c) 2017-2018, savvas
-Copyright (c) 2018, vit9696
 
 All rights reserved.
 
@@ -147,16 +146,16 @@ mNullTextOutputProtocol = {
 };
 
 
-/*
- * Function to calculate APFS block checksum.
- * According to the apple docs the Fletcher’s checksum algorithm is used.
- * Apple uses a variant of the algorithm described in a paper by John Kodis.
- * The following algorithm shows this procedure.
- * The input is the block without the first 8 byte.
- */
+//
+// Function to calculate APFS block checksum.
+// According to the apple docs the Fletcher’s checksum algorithm is used.
+// Apple uses a variant of the algorithm described in a paper by John Kodis.
+// The following algorithm shows this procedure.
+// The input is the block without the first 8 byte.
+//
 STATIC
 UINT64
-APFS_CreateChecksum (
+ApfsBlockChecksumCalculate (
   UINT32  *Data,
   UINTN  DataSize
   )
@@ -178,13 +177,13 @@ APFS_CreateChecksum (
   return (Check2 << 32) | Check1;
 }
 
-/*
- * Function to check block checksum.
- * Returns TRUE if the checksum is valid.
- */
+//
+// Function to check block checksum.
+// Returns TRUE if the checksum is valid.
+//
 STATIC
 BOOLEAN
-APFS_CheckChecksum (
+ApfsBlockChecksumVerify (
   UINT8   *Data,
   UINTN  DataSize
   )
@@ -192,7 +191,7 @@ APFS_CheckChecksum (
   UINT64  NewChecksum;
   UINT64  *CurrChecksum = (UINT64 *)Data;
 
-  NewChecksum = APFS_CreateChecksum (
+  NewChecksum = ApfsBlockChecksumCalculate (
     (UINT32 *)(Data + sizeof (UINT64)),
     DataSize - sizeof (UINT64)
     );
@@ -235,13 +234,12 @@ ReadDisk (
   return Status;
 }
 
-/**
- * Driver Binding EFI protocol, Supported function. This function is called by EFI
- * to test if this driver can handle a certain device. Our implementation only checks
- * if the device is a disk (i.e. that it supports the Block I/O and Disk I/O protocols)
- * and implicitly checks if the disk is already in use by another driver.
- * (taken from vbox fs drivers "fsw")
- */
+//
+// Driver Binding EFI protocol, Supported function. This function is called by EFI
+// to test if this driver can handle a certain device. Our implementation only checks
+// if the device is a disk (i.e. that it supports the Block I/O and Disk I/O protocols)
+// and implicitly checks if the disk is already in use by another driver.
+//
 
 EFI_STATUS
 EFIAPI
@@ -309,18 +307,11 @@ ApfsDriverLoaderSupported (
   return Status;
 }
 
-/**
- * Driver Binding EFI protocol, Start function. This function is called by EFI
- * to start driving the given device. It is still possible at this point to
- * return EFI_UNSUPPORTED, and in fact we will do so if the file system driver
- * cannot find the superblock signature (or equivalent) that it expects.
- *
- * This function allocates memory for a per-volume structure, opens the
- * required protocols (just Disk I/O in our case, Block I/O is only looked
- * at to get the MediaId field), and lets the FSW core mount the file system.
- * If successful, an EFI Simple File System protocol is exported on the
- * device handle.
- */
+//
+// Driver Binding EFI protocol, Start function. This function is called by EFI
+// to start driving the given device. It is still possible at this point to
+// return EFI_UNSUPPORTED.
+//
 
 EFI_STATUS
 EFIAPI
@@ -561,6 +552,11 @@ ApfsDriverLoaderStart (
   ApfsBlockSize = NextSuperBlock->BlockSize;
 
   //
+  // Take pointer to JSDR.
+  //
+  JsdrPtr = NextSuperBlock->EfiBootRecordBlock;
+
+  //
   // Free ApfsBlock and allocate one of a correct size.
   //
   FreePool (ApfsBlock);
@@ -592,26 +588,20 @@ ApfsDriverLoaderStart (
   //
   // Verify NXSB checksum.
   //
-  if (!APFS_CheckChecksum((UINT8 *)ApfsBlock, ApfsBlockSize)) {
+  if (!ApfsBlockChecksumVerify((UINT8 *)ApfsBlock, ApfsBlockSize)) {
     FreePool (Block);
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
   } 
 
   //
-  // Take pointer to JSDR.
-  //
-  JsdrPtr = *(UINT64 *) (ApfsBlock + 0x4F8);
-
-  //
-  // Calculate Offset...
+  // Calculate Offset of JSDR...
   //
   JsdrOffset = MultU64x32 (JsdrPtr, ApfsBlockSize) + MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
 
   //
   // Read JSDR block.
   //
-
   Status = ReadDisk (
     DiskIo,
     DiskIo2,
@@ -630,12 +620,11 @@ ApfsDriverLoaderStart (
   //
   // Verify JSDR checksum.
   //
-  if (!APFS_CheckChecksum(ApfsBlock, ApfsBlockSize)) {
+  if (!ApfsBlockChecksumVerify(ApfsBlock, ApfsBlockSize)) {
     FreePool (Block);
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
   }
-
   
   JsdrBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
   if (JsdrBlock ->MagicNumber != JSDR_MN) {

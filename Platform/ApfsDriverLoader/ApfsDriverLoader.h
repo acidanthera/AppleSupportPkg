@@ -3,7 +3,6 @@
 APFS Driver Loader - loads apfs.efi from JSDR section in container
 
 Copyright (c) 2017-2018, savvas
-Copyright (c) 2018, vit9696
 
 All rights reserved.
 
@@ -75,29 +74,120 @@ STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 #pragma pack(push, 1)
 typedef struct APFS_NXSB_
 {
+    //
+    // Fletcher checksum, 64-bit. All metadata blocks
+    //
     UINT64   Checksum;
+    //
+    // Probably plays a role in the Btree structure NXSB=01 00
+    // APSB=02 04, 06 04 and 08 04
+    //
     UINT64   BlockId;
-    UINT64   Version;
+    //
+    // Checkpoint Id
+    //
+    UINT64   CsbNodeId;
+    //
+    // Block type:
+    //  0x01 - Container Superblock
+    //  0x02 - Node
+    //  0x05 - Spacemanager
+    //  0x07 - Allocation Info File
+    //  0x11 - Unknown
+    //  0x0B - B-Tree
+    //  0x0C - Checkpoint
+    //  0x0D - Volume Superblock
+    //
     UINT16   BlockType;
+    //
+    // Flags:
+    // 0x8000 - superblock container
+    // 0x4000 - container
+    // 0x0000 - ????
+    //
     UINT16   Flags;
-    UINT16   VarType;
-    UINT16   Reserved;
+    //
+    // ????
+    //
+    UINT16   ContentType;
+    //
+    // Just a padding
+    // Unknown behavior
+    //
+    UINT16   Padding;
+    //
+    // Magic: NXSB
+    //
     UINT32   MagicNumber;
+    //
+    // Size of each allocation unit: 4096 bytes
+    // (by default)
+    //
     UINT32   BlockSize;
+    //
+    // Number of blocks in the container
+    //
     UINT64   TotalBlocks;
-    UINT64   Reserved_1[3];
+    UINT8   Reserved_1[24];
+    //
+    // GUID of the container, must be equal APFS_CONTAINER_GUID
+    //
     EFI_GUID Guid;
+    //
+    // Next free block id
+    //
     UINT64   NextFreeBlockId;
-    UINT64   NextVersion;
-    UINT64   Reserved_2[4];
-    UINT32   PreviousContainerSBBlock;
-    UINT8    Reserved_3[12];
+    //
+    // What is the next CSB id
+    //
+    UINT64   NextCsbNodeId;
+    UINT64   Reserved_2;
+    //
+    // The base block is used to calculate current and previous CSBD/ CSB.
+    //
+    UINT32   BaseBlock;
+    UINT32   Reserved_3[3];
+    //
+    // This is the block where the CSBD from previous state is found and is 
+    // located in block "Base block" + PreviousCsbdInBlock. The CSBD for 
+    // previous state is in block PreviousCsbdInBlock+1 and the CSB for 
+    // the same state in block PreviousCsbdInBlock+2
+    //
+    UINT32   PreviousCsbdInBlock;
+    UINT32   Reserved_4;
+    //
+    // The current state CSBD is located in block "Base block" in offset 0x70,
+    // 0x01 + OriginalCsbdInBlock. The CSBD for the current state of the file 
+    // system is in block 0x01 + OriginalCsbdInBlock. The original CSB is in 
+    // the succeeding block, 0x01 + OriginalCsbdInBlock.
+    //
+    UINT32   OriginalCsbdInBlock;
+    //
+    // Oldest CSBD in block "Base block" + 0x02. The oldest CSBD is in block 
+    // 0x03 and the CSB for that state is in the succeeding block. OldestCsbd +  
+    //  "Base block".
+    //
+    UINT32   OldestCsbd;
+    UINT64   Reserved_5;
     UINT64   SpacemanId;
     UINT64   BlockMapBlock;
     UINT64   UnknownId;
-    UINT32   Reserved_4;
-    UINT32   APFSPartitionCount;
-    UINT64   OffsetAPFS;
+    UINT32   Reserved_6;
+    //
+    // Count of Volume IDs
+    // (by default 100)
+    //
+    UINT32   ListOfVolumeIds;
+    //
+    // Array of 8byte VolumeRootIds
+    //
+    UINT64   VolumesRootIds[100];
+    UINT64   UnknownBlockId;
+    UINT8    Reserved_7[280];
+    //
+    // Pointer to JSDR block (EfiBootRecordBlock)
+    //
+    UINT64   EfiBootRecordBlock;
 } APFS_NXSB;
 #pragma pack(pop)
 
@@ -109,11 +199,11 @@ typedef struct APFS_APSB_
 {
     UINT64   Checksum;
     UINT64   BlockId;
-    UINT64   Version;
+    UINT64   CsbNodeId;
     UINT16   BlockType;
     UINT16   Flags;
-    UINT16   VarType;
-    UINT16   Reserved;
+    UINT16   ContentType;
+    UINT16   Padding;
     UINT32   MagicNumber;
     UINT8    Reserved_1[92];
     UINT64   BlockMap;
@@ -136,17 +226,17 @@ typedef struct APFS_APSB_
 #pragma pack(push, 1)
 typedef struct APFS_EFI_BOOT_RECORD_
 {
-    UINT64 Checksum;
-    UINT64 BlockId;
-    UINT64 Version;
-    UINT16 BlockType;
-    UINT16 Flags;
-    UINT16 VarType;
-    UINT16 Reserved1;
-    UINT32 MagicNumber;
-    UINT8  Reserved2[140];
-    UINT64 BootRecordLBA;
-    UINT64 BootRecordSize;
+    UINT64   Checksum;
+    UINT64   BlockId;
+    UINT64   CsbNodeId;
+    UINT16   BlockType;
+    UINT16   Flags;
+    UINT16   ContentType;
+    UINT16   Padding;
+    UINT32   MagicNumber;
+    UINT8    Reserved2[140];
+    UINT64   BootRecordLBA;
+    UINT64   BootRecordSize;
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 
