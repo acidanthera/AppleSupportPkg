@@ -64,20 +64,12 @@ STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
 
 STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 
-/* NXSB Container Superblock
- * The container superblock is the entry point to the filesystem.
- * Because of the structure with containers and flexible volumes,
- * allocation needs to handled on a container level.
- * The container superblock contains information on the blocksize,
- * the number of blocks and pointers to the spacemanager for this task.
- * Additionally the block IDs of all volumes are stored in the superblock.
- * To map block IDs to block offsets a pointer to a block map b-tree is stored.
- * This b-tree contains entries for each volume with its ID and offset.
- */
+
+
 #pragma pack(push, 1)
-typedef struct APFS_NXSB_
+typedef struct APFS_BLOCK_HEADER_
 {
-    //
+        //
     // Fletcher checksum, 64-bit. All metadata blocks
     //
     UINT64   Checksum;
@@ -118,6 +110,23 @@ typedef struct APFS_NXSB_
     // Unknown behavior
     //
     UINT16   Padding;
+} APFS_BLOCK_HEADER;
+#pragma pack(pop)
+
+/* NXSB Container Superblock
+ * The container superblock is the entry point to the filesystem.
+ * Because of the structure with containers and flexible volumes,
+ * allocation needs to handled on a container level.
+ * The container superblock contains information on the blocksize,
+ * the number of blocks and pointers to the spacemanager for this task.
+ * Additionally the block IDs of all volumes are stored in the superblock.
+ * To map block IDs to block offsets a pointer to a block map b-tree is stored.
+ * This b-tree contains entries for each volume with its ID and offset.
+ */
+#pragma pack(push, 1)
+typedef struct APFS_NXSB_
+{
+    APFS_BLOCK_HEADER *BlockHeader;
     //
     // Magic: NXSB
     //
@@ -201,48 +210,7 @@ typedef struct APFS_NXSB_
 #pragma pack(push, 1)
 typedef struct APFS_APSB_
 {
-    //
-    // Fletcher checksum, 64-bit. All metadata blocks
-    //
-    UINT64   Checksum;
-    //
-    // Probably plays a role in the Btree structure NXSB=01 00
-    // APSB=02 04, 06 04, 08 04, 03 04
-    //
-    UINT64   NodeId;
-    //
-    // Checkpoint Id
-    // (0x5B47)
-    //
-    UINT64   CsbNodeId;
-    //
-    // Block type:
-    //  0x01 - Container Superblock
-    //  0x02 - Node
-    //  0x05 - Spacemanager
-    //  0x07 - Allocation Info File
-    //  0x11 - Unknown
-    //  0x0B - B-Tree
-    //  0x0C - Checkpoint
-    //  0x0D - Volume Superblock <-
-    //
-    UINT16   BlockType;
-    //
-    // Flags:
-    // 0x8000 - superblock container
-    // 0x4000 - container
-    // 0x0000 - ????
-    //
-    UINT16   Flags;
-    //
-    // ????
-    //
-    UINT16   ContentType;
-    //
-    // Just a padding
-    // Unknown behavior
-    //
-    UINT16   Padding;
+    APFS_BLOCK_HEADER *BlockHeader;
     //
     // Volume Superblock magic
     // Magic: APSB
@@ -251,75 +219,75 @@ typedef struct APFS_APSB_
     //
     // Volume#. First volume start with 0, (0x00) 
     //
-    uint32_t VolumeNumber;
-    uint8_t  Reserved_1[20];
+    UINT32 VolumeNumber;
+    UINT8  Reserved_1[20];
     //
     // Case setting of the volume.
     // 1 = Not case sensitive
     // 8 = Case sensitive (0x01, Not C.S)
     //
-    uint32_t CaseSetting;
-    uint8_t  Reserved_2[12];
+    UINT32 CaseSetting;
+    UINT8  Reserved_2[12];
     //
     // Size of volume in Blocks. Last volume has no
     // size set and has available the rest of the blocks
     //
-    uint64_t VolumeSize;
-    uint64_t Reserved_3;
+    UINT64 VolumeSize;
+    UINT64 Reserved_3;
     // 
     // Blocks in use in this volumes 
     //
-    uint64_t BlocksInUseCount;
-    uint8_t  Reserved_4[32];
+    UINT64 BlocksInUseCount;
+    UINT8  Reserved_4[32];
     //
     // Block# to initial block of catalog B-Tree Object
     // Map (BTOM)
     //
-    uint64_t  BlockNumberToInitialBTOM;
+    UINT64  BlockNumberToInitialBTOM;
     //
     // Node Id of root-node 
     //
-    uint64_t RootNodeId;
+    UINT64 RootNodeId;
     //
     // Block# to Extents B-Tree,block#
     //
-    uint64_t BlockNumberToEBTBlockNumber;
+    UINT64 BlockNumberToEBTBlockNumber;
     //
     // Block# to list of Snapshots
     //
-    uint64_t BlockNumberToListOfSnapshots;
-    uint8_t  Reserved_5[16];
+    UINT64 BlockNumberToListOfSnapshots;
+    UINT8  Reserved_5[16];
     //
     // Next CNID
     //
-    uint64_t NextCnid;
+    UINT64 NextCnid;
     //
     // Number of files on the volume
     //
-    uint64_t NumberOfFiles;
+    UINT64 NumberOfFiles;
     //
     // Number of folders on the volume
     //
-    uint64_t NumberOfFolder;
-    uint8_t  Reserved_6[40];
+    UINT64 NumberOfFolder;
+    UINT8  Reserved_6[40];
     //
     // Volume UUID
     //
-    uint8_t  VolumeUuid[16];
+    UINT8  VolumeUuid[16];
     //
     // Time Volume last written/modified
     //
-    uint64_t ModificationTimestamp;
-    uint64_t Reserved_7;
+    UINT64 ModificationTimestamp;
+    UINT64 Reserved_7;
     //
     // Creator/APFS-version 
     // Ex. (hfs_convert (apfs- 687.0.0.1.7))
     //
-    uint8_t CreatorVersionInfo[32];
+    UINT8 CreatorVersionInfo[32];
     //
     // Time Volume created 
     //
-    uint64_t CreationTimestamp;
+    UINT64 CreationTimestamp;
     //
     // ???
     //
@@ -332,17 +300,11 @@ typedef struct APFS_APSB_
 #pragma pack(push, 1)
 typedef struct APFS_EFI_BOOT_RECORD_
 {
-    UINT64   Checksum;
-    UINT64   NodeId;
-    UINT64   CsbNodeId;
-    UINT16   BlockType;
-    UINT16   Flags;
-    UINT16   ContentType;
-    UINT16   Padding;
-    UINT32   MagicNumber;
-    UINT8    Reserved2[140];
-    UINT64   BootRecordLBA;
-    UINT64   BootRecordSize;
+    APFS_BLOCK_HEADER *BlockHeader;
+    UINT32             MagicNumber;
+    UINT8              Reserved2[140];
+    UINT64             BootRecordLBA;
+    UINT64             BootRecordSize;
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 
