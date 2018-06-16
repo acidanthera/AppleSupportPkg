@@ -1,8 +1,9 @@
 /** @file
 
-APFS Driver Loader - loads apfs.efi from JSDR section in container
+APFS Driver Loader - loads apfs.efi from EfiBootRecord block
 
 Copyright (c) 2017-2018, savvas
+Copyright (c) 2018, vit9696
 
 All rights reserved.
 
@@ -338,10 +339,10 @@ ApfsDriverLoaderStart (
   UINT8                       *Block                       = NULL;
   EFI_PARTITION_ENTRY         *ApfsGptEntry                = NULL;
   UINT8                       *ApfsBlock                   = NULL;
-  UINT64                      JsdrOffset                   = 0;
-  UINT64                      JsdrPtr                      = 0;
-  APFS_EFI_BOOT_RECORD        *JsdrBlock                   = NULL;
-  APFS_NXSB                   *NextSuperBlock              = NULL;
+  UINT64                      EfiBootRecordBlockOffset     = 0;
+  UINT64                      EfiBootRecordBlockPtr        = 0;
+  APFS_EFI_BOOT_RECORD        *EfiBootRecordBlock          = NULL;
+  APFS_NXSB                   *ContainerSuperBlock         = NULL;
   UINT64                      ApfsDriverBootReccordOffset  = 0;
   UINTN                       Index                        = 0;
 
@@ -539,8 +540,8 @@ ApfsDriverLoaderStart (
   //
   // Get NXSB header and verify magic number.
   //
-  NextSuperBlock = (APFS_NXSB *)ApfsBlock;
-  if (NextSuperBlock ->MagicNumber != NXSB_MN) {
+  ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
+  if (ContainerSuperBlock ->MagicNumber != CsbMagic) {
     FreePool (Block);
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
@@ -549,12 +550,12 @@ ApfsDriverLoaderStart (
   //
   // Get ApfsBlockSize.
   //
-  ApfsBlockSize = NextSuperBlock->BlockSize;
+  ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
   //
-  // Take pointer to JSDR.
+  // Take pointer to EfiBootRecordBlock.
   //
-  JsdrPtr = NextSuperBlock->EfiBootRecordBlock;
+  EfiBootRecordBlockPtr = ContainerSuperBlock->EfiBootRecordBlock;
 
   //
   // Free ApfsBlock and allocate one of a correct size.
@@ -595,18 +596,18 @@ ApfsDriverLoaderStart (
   } 
 
   //
-  // Calculate Offset of JSDR...
+  // Calculate Offset of EfiBootRecordBlock...
   //
-  JsdrOffset = MultU64x32 (JsdrPtr, ApfsBlockSize) + MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
+  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
 
   //
-  // Read JSDR block.
+  // Read EfiBootRecordBlock.
   //
   Status = ReadDisk (
     DiskIo,
     DiskIo2,
     MediaId,
-    JsdrOffset,
+    EfiBootRecordBlockOffset,
     ApfsBlockSize,
     ApfsBlock
     );
@@ -618,7 +619,7 @@ ApfsDriverLoaderStart (
   }
 
   //
-  // Verify JSDR checksum.
+  // Verify EfiBootRecordBlock checksum.
   //
   if (!ApfsBlockChecksumVerify(ApfsBlock, ApfsBlockSize)) {
     FreePool (Block);
@@ -626,17 +627,17 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
   }
   
-  JsdrBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
-  if (JsdrBlock ->MagicNumber != JSDR_MN) {
+  EfiBootRecordBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
+  if (EfiBootRecordBlock ->MagicNumber != EfiBootRecordMagic) {
     FreePool(Block);
     FreePool(ApfsBlock);
     return EFI_UNSUPPORTED;
   }
 
   ApfsDriverBootReccordOffset = 
-    MultU64x32 (JsdrBlock->BootRecordLBA, ApfsBlockSize) + 
+    MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + 
     MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
-  mAppleFileSystemDriverSize = MultU64x32 (JsdrBlock->BootRecordSize, ApfsBlockSize);
+  mAppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
 
   FreePool (Block);
   FreePool (ApfsBlock);

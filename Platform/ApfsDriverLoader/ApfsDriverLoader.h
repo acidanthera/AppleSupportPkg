@@ -1,6 +1,6 @@
 /** @file
 
-APFS Driver Loader - loads apfs.efi from JSDR section in container
+APFS Driver Loader - loads apfs.efi from EfiBootRecord block
 
 Copyright (c) 2017-2018, savvas
 
@@ -47,17 +47,20 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Guid/ApfsContainerGuids.h>
 
 //
-// NXSB magic number
+// Container Superblock magic
+// 'NXSB'
 //
-STATIC CONST UINT32 NXSB_MN = 0x4253584e;
+STATIC CONST UINT32 CsbMagic = 0x4253584e;
 //
-// APSB magic number
+// Volume Superblock magic
+// 'APSB'
 //
-STATIC CONST UINT32 APSB_MN = 0x42535041;
+STATIC CONST UINT32 VsbMagic = 0x42535041;
 //
-// JSDR magic number
+// EfiBootRecord block magic
+// 'JSDR'
 //
-STATIC CONST UINT32 JSDR_MN = 0x5244534a;
+STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
 
 STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 
@@ -179,7 +182,8 @@ typedef struct APFS_NXSB_
     //
     UINT32   ListOfVolumeIds;
     //
-    // Array of 8byte VolumeRootIds
+    // Array of 8 byte VolumeRootIds
+    // Length of array - ListOfVolumeIds
     //
     UINT64   VolumesRootIds[100];
     UINT64   UnknownBlockId;
