@@ -50,12 +50,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // Container Superblock magic
 // 'NXSB'
 //
-STATIC CONST UINT32 CsbMagic = 0x4253584e;
+STATIC CONST UINT32 CsbMagic           = 0x4253584e;
 //
 // Volume Superblock magic
 // 'APSB'
 //
-STATIC CONST UINT32 VsbMagic = 0x42535041;
+STATIC CONST UINT32 VsbMagic           = 0x42535041;
 //
 // EfiBootRecord block magic
 // 'JSDR'
@@ -66,8 +66,6 @@ STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
 // Apfs container Guid
 //
 STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
-
-
 
 #pragma pack(push, 1)
 typedef struct APFS_BLOCK_HEADER_
@@ -116,16 +114,17 @@ typedef struct APFS_BLOCK_HEADER_
 } APFS_BLOCK_HEADER;
 #pragma pack(pop)
 
-/* NXSB Container Superblock
- * The container superblock is the entry point to the filesystem.
- * Because of the structure with containers and flexible volumes,
- * allocation needs to handled on a container level.
- * The container superblock contains information on the blocksize,
- * the number of blocks and pointers to the spacemanager for this task.
- * Additionally the block IDs of all volumes are stored in the superblock.
- * To map block IDs to block offsets a pointer to a block map b-tree is stored.
- * This b-tree contains entries for each volume with its ID and offset.
- */
+/**
+  NXSB Container Superblock
+  The container superblock is the entry point to the filesystem.
+  Because of the structure with containers and flexible volumes,
+  allocation needs to handled on a container level.
+  The container superblock contains information on the blocksize,
+  the number of blocks and pointers to the spacemanager for this task.
+  Additionally the block IDs of all volumes are stored in the superblock.
+  To map block IDs to block offsets a pointer to a block map b-tree is stored.
+  This b-tree contains entries for each volume with its ID and offset.
+**/
 #pragma pack(push, 1)
 typedef struct APFS_NXSB_
 {
@@ -304,9 +303,19 @@ typedef struct APFS_APSB_
 typedef struct APFS_EFI_BOOT_RECORD_
 {
     APFS_BLOCK_HEADER  BlockHeader;
+    //
+    // EfiBootRecord magic
+    // Magic: JSDR
+    //
     UINT32             MagicNumber;
     UINT8              Reserved2[140];
+    //
+    // Apfs driver start LBA
+    //
     UINT64             BootRecordLBA;
+    //
+    // Apfs driver size
+    //
     UINT64             BootRecordSize;
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)

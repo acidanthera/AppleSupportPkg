@@ -42,7 +42,7 @@ package() {
   pushd "$1" || exit 1
   rm -rf tmp || exit 1
   mkdir -p tmp/Drivers || exit 1
-  mkdir -p tmp/Tools || exit 1
+  #mkdir -p tmp/Tools || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
   pushd tmp || exit 1
   zip -qry ../"ApfsSupport-v${ver}-${2}.zip" * || exit 1

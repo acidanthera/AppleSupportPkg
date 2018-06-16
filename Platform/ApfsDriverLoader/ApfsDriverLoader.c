@@ -677,9 +677,8 @@ ApfsDriverLoaderStart (
   DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock checksum: %08llx\n", EfiBootRecordBlock->BlockHeader.Checksum));
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver located at: %llu block\n", EfiBootRecordBlock->BootRecordLBA));
 
-  ApfsDriverBootReccordOffset = 
-    MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + 
-    MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
+  ApfsDriverBootReccordOffset = MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + 
+                                MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
   mAppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
 
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver offset: %08llx \n", ApfsDriverBootReccordOffset));
