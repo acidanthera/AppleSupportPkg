@@ -7,7 +7,7 @@ ApfsSupportPkg
 
 ## APFS Driver Loader
 - Loads apfs.efi from ApfsContainer located on block device.
-- **WARNING**: Compatible only with AptioMemoryFix R21+
+- **WARNING**: Compatible only with AptioMemoryFix R21+ and loaded PartitionDriver (PartitionDXE)
 
 ## Credits
 - [cugu](https://github.com/cugu) for awesome research according APFS structure
