@@ -1,6 +1,9 @@
 ApfsSupport Changelog
 ==================
 
+#### v1.1.1
+- More optimization;
+
 #### v1.1.0
 - Optimization;
 - Don't parse GPT by ourself, now using PartitionInfo protocols;

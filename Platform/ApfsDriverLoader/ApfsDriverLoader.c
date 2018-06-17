@@ -274,33 +274,22 @@ ApfsDriverLoaderSupported (
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gApplePartitionInfoProtocolGuid,
+    &mApfsContainerPartitionTypeGuid,
     NULL,
     This->DriverBindingHandle,
     ControllerHandle,
     EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-    );
+    );  
 
   if (EFI_ERROR (Status)) {
     Status = gBS->OpenProtocol (
       ControllerHandle,
-      &gEfiPartitionInfoProtocolGuid,
+      &gApplePartitionInfoProtocolGuid,
       NULL,
       This->DriverBindingHandle,
       ControllerHandle,
       EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-      );
-
-    if (EFI_ERROR (Status)) {
-      Status = gBS->OpenProtocol (
-          ControllerHandle,
-          &mApfsContainerPartitionTypeGuid,
-          NULL,
-          This->DriverBindingHandle,
-          ControllerHandle,
-          EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-          );  
-    }    
+      );  
   }
 
   if (EFI_ERROR (Status)) {
@@ -393,7 +382,6 @@ ApfsDriverLoaderStart (
   EFI_DISK_IO_PROTOCOL          *DiskIo                      = NULL;
   EFI_DISK_IO2_PROTOCOL         *DiskIo2                     = NULL;
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
-  EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
   UINT32                        ApfsBlockSize                = 0;
   UINT32                        MediaId                      = 0;
   UINT8                         *ApfsBlock                   = NULL;
@@ -410,68 +398,42 @@ ApfsDriverLoaderStart (
   //
   // Open PartitionInfo protocols
   //
+
+  //
+  // Check protocol with mApfsContainerPartitionTypeGuid
+  // which installed by Edk Partition Driver
+  //  
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gApplePartitionInfoProtocolGuid,
-    (VOID **) &ApplePartitionInfo,
+    &mApfsContainerPartitionTypeGuid,
+    NULL,
     This->DriverBindingHandle,
     ControllerHandle,
-    EFI_OPEN_PROTOCOL_GET_PROTOCOL
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
     );
 
   if (EFI_ERROR (Status)) {
-    ApplePartitionInfo = NULL;
 
+    //
+    // Check protocol with mApfsContainerPartitionTypeGuid
+    // which installed by Edk Partition Driver
+    //
     Status = gBS->OpenProtocol (
       ControllerHandle,
-      &gEfiPartitionInfoProtocolGuid,
-      (VOID **) &Edk2PartitionInfo,
+      &gApplePartitionInfoProtocolGuid,
+      (VOID **) &ApplePartitionInfo,
       This->DriverBindingHandle,
       ControllerHandle,
       EFI_OPEN_PROTOCOL_GET_PROTOCOL
-      );
-
+      );    
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "Error! No Edk2PartitionInfo protocol!\n"));
-      
-      Edk2PartitionInfo = NULL;
-
-      //
-      // Check protocol with mApfsContainerPartitionTypeGuid
-      //
-      Status = gBS->OpenProtocol (
-        ControllerHandle,
-        &mApfsContainerPartitionTypeGuid,
-        NULL,
-        This->DriverBindingHandle,
-        ControllerHandle,
-        EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-        );
-      if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
-        return EFI_UNSUPPORTED;
-      }
-    }
-  }
-
-  if (ApplePartitionInfo == NULL && Edk2PartitionInfo != NULL) {
-    
-    //
-    // Verify PartitionType
-    //
-    if (Edk2PartitionInfo->Type != PARTITION_TYPE_GPT) {
+      ApplePartitionInfo = NULL;
+      DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
       return EFI_UNSUPPORTED;
     }
-    
-    //
-    // Verify GPT entry GUID
-    //
-    if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &mApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
-      return EFI_UNSUPPORTED;
-    } 
   } 
 
-  if (ApplePartitionInfo != NULL && Edk2PartitionInfo == NULL) {
+  if (ApplePartitionInfo != NULL) {
 
     //
     // Verify GPT entry GUID
