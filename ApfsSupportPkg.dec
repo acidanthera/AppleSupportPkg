@@ -18,8 +18,12 @@
 [Defines]
   PACKAGE_NAME      = ApfsSupportPkg
   PACKAGE_GUID      = E1AEE3D0-F3EB-4657-A384-1786282B1335
-  PACKAGE_VERSION   = 1.0
+  PACKAGE_VERSION   = 1.1
   DEC_SPECIFICATION = 0x00010005
 
 [Includes]
   Include
+
+[Guids]
+  # Include/Guid/ApfsContainerGuids.h
+  mApfsContainerPartitionTypeGuid              = { 0x7C3457EF, 0x0000, 0x11AA, { 0xAA, 0x11, 0x00, 0x30, 0x65, 0x43, 0xEC, 0xAC }} 

@@ -28,6 +28,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiDriverEntryPoint.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/DevicePathLib.h>
 #include <Library/PrintLib.h>
@@ -35,16 +36,14 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/DriverBinding.h>
 #include <Protocol/DevicePathFromText.h>
 #include <Protocol/DevicePathToText.h>
-#include <Protocol/DebugPort.h>
 #include <Protocol/DebugSupport.h>
 #include <Protocol/BlockIo.h>
 #include <Protocol/BlockIo2.h>
 #include <Protocol/DiskIo.h>
 #include <Protocol/DiskIo2.h>
-#include <Protocol/ComponentName.h>
-#include <Protocol/ComponentName2.h>
 #include <Protocol/LoadedImage.h>
-#include <Guid/ApfsContainerGuids.h>
+#include <Protocol/PartitionInfo.h>
+#include <Protocol/ApplePartitionInfo.h>
 
 //
 // Container Superblock magic
@@ -61,11 +60,6 @@ STATIC CONST UINT32 VsbMagic           = 0x42535041;
 // 'JSDR'
 //
 STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
-
-//
-// Apfs container Guid
-//
-STATIC CONST EFI_GUID mApfsContainerGuid = APFS_CONTAINER_GUID;
 
 #pragma pack(push, 1)
 typedef struct APFS_BLOCK_HEADER_
