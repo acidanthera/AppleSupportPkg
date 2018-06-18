@@ -71,31 +71,32 @@ typedef struct APFS_BLOCK_HEADER_
     //
     // Probably plays a role in the Btree structure NXSB=01 00
     // APSB=02 04, 06 04 and 08 04
+    // nid
     //
     UINT64             NodeId;
     //
-    // Checkpoint Id
+    // Checkpoint Id ( transaction id )
+    // xid
     //
-    UINT64             CsbNodeId;
+    UINT64             CheckpointId;
     //
-    // Block type:
-    //  0x01 - Container Superblock <-
-    //  0x02 - Node
-    //  0x05 - Spacemanager
-    //  0x07 - Allocation Info File
-    //  0x11 - Unknown
-    //  0x0B - B-Tree
-    //  0x0C - Checkpoint
-    //  0x0D - Volume Superblock
+    // Node type:
+    // 0x00000002:  Directory Root
+    // 0x00000003:  Directory
+    // 0x0000000D:  Volume Superblock
+    // 0x40000002:  Mapping Root
+    // 0x40000003:  Mapping
+    // 0x40000007:  Bitmap Block List
+    // 0x4000000B:  Pointer to Header
+    // 0x4000000C:  Another Mapping
+    // 0x40000014:  EfiBootRecord Block
+    // 0x80000001:  Container Superblock
+    // 0x80000002:  Unknown
+    // 0x80000003:  Unknown
+    // 0x80000005:  Unknown
+    // 0x80000011:  Unknown
     //
-    UINT16             BlockType;
-    //
-    // Flags:
-    // 0x8000 - superblock container
-    // 0x4000 - container
-    // 0x0000 - ????
-    //
-    UINT16             Flags;
+    UINT32             NodeType;
     //
     // ????
     //
@@ -302,7 +303,12 @@ typedef struct APFS_EFI_BOOT_RECORD_
     // Magic: JSDR
     //
     UINT32             MagicNumber;
-    UINT8              Reserved2[140];
+    //
+    // EfiBootRecord version
+    // should be 1
+    //
+    UINT32              Version;
+    UINT8              Reserved2[136];
     //
     // Apfs driver start LBA
     //

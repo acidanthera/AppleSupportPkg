@@ -706,6 +706,16 @@ ApfsDriverLoaderStop (
          This->DriverBindingHandle,
          ControllerHandle
          );
+
+  //
+  // Close ApplePartitionInfoProtocol
+  //
+  gBS->CloseProtocol (
+        ControllerHandle,
+        &gApplePartitionInfoProtocolGuid,
+        This->DriverBindingHandle,
+        ControllerHandle
+        );
   
   return EFI_SUCCESS;
 }
