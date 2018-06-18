@@ -307,7 +307,7 @@ typedef struct APFS_EFI_BOOT_RECORD_
     // EfiBootRecord version
     // should be 1
     //
-    UINT32              Version;
+    UINT32             Version;
     UINT8              Reserved2[136];
     //
     // Apfs driver start LBA
