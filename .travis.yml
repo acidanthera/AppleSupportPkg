@@ -2,12 +2,16 @@ language: cpp
 env:
   global:
   - FORCE_INSTALL=1
+  - secure: CgSXZA/Aqr5iQ3y1iGVC4Svwj+MiyVjWxK7oZY6tUYnpHB7mHs8a3uIeMU0WkVHjiZmcSiG5PXwNnGubn4QR5ZiKDYcrSYUlFBw1V8NB2pJpS17nYuraLDmSFH4nBcNHBAGXHkg2zR/dTCyTIyjqSCzv4W1ZeHEDB6lpFqXcb4Y4AeBZCx2XLWnRFTd8IC8Zw3Hz1RuN0SUXaSg9p5BX306EZzkTOSOzyz6Ra/xEt9Az+x2aIoijZI7xAnGkT0NFwTJLzu22eq60C1Da9mG+lHAzXCVf5ChN9Iqhogt76XOypSmrbhM1Lk2wHzrX3s/P3ViZf9vxwQWusWYTWs8CyFcdFG+VkaF2ci96zkZe4BHGsJY1GTeye4IatSJ5o/qBOj2dk/6JoCC0gUOq/pmTkp/zuwLSshD0pXmd9vzNCRJM14Mj0t3doFWP6u/VASFUKJRAuEyYFfZFQ4AO42jgfp14zHUYFVK+PQ+MQ2IHQk3qHqH5vI78xNrFr5Mvv72aZ53CTxm4xVWZaR+qK2U2XPNfvDpGFTqYgZB5iIYcPPJMqE3RICocnroRM2hwTv0VbfasojR4zFy+ivOn4ZAF5n85EMhnOkNRLe5CzfvQ+hDSEH6GCpNYd87m7MG8uJ8bKZNHg2M/6AzSqlCRkfBRsvfH6nwdzsFx9AiXGhn+YRE=
+
 matrix:
   include:
   - os: osx
     compiler: clang
+
     script:
     - "./macbuild.tool"
+
     deploy:
       provider: releases
       skip_cleanup: true
@@ -19,3 +23,20 @@ matrix:
         tags: true
       api_key:
         secure: Dtk7GX0mJlhbmYtpPaR5kTFCcRdBOEl5lEMSIODnxb+Oznwdjuj1iXsgG3WtmFY1yLShgHWAuVdHFCLcWWJIZ9bXRrkkZ75Tl3WPpNG48GVdc+ayyQrkCLYne3WIYTxd1NmXNceKfrQpD8O9R4IYQ5SJEY9d0L4KgLYvERtD5V6rsSX/T+OZZI1gTXFa9MvO6EQqfSGptXNTLZnkogZDB7bp/YZi46lFFaj3eutwEVEm9lEPjiND0L/zUjZXsEII7H7NocBSayJGWPGfFuiYa1lsQsEFAQyqbdgTa4+O1eby9qDJOaCHoFwbe2Fs7pi3fzegy2Jk4+zIleyuM0qXv26yS+gnDqmaruphXhXz+PtAkmw0sov40pKrbcHuRPfGx1lUX68PhqEg3S2vtKELPMhmLpRmy5dC8+dr4D7MJ3kQWCLy2vwrNg/EJJtsRhxg+h8Xo504g3aD7a4MOB/sAX0ITeiOZf9r0agxB69vpMaF5Jve7RrF9s0qGSSFA1L82U+WXywZr4qk/RG+ZjpnxlDJb3mMeTnAF1YrpIdsZrSL6eUWZACLpGrDLTTLGmMvgkqUEsXnFMQUovAIkEP3fzxU5mORTtLQu6kYP2fHJZXfI/HLmEFxnh4N43c7Tgh9biPAKHnABlA4csUl8Y4rRu72fQdEEq9cYxR4wFmAkhs=
+
+  - os: osx
+    osx_image: xcode6.4
+    compiler: clang
+
+    script:
+      - echo "This script runs coverity..."
+
+    addons:
+      coverity_scan:
+        project:
+          name: "acidanthera/ApfsSupportPkg"
+          description: "ApfsSupportPkg"
+        notification_email: $NOTIFICATION_EMAIL
+        build_command_prepend: "./macbuild.tool --skip-build --skip-package && cd UDK"
+        build_command: "../macbuild.tool --skip-tests --skip-package RELEASE"
+        branch_pattern: master
