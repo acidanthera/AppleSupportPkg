@@ -6,8 +6,16 @@ ApfsSupportPkg
 -----
 
 ## APFS Driver Loader
+Open source apfs.efi loader based on reverse-engineered Apple's ApsfJumpStart driver
+
 - Loads apfs.efi from ApfsContainer located on block device.
+- Apfs driver verbose logging suppressed.
 - **WARNING**: Compatible only with **AptioMemoryFix R21+** and loaded **PartitionDriver (PartitionDXE)**
+
+## AppleLoadImage
+Implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver. This protocol installs in CoreDxe Apple's firmware.
+
+- Gives ability to use native ApfsJumpStart driver from Apple firmware
 
 ## Credits
 - [cugu](https://github.com/cugu) for awesome research according APFS structure
