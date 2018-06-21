@@ -360,10 +360,6 @@ ApfsDriverLoaderSupported (
     }
   }
 
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }  
-
   return Status;
 }
 
