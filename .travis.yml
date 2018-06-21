@@ -37,5 +37,6 @@ matrix:
           name: "acidanthera/ApfsSupportPkg"
           description: "ApfsSupportPkg"
         notification_email: $NOTIFICATION_EMAIL
-        build_command: "./macbuild.tool"
+        build_command_prepend: "./macbuild.tool --skip-build --skip-package && cd UDK"
+        build_command: "../macbuild.tool --skip-tests --skip-package RELEASE"
         branch_pattern: master

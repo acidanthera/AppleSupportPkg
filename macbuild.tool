@@ -95,6 +95,21 @@ if [ ! -d "Binaries" ]; then
   cd .. || exit 1
 fi
 
+while true; do
+  if [ "$1" == "--skip-tests" ]; then
+    SKIP_TESTS=1
+    shift
+  elif [ "$1" == "--skip-build" ]; then
+    SKIP_BUILD=1
+    shift
+  elif [ "$1" == "--skip-package" ]; then
+    SKIP_PACKAGE=1
+    shift
+  else
+    break
+  fi
+done
+
 if [ "$1" != "" ]; then
   MODE="$1"
   shift
@@ -115,23 +130,30 @@ if [ ! -d ApfsSupportPkg ]; then
 fi
 
 source edksetup.sh || exit 1
-make -C BaseTools || exit 1
-touch UDK.ready
 
-if [ "$MODE" = "" ] || [ "$MODE" = "DEBUG" ]; then
-  build -a X64 -b DEBUG -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+if [ "$SKIP_TESTS" != "1" ]; then
+  make -C BaseTools || exit 1
+  touch UDK.ready
 fi
 
-if [ "$MODE" = "" ] || [ "$MODE" = "RELEASE" ]; then
-  build -a X64 -b RELEASE -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+if [ "$SKIP_BUILD" != "1" ]; then
+  if [ "$MODE" = "" ] || [ "$MODE" = "DEBUG" ]; then
+    build -a X64 -b DEBUG -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+  fi
+
+  if [ "$MODE" = "" ] || [ "$MODE" = "RELEASE" ]; then
+    build -a X64 -b RELEASE -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+  fi
 fi
 
 cd .. || exit 1
 
-if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "DEBUG" ]; then
-  package "Binaries/DEBUG" "DEBUG" || exit 1
-fi
+if [ "$SKIP_PACKAGE" != "1" ]; then
+  if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "DEBUG" ]; then
+    package "Binaries/DEBUG" "DEBUG" || exit 1
+  fi
 
-if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "RELEASE" ]; then
-  package "Binaries/RELEASE" "RELEASE" || exit 1
+  if [ "$PACKAGE" = "" ] || [ "$PACKAGE" = "RELEASE" ]; then
+    package "Binaries/RELEASE" "RELEASE" || exit 1
+  fi
 fi
