@@ -1,0 +1,43 @@
+## @file
+# Apple LoadImage protocol. 
+#
+# Copyright (c) 2018, savvas 
+#
+# All rights reserved.
+#
+# This program and the accompanying materials
+# are licensed and made available under the terms and conditions of the BSD License
+# which accompanies this distribution.  The full text of the license may be found at
+# http://opensource.org/licenses/bsd-license.php
+# 
+# THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+# WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  BASE_NAME   = AppleLoadImage
+  FILE_GUID   = 44769453-A392-4FC7-B6FF-F33889B7EE38
+  MODULE_TYPE = UEFI_DRIVER
+  ENTRY_POINT = AppleLoadImageEntryPoint
+  INF_VERSION = 0x00010006
+  VERSION_STRING  = 1.0
+
+[Packages]
+  ApfsSupportPkg/ApfsSupportPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[Protocols]
+  gAppleLoadImageProtocolGuid             ## PRODUCES
+
+[LibraryClasses]
+  BaseLib
+  UefiLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  BaseMemoryLib
+  MemoryAllocationLib
+
+[Sources]
+  AppleLoadImage.c

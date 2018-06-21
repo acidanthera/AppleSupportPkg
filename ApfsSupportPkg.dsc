@@ -50,6 +50,7 @@
   IoLib|MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
 
 [Components]
+  ApfsSupportPkg/Platform/AppleLoadImage/AppleLoadImage.inf
   ApfsSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
 
 [PcdsFixedAtBuild]
