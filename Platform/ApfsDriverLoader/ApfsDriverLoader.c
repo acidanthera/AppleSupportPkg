@@ -262,39 +262,12 @@ ApfsDriverLoaderSupported (
   IN EFI_DEVICE_PATH_PROTOCOL     *RemainingDevicePath
   )
 {
-  EFI_STATUS Status;
+  EFI_STATUS                    Status;
+  APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
 
   if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
   }
-
-  //
-  // We check EfiPartitionInfoProtocol and ApplePartitionInfoProtocol
-  //
-
-  Status = gBS->OpenProtocol (
-    ControllerHandle,
-    &mApfsContainerPartitionTypeGuid,
-    NULL,
-    This->DriverBindingHandle,
-    ControllerHandle,
-    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-    );  
-
-  if (EFI_ERROR (Status)) {
-    Status = gBS->OpenProtocol (
-      ControllerHandle,
-      &gApplePartitionInfoProtocolGuid,
-      NULL,
-      This->DriverBindingHandle,
-      ControllerHandle,
-      EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-      );  
-  }
-
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }  
 
   //
   // We check for both DiskIO and BlockIO protocols.
@@ -345,6 +318,52 @@ ApfsDriverLoaderSupported (
       );
   }
 
+  if (EFI_ERROR(Status)) {
+    return Status;
+  }
+
+  //
+  // We check EfiPartitionInfoProtocol and ApplePartitionInfoProtocol
+  //
+
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gApfsContainerPartitionTypeGuid,
+    NULL,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+    );  
+
+  if (EFI_ERROR (Status)) {
+    Status = gBS->OpenProtocol (
+      ControllerHandle,
+      &gApplePartitionInfoProtocolGuid,
+      (VOID **) &ApplePartitionInfo,
+      This->DriverBindingHandle,
+      ControllerHandle,
+      EFI_OPEN_PROTOCOL_GET_PROTOCOL
+      );  
+    if (EFI_ERROR (Status)) {
+      ApplePartitionInfo = NULL;
+      DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
+      return Status;
+    }
+    if (ApplePartitionInfo != NULL) {
+      //
+      // Verify GPT entry GUID
+      //
+      if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType), 
+                     &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+        return EFI_UNSUPPORTED;
+      }
+    }
+  }
+
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }  
+
   return Status;
 }
 
@@ -381,7 +400,6 @@ ApfsDriverLoaderStart (
   EFI_BLOCK_IO2_PROTOCOL        *BlockIo2                    = NULL;
   EFI_DISK_IO_PROTOCOL          *DiskIo                      = NULL;
   EFI_DISK_IO2_PROTOCOL         *DiskIo2                     = NULL;
-  APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   UINT32                        ApfsBlockSize                = 0;
   UINT32                        MediaId                      = 0;
   UINT8                         *ApfsBlock                   = NULL;
@@ -393,54 +411,6 @@ ApfsDriverLoaderStart (
   
   if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
-  }
-
-  //
-  // Open PartitionInfo protocols
-  //
-
-  //
-  // Check protocol with mApfsContainerPartitionTypeGuid
-  // which installed by Edk Partition Driver
-  //  
-  Status = gBS->OpenProtocol (
-    ControllerHandle,
-    &mApfsContainerPartitionTypeGuid,
-    NULL,
-    This->DriverBindingHandle,
-    ControllerHandle,
-    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
-    );
-
-  if (EFI_ERROR (Status)) {
-
-    //
-    // Check protocol with mApfsContainerPartitionTypeGuid
-    // which installed by Edk Partition Driver
-    //
-    Status = gBS->OpenProtocol (
-      ControllerHandle,
-      &gApplePartitionInfoProtocolGuid,
-      (VOID **) &ApplePartitionInfo,
-      This->DriverBindingHandle,
-      ControllerHandle,
-      EFI_OPEN_PROTOCOL_GET_PROTOCOL
-      );    
-    if (EFI_ERROR (Status)) {
-      ApplePartitionInfo = NULL;
-      DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
-      return EFI_UNSUPPORTED;
-    }
-  } 
-
-  if (ApplePartitionInfo != NULL) {
-
-    //
-    // Verify GPT entry GUID
-    //
-    if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType), &mApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
-      return EFI_UNSUPPORTED;
-    }
   }
 
   DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
@@ -687,35 +657,6 @@ ApfsDriverLoaderStop (
   IN  EFI_HANDLE                   *ChildHandleBuffer
   )
 {
-  //
-  // Close the bus driver
-  //
-  gBS->CloseProtocol (
-        ControllerHandle,
-        &gEfiDiskIoProtocolGuid,
-        This->DriverBindingHandle,
-        ControllerHandle
-        );
-
-  //
-  // Close Parent BlockIO2 if has.
-  //    
-  gBS->CloseProtocol (
-         ControllerHandle,
-         &gEfiDiskIo2ProtocolGuid,
-         This->DriverBindingHandle,
-         ControllerHandle
-         );
-
-  //
-  // Close ApplePartitionInfoProtocol
-  //
-  gBS->CloseProtocol (
-        ControllerHandle,
-        &gApplePartitionInfoProtocolGuid,
-        This->DriverBindingHandle,
-        ControllerHandle
-        );
   
   return EFI_SUCCESS;
 }
