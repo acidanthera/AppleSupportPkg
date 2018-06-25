@@ -738,10 +738,31 @@ mApfsDriverLoaderBinding = {
   ApfsDriverLoaderSupported,
   ApfsDriverLoaderStart,
   ApfsDriverLoaderStop,
-  0xf,
+  0x10,
   NULL,
   NULL,
 };
+
+VOID
+EFIAPI
+OnPartitionDriverInstall (
+  IN EFI_EVENT        Event,
+  IN VOID             *Context
+  )
+{
+   PARTITION_DRIVER_PRESENT_EVT_CTX *EventContext = (PARTITION_DRIVER_PRESENT_EVT_CTX *) Context;
+
+   EfiLibInstallDriverBindingComponentName2 (
+    EventContext->ImageHandle,
+    EventContext->SystemTable,
+    &mApfsDriverLoaderBinding,
+    EventContext->ImageHandle,
+    NULL,
+    NULL
+    );
+
+   gBS->CloseEvent(Event);
+}
 
 /**
 
@@ -767,28 +788,104 @@ ApfsDriverLoaderInit (
   IN EFI_SYSTEM_TABLE  *SystemTable
 )
 {
-  EFI_STATUS  Status;
+  EFI_STATUS                          Status;
+  EFI_EVENT                           PartitionDriverEvent;
+  VOID                                **Registration          = NULL;
+  VOID                                *PartitionInfoInterface = NULL;
+  PARTITION_DRIVER_PRESENT_EVT_CTX    *Context                = NULL;
   
-  Status = gBS->CreateEvent (
-    EVT_NOTIFY_SIGNAL,
-    TPL_CALLBACK,
-    LoadAppleFileSystemDriverNotify,
+  //
+  // Check that PartitionInfo protocol present
+  //
+  Status = gBS->LocateProtocol(
+    &gApfsContainerPartitionTypeGuid,
     NULL,
-    &mLoadAppleFileSystemEvent
+    (VOID **) &PartitionInfoInterface
     );
-
-  if (EFI_ERROR (Status)) {
-    return Status;
+  if (Status == EFI_NOT_FOUND) {
+    Status = gBS->LocateProtocol(
+      &gApplePartitionInfoProtocolGuid,
+      NULL,
+      (VOID **) &PartitionInfoInterface
+    );
   }
 
-  Status = EfiLibInstallDriverBindingComponentName2 (
-    ImageHandle,
-    SystemTable,
-    &mApfsDriverLoaderBinding,
-    ImageHandle,
-    NULL,
-    NULL
-    );
+  //
+  // If not present, then register protocol notify event
+  //
+  if (EFI_ERROR(Status)) {
+    //
+    // Initialize PartitionDriver event context
+    //
+    Context = AllocateZeroPool(sizeof(PARTITION_DRIVER_PRESENT_EVT_CTX));
+    if (Context == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+    Context->ImageHandle = ImageHandle;
+    Context->SystemTable = SystemTable;
+
+    // 
+    // Install StartApfsDriver event
+    //  
+    Status = gBS->CreateEvent (
+      EVT_NOTIFY_SIGNAL,
+      TPL_CALLBACK,
+      LoadAppleFileSystemDriverNotify,
+      (VOID *)Context,
+      &mLoadAppleFileSystemEvent
+      );
+
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }
+
+    //
+    // Instal DriverBindingProtocol only when PartitionInfo present
+    //
+    Status = gBS->CreateEvent (
+      EVT_NOTIFY_SIGNAL,
+      TPL_CALLBACK,
+      OnPartitionDriverInstall,
+      (VOID *)Context,
+      &PartitionDriverEvent
+      );  
+
+     if (EFI_ERROR (Status)) {
+      return Status;
+     }
+
+     Status = gBS->RegisterProtocolNotify (
+      &gApfsContainerPartitionTypeGuid,
+      PartitionDriverEvent,
+      Registration
+      );
+
+     if (EFI_ERROR (Status)) {
+      return Status;
+     }
+
+     Status = gBS->RegisterProtocolNotify (
+      &gApplePartitionInfoProtocolGuid,
+      PartitionDriverEvent,
+      Registration
+      );
+
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }
+  } else {
+    //
+    // Install Driver Binding Instance
+    //
+    Status = EfiLibInstallDriverBindingComponentName2 (
+      ImageHandle,
+      SystemTable,
+      &mApfsDriverLoaderBinding,
+      ImageHandle,
+      NULL,
+      NULL
+      );    
+  }
 
   return Status;
 }

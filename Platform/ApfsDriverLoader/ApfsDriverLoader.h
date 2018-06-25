@@ -323,7 +323,7 @@ typedef struct APFS_EFI_BOOT_RECORD_
 //
 // Apple Filesystem Notify context
 //
-#pragma pack(push, 1)
+/*#pragma pack(push, 1)
 typedef struct APFS_NOTIFY_CONTEXT_
 {
     UINT32                Magic;
@@ -343,6 +343,16 @@ typedef struct APFS_NOTIFY_CONTEXT_
     __int64 field_78; //???
     __int64 UnknownAddress; //???
 } APFS_NOTIFY_CONTEXT;
+#pragma pack(pop)*/
+
+
+#pragma pack(push, 1)
+typedef struct PARTITION_DRIVER_PRESENT_EVT_CTX_ 
+{
+    EFI_HANDLE ImageHandle;
+    EFI_SYSTEM_TABLE *SystemTable;
+} PARTITION_DRIVER_PRESENT_EVT_CTX;
 #pragma pack(pop)
+
 
 #endif // APFS_DRIVER_LOADER_H_
