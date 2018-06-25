@@ -794,6 +794,21 @@ ApfsDriverLoaderInit (
   VOID                                *PartitionInfoInterface = NULL;
   PARTITION_DRIVER_PRESENT_EVT_CTX    *Context                = NULL;
   
+  // 
+  // Install StartApfsDriver event
+  //  
+  Status = gBS->CreateEvent (
+    EVT_NOTIFY_SIGNAL,
+    TPL_CALLBACK,
+    LoadAppleFileSystemDriverNotify,
+    (VOID *)Context,
+    &mLoadAppleFileSystemEvent
+    );
+
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }  
+  
   //
   // Check that PartitionInfo protocol present
   //
@@ -823,21 +838,6 @@ ApfsDriverLoaderInit (
     }
     Context->ImageHandle = ImageHandle;
     Context->SystemTable = SystemTable;
-
-    // 
-    // Install StartApfsDriver event
-    //  
-    Status = gBS->CreateEvent (
-      EVT_NOTIFY_SIGNAL,
-      TPL_CALLBACK,
-      LoadAppleFileSystemDriverNotify,
-      (VOID *)Context,
-      &mLoadAppleFileSystemEvent
-      );
-
-    if (EFI_ERROR (Status)) {
-      return Status;
-    }
 
     //
     // Instal DriverBindingProtocol only when PartitionInfo present
