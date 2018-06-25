@@ -752,7 +752,7 @@ OnPartitionDriverInstall (
   IN VOID             *Context
   )
 {
-   DEBUG ((DEBUG_VERBOSE,L"OnPartitionDriverInstall Entry\n"));
+   DEBUG ((DEBUG_VERBOSE, "OnPartitionDriverInstall Entry\n"));
 
    EfiLibInstallDriverBindingComponentName2 (
     mImageHandle,
@@ -834,7 +834,7 @@ ApfsDriverLoaderInit (
   //
   if (EFI_ERROR(Status)) {
 
-    DEBUG ((DEBUG_VERBOSE, L"No partition info protocol, installing event\n"));
+    DEBUG ((DEBUG_VERBOSE, "No partition info protocol, installing event\n"));
 
     //
     // Initialize PartitionDriver event context
@@ -854,7 +854,7 @@ ApfsDriverLoaderInit (
       );  
 
      if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR CreateEvent OnPartitionDriverInstall: %r\n", Status));
+      DEBUG ((DEBUG_VERBOSE, "EFI_ERROR CreateEvent OnPartitionDriverInstall: %r\n", Status));
       return Status;
      }
 
@@ -865,7 +865,7 @@ ApfsDriverLoaderInit (
        );
 
      if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR RegisterProtocolNotify1: %r\n", Status));
+      DEBUG ((DEBUG_VERBOSE, "EFI_ERROR RegisterProtocolNotify1: %r\n", Status));
       return Status;
      }
 
@@ -876,7 +876,7 @@ ApfsDriverLoaderInit (
        );
 
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR RegisterProtocolNotify2: %r\n", Status));
+      DEBUG ((DEBUG_VERBOSE, "EFI_ERROR RegisterProtocolNotify2: %r\n", Status));
       return Status;
     }
   } else {
@@ -891,7 +891,7 @@ ApfsDriverLoaderInit (
       NULL,
       NULL
       );    
-    Print(L"Installed driver binding: %r\n",Status);
+    DEBUG ((DEBUG_VERBOSE, "Installed driver binding: %r\n", Status));
   }
 
   return Status;
