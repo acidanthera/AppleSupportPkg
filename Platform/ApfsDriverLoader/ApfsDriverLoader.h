@@ -320,4 +320,29 @@ typedef struct APFS_EFI_BOOT_RECORD_
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 
+//
+// Apple Filesystem Notify context
+//
+#pragma pack(push, 1)
+typedef struct APFS_NOTIFY_CONTEXT_
+{
+    UINT32                Magic;
+    EFI_HANDLE            ControllerHandle;
+    EFI_HANDLE            DriverBindingHandle;
+    int                   AppleFilesystemMutexInterface;
+    __declspec(align(8)) EFI_GUID ContainerGuid; //???
+    _BYTE                 gap30[24];
+    EFI_EVENT             NotifyEvent;
+    void                  *ApfsDriverPtr;
+    UINT32                ApfsDriverSize;
+    UINT32                ContainerBlockSize;
+    UINT64                ContainerTotalBlocks;
+    _BYTE                 gap68[4];
+    int                   field_6C;
+    EFI_BLOCK_IO_PROTOCOL *BlockIoInterface;
+    __int64 field_78; //???
+    __int64 UnknownAddress; //???
+} APFS_NOTIFY_CONTEXT;
+#pragma pack(pop)
+
 #endif // APFS_DRIVER_LOADER_H_
