@@ -2,6 +2,9 @@ ApfsSupport Changelog
 ==================
 
 ## ApfsDriverLoader
+#### v1.1.9 
+- Add legacy partition entry scan back for incompatible PartitionDriver's;
+
 #### v1.1.1
 - More optimization;
 

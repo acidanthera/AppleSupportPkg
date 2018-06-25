@@ -3,7 +3,7 @@
 Apple FileSystem BDS stage protocol to inform Apfs Loader 
 about Apfs boot not compatible.
 
-Copyright (c) 2017-2018, savvas
+Copyright (c) 2018, savvas
 
 All rights reserved.
 
