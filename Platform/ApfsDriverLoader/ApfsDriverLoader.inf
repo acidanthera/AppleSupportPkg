@@ -19,7 +19,7 @@
   BASE_NAME                      = ApfsDriverLoader
   FILE_GUID                      = BA6ED98D-D133-4F5B-8787-D2464BB21122
   MODULE_TYPE                    = UEFI_DRIVER
-  VERSION_STRING                 = 1.1.5
+  VERSION_STRING                 = 1.1.9
   EDK_RELEASE_VERSION            = 0x00020000
   EFI_SPECIFICATION_VERSION      = 0x00010000
   ENTRY_POINT                    = ApfsDriverLoaderInit
