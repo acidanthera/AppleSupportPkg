@@ -345,7 +345,7 @@ typedef struct APFS_NOTIFY_CONTEXT_
 } APFS_NOTIFY_CONTEXT;
 #pragma pack(pop)*/
 
-
+/*
 #pragma pack(push, 1)
 typedef struct PARTITION_DRIVER_PRESENT_EVT_CTX_ 
 {
@@ -353,6 +353,6 @@ typedef struct PARTITION_DRIVER_PRESENT_EVT_CTX_
     EFI_SYSTEM_TABLE *SystemTable;
 } PARTITION_DRIVER_PRESENT_EVT_CTX;
 #pragma pack(pop)
-
+*/
 
 #endif // APFS_DRIVER_LOADER_H_

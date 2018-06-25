@@ -20,10 +20,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "ApfsDriverLoader.h"
 #include "ApfsDriverLoaderVersion.h"
 
-STATIC BOOLEAN      mFoundAppleFileSystemDriver;
-STATIC EFI_EVENT    mLoadAppleFileSystemEvent;
-STATIC VOID         *mAppleFileSystemDriverBuffer;
-STATIC UINTN        mAppleFileSystemDriverSize;
+STATIC BOOLEAN           mFoundAppleFileSystemDriver;
+STATIC EFI_EVENT         mLoadAppleFileSystemEvent;
+STATIC VOID              *mAppleFileSystemDriverBuffer;
+STATIC UINTN             mAppleFileSystemDriverSize;
+STATIC EFI_SYSTEM_TABLE  *mSystemTable;
+STATIC EFI_HANDLE        mImageHandle;
 
 STATIC
 EFI_STATUS
@@ -750,13 +752,13 @@ OnPartitionDriverInstall (
   IN VOID             *Context
   )
 {
-   PARTITION_DRIVER_PRESENT_EVT_CTX *EventContext = (PARTITION_DRIVER_PRESENT_EVT_CTX *) Context;
+   DEBUG ((DEBUG_VERBOSE,L"OnPartitionDriverInstall Entry\n"));
 
    EfiLibInstallDriverBindingComponentName2 (
-    EventContext->ImageHandle,
-    EventContext->SystemTable,
+    mImageHandle,
+    mSystemTable,
     &mApfsDriverLoaderBinding,
-    EventContext->ImageHandle,
+    mImageHandle,
     NULL,
     NULL
     );
@@ -790,9 +792,10 @@ ApfsDriverLoaderInit (
 {
   EFI_STATUS                          Status;
   EFI_EVENT                           PartitionDriverEvent;
-  VOID                                **Registration          = NULL;
+  VOID                                *Registration1          = NULL;
+  VOID                                *Registration2          = NULL;
   VOID                                *PartitionInfoInterface = NULL;
-  PARTITION_DRIVER_PRESENT_EVT_CTX    *Context                = NULL;
+  VOID                                *PartitionInfoInterface2 = NULL;
   
   // 
   // Install StartApfsDriver event
@@ -801,14 +804,14 @@ ApfsDriverLoaderInit (
     EVT_NOTIFY_SIGNAL,
     TPL_CALLBACK,
     LoadAppleFileSystemDriverNotify,
-    (VOID *)Context,
+    NULL,
     &mLoadAppleFileSystemEvent
     );
 
   if (EFI_ERROR (Status)) {
     return Status;
   }  
-  
+
   //
   // Check that PartitionInfo protocol present
   //
@@ -817,11 +820,12 @@ ApfsDriverLoaderInit (
     NULL,
     (VOID **) &PartitionInfoInterface
     );
+
   if (Status == EFI_NOT_FOUND) {
     Status = gBS->LocateProtocol(
       &gApplePartitionInfoProtocolGuid,
       NULL,
-      (VOID **) &PartitionInfoInterface
+      (VOID **) &PartitionInfoInterface2
     );
   }
 
@@ -829,15 +833,14 @@ ApfsDriverLoaderInit (
   // If not present, then register protocol notify event
   //
   if (EFI_ERROR(Status)) {
+
+    DEBUG ((DEBUG_VERBOSE, L"No partition info protocol, installing event\n"));
+
     //
     // Initialize PartitionDriver event context
     //
-    Context = AllocateZeroPool(sizeof(PARTITION_DRIVER_PRESENT_EVT_CTX));
-    if (Context == NULL) {
-      return EFI_OUT_OF_RESOURCES;
-    }
-    Context->ImageHandle = ImageHandle;
-    Context->SystemTable = SystemTable;
+    mImageHandle = ImageHandle;
+    mSystemTable = SystemTable;
 
     //
     // Instal DriverBindingProtocol only when PartitionInfo present
@@ -846,31 +849,34 @@ ApfsDriverLoaderInit (
       EVT_NOTIFY_SIGNAL,
       TPL_CALLBACK,
       OnPartitionDriverInstall,
-      (VOID *)Context,
+      NULL,
       &PartitionDriverEvent
       );  
 
      if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR CreateEvent OnPartitionDriverInstall: %r\n", Status));
       return Status;
      }
 
      Status = gBS->RegisterProtocolNotify (
-      &gApfsContainerPartitionTypeGuid,
-      PartitionDriverEvent,
-      Registration
-      );
+       &gApfsContainerPartitionTypeGuid,
+       PartitionDriverEvent,
+       (VOID **) &Registration1
+       );
 
      if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR RegisterProtocolNotify1: %r\n", Status));
       return Status;
      }
 
      Status = gBS->RegisterProtocolNotify (
-      &gApplePartitionInfoProtocolGuid,
-      PartitionDriverEvent,
-      Registration
-      );
+       &gApplePartitionInfoProtocolGuid,
+       PartitionDriverEvent,
+       (VOID **) &Registration2
+       );
 
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_VERBOSE, L"EFI_ERROR RegisterProtocolNotify2: %r\n", Status));
       return Status;
     }
   } else {
@@ -885,6 +891,7 @@ ApfsDriverLoaderInit (
       NULL,
       NULL
       );    
+    Print(L"Installed driver binding: %r\n",Status);
   }
 
   return Status;
