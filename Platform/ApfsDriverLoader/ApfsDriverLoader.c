@@ -24,8 +24,8 @@ STATIC BOOLEAN                     mFoundAppleFileSystemDriver;
 STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
 STATIC VOID                        *mAppleFileSystemDriverBuffer;
 STATIC UINTN                       mAppleFileSystemDriverSize;
-STATIC BOOLEAN                     LEGACY                         = FALSE;
-STATIC EFI_PARTITION_ENTRY         *ApfsGptEntry                = NULL;
+STATIC BOOLEAN                     LegacyScan                     = FALSE;
+STATIC UINT64                      LegacyBaseOffset               = 0;
 
 STATIC
 EFI_STATUS
@@ -246,21 +246,20 @@ LegacyApfsContainerScan (
   IN EFI_HANDLE                   ControllerHandle
   )
 {
+  EFI_STATUS                  Status;
   UINTN                       Index                        = 0;
   UINT8                       *Block                       = NULL;
-  EFI_BLOCK_IO_MEDIA          *Media                       = NULL;
   UINTN                       Lba                          = 0;
   UINT32                      PartitionNumber              = 0;
   UINT32                      PartitionEntrySize           = 0;
   EFI_PARTITION_TABLE_HEADER  *GptHeader                   = NULL;
-  EFI_LBA                     LastBlock                    = 0;
   UINT32                      MediaId                      = 0;
   UINT32                      BlockSize                    = 0;
-  EFI_STATUS                  Status;
   EFI_BLOCK_IO_PROTOCOL       *BlockIo                     = NULL; 
   EFI_BLOCK_IO2_PROTOCOL      *BlockIo2                    = NULL;
   EFI_DISK_IO_PROTOCOL        *DiskIo                      = NULL;
   EFI_DISK_IO2_PROTOCOL       *DiskIo2                     = NULL;
+  EFI_PARTITION_ENTRY         *ApfsGptEntry                = NULL;
 
   //
   // Open I/O protocols
@@ -317,14 +316,10 @@ LegacyApfsContainerScan (
   }
 
   if (BlockIo2 != NULL) {
-    Media         = BlockIo2->Media;
     BlockSize     = BlockIo2->Media->BlockSize;
-    LastBlock     = BlockIo2->Media->LastBlock;
     MediaId       = BlockIo2->Media->MediaId;
   } else {
-    Media         = BlockIo->Media;
     BlockSize     = BlockIo->Media->BlockSize;
-    LastBlock     = BlockIo->Media->LastBlock;
     MediaId       = BlockIo->Media->MediaId;
   }
 
@@ -336,12 +331,11 @@ LegacyApfsContainerScan (
   //
   // Read GPT header first.
   //
-  Lba = 1;
   Status = ReadDisk (
     DiskIo,
     DiskIo2,
     MediaId,
-    MultU64x32 (Lba, BlockSize),
+    BlockSize,
     BlockSize,
     Block
     );
@@ -396,7 +390,6 @@ LegacyApfsContainerScan (
   //
   // Analyze partition entries.
   //
-  
   for (Index = 0; Index < PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
     EFI_PARTITION_ENTRY *CurrentEntry = (EFI_PARTITION_ENTRY *) (Block + Index);
 
@@ -405,9 +398,6 @@ LegacyApfsContainerScan (
       break;
     }
 
-    //
-    // Speedhack. Remove?
-    //
     if (CurrentEntry->StartingLBA == 0ull && CurrentEntry->EndingLBA == 0ull) {
       break;
     }
@@ -417,6 +407,8 @@ LegacyApfsContainerScan (
     FreePool (Block);
     return EFI_UNSUPPORTED;
   }  
+  LegacyBaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
+  FreePool(Block);
 
   return EFI_SUCCESS;
 
@@ -511,17 +503,17 @@ ApfsDriverLoaderSupported (
     return Status;
   }
 
-  if (LEGACY) {
+  if (LegacyScan) {
     return LegacyApfsContainerScan(This, ControllerHandle);
   }
 
   //
   // We check EfiPartitionInfoProtocol and ApplePartitionInfoProtocol
   //
-
+  
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gEfiPartitionInfoProtocolGuid,
+    &gApfsContainerPartitionTypeGuid,
     (VOID **) &Edk2PartitionInfo,
     This->DriverBindingHandle,
     ControllerHandle,
@@ -531,42 +523,55 @@ ApfsDriverLoaderSupported (
   if (EFI_ERROR (Status)) {
     Status = gBS->OpenProtocol (
       ControllerHandle,
-      &gApplePartitionInfoProtocolGuid,
-      (VOID **) &ApplePartitionInfo,
+      &gEfiPartitionInfoProtocolGuid,
+      (VOID **) &Edk2PartitionInfo,
       This->DriverBindingHandle,
       ControllerHandle,
       EFI_OPEN_PROTOCOL_GET_PROTOCOL
       );  
+
     if (EFI_ERROR (Status)) {
-      ApplePartitionInfo = NULL;
-      DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
-      return Status;
-    }
-    if (ApplePartitionInfo != NULL) {
+      Status = gBS->OpenProtocol (
+        ControllerHandle,
+        &gApplePartitionInfoProtocolGuid,
+        (VOID **) &ApplePartitionInfo,
+        This->DriverBindingHandle,
+        ControllerHandle,
+        EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );  
+
+      if (EFI_ERROR (Status)) {
+        ApplePartitionInfo = NULL;
+        DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
+        return Status;
+      }
+
+      if (ApplePartitionInfo != NULL) {
+        //
+        // Verify GPT entry GUID
+        //
+        if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType), 
+                       &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+          return EFI_UNSUPPORTED;
+        }
+      }
+    } else {
+
+      //
+      // Verify PartitionType
+      //
+      if (Edk2PartitionInfo->Type != PARTITION_TYPE_GPT) {
+        return EFI_UNSUPPORTED;
+      }
+      
       //
       // Verify GPT entry GUID
       //
-      if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType), 
-                     &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+      if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
         return EFI_UNSUPPORTED;
-      }
-    }
-  } else {
+      } 
 
-    //
-    // Verify PartitionType
-    //
-    if (Edk2PartitionInfo->Type != PARTITION_TYPE_GPT) {
-      return EFI_UNSUPPORTED;
     }
-    
-    //
-    // Verify GPT entry GUID
-    //
-    if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
-      return EFI_UNSUPPORTED;
-    } 
-
   }
 
   return Status;
@@ -614,7 +619,6 @@ ApfsDriverLoaderStart (
   APFS_EFI_BOOT_RECORD          *EfiBootRecordBlock          = NULL;
   APFS_NXSB                     *ContainerSuperBlock         = NULL;
   UINT64                        ApfsDriverBootRecordOffset   = 0;
-  UINT64                        BaseOffset                   = 0;
   
   if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
@@ -684,11 +688,6 @@ ApfsDriverLoaderStart (
     BlockSize     = BlockIo->Media->BlockSize;
   }
 
-
-  if (LEGACY) {
-    BaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
-  }
-
   ApfsBlock = AllocateZeroPool (2048);
   if (ApfsBlock == NULL) {
     return EFI_OUT_OF_RESOURCES;
@@ -701,7 +700,7 @@ ApfsDriverLoaderStart (
     DiskIo,
     DiskIo2,
     MediaId,
-    BaseOffset,
+    LegacyBaseOffset,
     2048,
     ApfsBlock
     );
@@ -755,7 +754,7 @@ ApfsDriverLoaderStart (
     DiskIo,
     DiskIo2,
     MediaId,
-    BaseOffset,
+    LegacyBaseOffset,
     ApfsBlockSize,
     ApfsBlock
     );
@@ -776,7 +775,7 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock...
   //
-  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + BaseOffset; 
+  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + LegacyBaseOffset; 
   
   DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock offset: %08llx \n", EfiBootRecordBlockOffset));
   
@@ -814,7 +813,7 @@ ApfsDriverLoaderStart (
   DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock checksum: %08llx\n", EfiBootRecordBlock->BlockHeader.Checksum));
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver located at: %llu block\n", EfiBootRecordBlock->BootRecordLBA));
 
-  ApfsDriverBootRecordOffset = MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + BaseOffset;
+  ApfsDriverBootRecordOffset = MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + LegacyBaseOffset;
   mAppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
 
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver offset: %08llx \n", ApfsDriverBootRecordOffset));
@@ -987,7 +986,6 @@ ApfsDriverLoaderInit (
 {
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface = NULL;
-  VOID                                *PartitionInfoInterface2 = NULL;
   
   // 
   // Install StartApfsDriver event
@@ -1006,27 +1004,31 @@ ApfsDriverLoaderInit (
 
   //
   // Check that PartitionInfo protocol present
+  // If not present use Legacy scan
   //
   Status = gBS->LocateProtocol(
-    &gEfiPartitionInfoProtocolGuid,
+    &gApfsContainerPartitionTypeGuid,
     NULL,
     (VOID **) &PartitionInfoInterface
     );
-
   if (Status == EFI_NOT_FOUND) {
     Status = gBS->LocateProtocol(
-      &gApplePartitionInfoProtocolGuid,
+      &gEfiPartitionInfoProtocolGuid,
       NULL,
-      (VOID **) &PartitionInfoInterface2
-    );
+      (VOID **) &PartitionInfoInterface
+      );
+    if (Status == EFI_NOT_FOUND) {
+      Status = gBS->LocateProtocol(
+        &gApplePartitionInfoProtocolGuid,
+        NULL,
+        (VOID **) &PartitionInfoInterface
+      );
+    }
   }
 
-  //
-  // If not present use Legacy scan
-  //
   if (EFI_ERROR(Status)) {
     DEBUG ((DEBUG_VERBOSE, "No partition info protocol, using Legacy scan\n"));
-    LEGACY = TRUE;
+    LegacyScan = TRUE;
   } 
 
   //
@@ -1040,8 +1042,8 @@ ApfsDriverLoaderInit (
     NULL,
     NULL
     );    
+
   DEBUG ((DEBUG_VERBOSE, "Installed driver binding: %r\n", Status));
   
-
   return Status;
 }
