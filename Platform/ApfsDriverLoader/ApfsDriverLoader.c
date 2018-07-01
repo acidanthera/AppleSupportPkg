@@ -21,7 +21,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "Version.h"
 
 STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
-STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
+//STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
