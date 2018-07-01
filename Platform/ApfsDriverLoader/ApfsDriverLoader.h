@@ -44,10 +44,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/LoadedImage.h>
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
-
-#ifndef DEBUG
 #include "NullTextOutputProtocol.h"
-#endif
 
 //
 // Container Superblock magic

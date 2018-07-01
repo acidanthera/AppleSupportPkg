@@ -34,7 +34,7 @@ package() {
     exit 1
   fi
 
-  local ver=$(cat Platform/ApfsDriverLoader/ApfsDriverLoaderVersion.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ' | cut -f2 -d'"')
+  local ver=$(cat Platform/ApfsDriverLoader/Version.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ' | cut -f2 -d'"')
   if [ "$(echo $ver | grep -E '^[0-9]+$')" = "" ]; then
     echo "Invalid version $ver"
   fi

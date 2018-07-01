@@ -20,7 +20,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "ApfsDriverLoader.h"
 #include "Version.h"
 
-STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
+//STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
 //STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
@@ -39,9 +39,7 @@ StartApfsDriver (
   EFI_HANDLE                 ImageHandle         = NULL;
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
-  #ifndef DEBUG
   EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
-  #endif
   EFI_HANDLE                 *HandleBuffer       = NULL;
   UINTN                      HandleCount         = 0;
   UINTN                      Index               = 0;
@@ -95,7 +93,6 @@ StartApfsDriver (
     return Status;
   }
 
-  #ifndef DEBUG
   //
   // Patch verbose
   //
@@ -121,7 +118,6 @@ StartApfsDriver (
   }
 
   LoadedApfsDrvImage->SystemTable = NewSystemTable;
-  #endif
 
   Status = gBS->StartImage (
     ImageHandle, 
@@ -140,7 +136,7 @@ StartApfsDriver (
   }
   
   //
-  // Connect all controllers
+  // Locate AllHandles
   //
   Status = gBS->LocateHandleBuffer (
     AllHandles,
@@ -155,6 +151,9 @@ StartApfsDriver (
     return Status;
   }
 
+  //
+  // Connect all controllers
+  //  
   for (Index = 0; Index < HandleCount; Index++) {
     gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
   }
@@ -407,9 +406,22 @@ ApfsDriverLoaderSupported (
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
 
-  if (mFoundAppleFileSystemDriver) {
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gAppleFileSystemMutexProtocolGuid,
+    NULL,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+    );
+   
+   if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
-  }
+   }
+
+  //if (mFoundAppleFileSystemDriver) {
+  //  return EFI_UNSUPPORTED;
+ // }
 
   //
   // We check for both DiskIO and BlockIO protocols.
@@ -581,9 +593,21 @@ ApfsDriverLoaderStart (
   APFS_NXSB                     *ContainerSuperBlock         = NULL;
   UINT64                        ApfsDriverBootRecordOffset   = 0;
   
-  if (mFoundAppleFileSystemDriver) {
+  /*if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
-  }
+  }*/
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gAppleFileSystemMutexProtocolGuid,
+    NULL,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+    );
+   
+   if (!EFI_ERROR (Status)) {
+    return EFI_UNSUPPORTED;
+   }  
 
   DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
 
@@ -801,12 +825,31 @@ ApfsDriverLoaderStart (
     return EFI_DEVICE_ERROR;
   }
 
-  mFoundAppleFileSystemDriver = TRUE;
+  //mFoundAppleFileSystemDriver = TRUE;
   
+  Status = gBS->InstallProtocolInterface (
+    ControllerHandle,
+    &gAppleFileSystemMutexProtocolGuid,
+    0,
+    NULL
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "AppleFileSystemMutexProtocol install failed with Status %r\n", Status));
+    return Status;
+  }
+
   Status = StartApfsDriver(ControllerHandle);
 
   if (EFI_ERROR (Status)) {
-    mFoundAppleFileSystemDriver = FALSE;
+    //mFoundAppleFileSystemDriver = FALSE;
+    
+    gBS->UninstallProtocolInterface (
+      ControllerHandle,
+      &gAppleFileSystemMutexProtocolGuid,
+      NULL
+      );
+
     return EFI_UNSUPPORTED;
   }
   
