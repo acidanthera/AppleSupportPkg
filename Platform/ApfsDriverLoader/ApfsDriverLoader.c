@@ -27,6 +27,137 @@ STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
 STATIC UINT64                      LegacyBaseOffset               = 0;
 
+
+EFI_STATUS
+EFIAPI
+StartApfsDriver (
+  IN EFI_HANDLE ControllerHandle
+  )
+{
+  EFI_STATUS                 Status;
+  EFI_HANDLE                 ImageHandle         = NULL;
+  EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
+  EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
+  EFI_HANDLE                 *HandleBuffer       = NULL;
+  UINTN                      HandleCount         = 0;
+  UINTN                      Index               = 0;
+
+  if (mAppleFileSystemDriverBuffer == NULL) {
+    DEBUG ((DEBUG_WARN, "Second attempt to load apfs.efi, aborting...\n"));
+    return EFI_UNSUPPORTED;
+  }
+
+  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
+
+  //
+  // Try to retrieve DevicePath
+  //
+  Status = gBS->HandleProtocol (
+    ControllerHandle, 
+    &gEfiDevicePathProtocolGuid, 
+    (VOID **) &ParentDevicePath
+    );
+  
+  if (EFI_ERROR (Status)) {
+      ParentDevicePath = NULL;
+      DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
+  }
+
+  Status = gBS->LoadImage (
+    FALSE,
+    gImageHandle,
+    ParentDevicePath,
+    mAppleFileSystemDriverBuffer, 
+    mAppleFileSystemDriverSize,
+    &ImageHandle
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+    return Status;
+  }
+
+  FreePool (mAppleFileSystemDriverBuffer);
+  mAppleFileSystemDriverBuffer = NULL;
+
+  Status = gBS->HandleProtocol (
+    ImageHandle,
+    &gEfiLoadedImageProtocolGuid,
+    (VOID *) &LoadedApfsDrvImage
+    ); 
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to Handle LoadedImage Protool with Status: %r\n", Status));
+    return Status;
+  }
+
+  //
+  // Patch verbose
+  //
+  NewSystemTable = (EFI_SYSTEM_TABLE *) AllocateZeroPool (gST->Hdr.HeaderSize);
+
+  if (NewSystemTable == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+  }  
+
+  CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
+  NewSystemTable->ConOut = &mNullTextOutputProtocol;
+  NewSystemTable->Hdr.CRC32 = 0;
+  
+  Status = gBS->CalculateCrc32 (
+    NewSystemTable, 
+    NewSystemTable->Hdr.HeaderSize, 
+    &NewSystemTable->Hdr.CRC32
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to calculated new system table CRC32 with Status: %r\n", Status));
+    return Status;
+  }
+
+  LoadedApfsDrvImage->SystemTable = NewSystemTable;
+  
+  Status = gBS->StartImage (
+    ImageHandle, 
+    NULL, 
+    NULL
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to start ApfsDriver with Status: %r\n", Status));
+    //
+    // Unload ApfsDriver image from memory
+    //
+    gBS->UnloadImage (ImageHandle);
+    return Status;
+  }
+  
+  //
+  // Connect all controllers
+  //
+
+  Status = gBS->LocateHandleBuffer (
+    AllHandles,
+    NULL,
+    NULL,
+    &HandleCount,
+    &HandleBuffer
+    );
+  
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to locate handle buffer with Status: %r\n", Status));
+    return Status;
+  }
+
+  for (Index = 0; Index < HandleCount; Index++) {
+    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
+  }
+ 
+  return EFI_SUCCESS;
+}
+
+
 STATIC
 EFI_STATUS
 ReadDisk (
@@ -668,7 +799,12 @@ ApfsDriverLoaderStart (
 
   mFoundAppleFileSystemDriver = TRUE;
   
-  //Status = gBS->SignalEvent (mLoadAppleFileSystemEvent);
+  Status = StartApfsDriver(ControllerHandle);
+
+  if (EFI_ERROR (Status)) {
+    mFoundAppleFileSystemDriver = FALSE;
+    return EFI_UNSUPPORTED;
+  }
   
   return EFI_SUCCESS;
 }
@@ -709,68 +845,7 @@ LoadAppleFileSystemDriverNotify (
   IN EFI_EVENT  Event,
   IN VOID       *Context
   )
-{
-  EFI_STATUS                 Status;
-  EFI_HANDLE                 ImageHandle         = NULL;
-  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
-  EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
-  EFI_HANDLE                 *HandleBuffer       = NULL;
-  UINTN                      HandleCount         = 0;
-  UINTN                      Index               = 0;
-
-  if (mAppleFileSystemDriverBuffer == NULL) {
-    DEBUG ((DEBUG_WARN, "Second attempt to load apfs.efi, aborting...\n"));
-    return;
-  }
-
-  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
-
-  Status = gBS->LoadImage (
-    FALSE,
-    gImageHandle,
-    NULL,
-    mAppleFileSystemDriverBuffer, 
-    mAppleFileSystemDriverSize,
-    &ImageHandle
-    );
-
-  FreePool (mAppleFileSystemDriverBuffer);
-  mAppleFileSystemDriverBuffer = NULL;
-  Status = gBS->HandleProtocol (
-    ImageHandle,
-    &gEfiLoadedImageProtocolGuid,
-    (VOID *) &LoadedApfsDrvImage
-    ); 
-
-  //
-  // Patch verbose
-  //
-  NewSystemTable = (EFI_SYSTEM_TABLE *) AllocateZeroPool (gST->Hdr.HeaderSize);
-  if (NewSystemTable != NULL) {
-    CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
-    NewSystemTable->ConOut = &mNullTextOutputProtocol;
-    NewSystemTable->Hdr.CRC32 = 0;
-    gBS->CalculateCrc32 (NewSystemTable, NewSystemTable->Hdr.HeaderSize, &NewSystemTable->Hdr.CRC32);
-    LoadedApfsDrvImage->SystemTable = NewSystemTable;
-  }
-
-  gBS->StartImage (ImageHandle, NULL, NULL);
-
-  //
-  // Connect all controllers
-  //
-
-  Status = gBS->LocateHandleBuffer (
-                AllHandles,
-                NULL,
-                NULL,
-                &HandleCount,
-                &HandleBuffer
-                );
-  for (Index = 0; Index < HandleCount; Index++) {
-    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
-  }
-}*/
+  */
 
 //
 // Interface structure for the EFI Driver Binding protocol.
