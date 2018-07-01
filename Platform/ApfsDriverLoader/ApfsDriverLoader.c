@@ -28,6 +28,7 @@ STATIC BOOLEAN                     LegacyScan                     = FALSE;
 STATIC UINT64                      LegacyBaseOffset               = 0;
 
 
+
 EFI_STATUS
 EFIAPI
 StartApfsDriver (
@@ -38,7 +39,9 @@ StartApfsDriver (
   EFI_HANDLE                 ImageHandle         = NULL;
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
+  #ifndef DEBUG
   EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
+  #endif
   EFI_HANDLE                 *HandleBuffer       = NULL;
   UINTN                      HandleCount         = 0;
   UINTN                      Index               = 0;
@@ -92,6 +95,7 @@ StartApfsDriver (
     return Status;
   }
 
+  #ifndef DEBUG
   //
   // Patch verbose
   //
@@ -117,7 +121,8 @@ StartApfsDriver (
   }
 
   LoadedApfsDrvImage->SystemTable = NewSystemTable;
-  
+  #endif
+
   Status = gBS->StartImage (
     ImageHandle, 
     NULL, 
@@ -126,6 +131,7 @@ StartApfsDriver (
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "Failed to start ApfsDriver with Status: %r\n", Status));
+
     //
     // Unload ApfsDriver image from memory
     //
@@ -136,7 +142,6 @@ StartApfsDriver (
   //
   // Connect all controllers
   //
-
   Status = gBS->LocateHandleBuffer (
     AllHandles,
     NULL,
@@ -156,7 +161,6 @@ StartApfsDriver (
  
   return EFI_SUCCESS;
 }
-
 
 STATIC
 EFI_STATUS
