@@ -44,6 +44,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/LoadedImage.h>
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
+#include "NullTextOutputProtocol.h"
 
 //
 // Container Superblock magic
@@ -354,5 +355,22 @@ typedef struct PARTITION_DRIVER_PRESENT_EVT_CTX_
 } PARTITION_DRIVER_PRESENT_EVT_CTX;
 #pragma pack(pop)
 */
+
+extern EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL mNullTextOutputProtocol;
+
+
+extern
+UINT64
+ApfsBlockChecksumCalculate (
+  UINT32  *Data,
+  UINTN  DataSize
+  );
+
+extern
+BOOLEAN
+ApfsBlockChecksumVerify (
+  UINT8   *Data,
+  UINTN  DataSize
+  );
 
 #endif // APFS_DRIVER_LOADER_H_
