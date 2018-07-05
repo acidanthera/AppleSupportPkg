@@ -840,6 +840,11 @@ ApfsDriverLoaderStart (
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
   APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE *Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE));
+
+  if (Private == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
   Private->ControllerHandle  = ControllerHandle;
   EfiBootRecordLocationInfo = &Private->EfiBootRecordLocationInfo;
   EfiBootRecordLocationInfo->ControllerHandle = ControllerHandle;
@@ -853,7 +858,7 @@ ApfsDriverLoaderStart (
     );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "AppleFileSystemDriverInfoProtocol install failed with Status %r\n", Status));
+    DEBUG ((DEBUG_WARN, "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", Status));
     return Status;
   }
 
