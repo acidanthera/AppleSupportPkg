@@ -20,8 +20,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "ApfsDriverLoader.h"
 #include "Version.h"
 
-//STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
-//STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
+STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
@@ -405,10 +404,14 @@ ApfsDriverLoaderSupported (
   EFI_STATUS                    Status;
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
+  
+  if (mFoundAppleFileSystemDriver) {
+    return EFI_UNSUPPORTED;
+  }
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gAppleFileSystemMutexProtocolGuid,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
     NULL,
     This->DriverBindingHandle,
     ControllerHandle,
@@ -418,10 +421,6 @@ ApfsDriverLoaderSupported (
    if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
    }
-
-  //if (mFoundAppleFileSystemDriver) {
-  //  return EFI_UNSUPPORTED;
- // }
 
   //
   // We check for both DiskIO and BlockIO protocols.
@@ -592,13 +591,16 @@ ApfsDriverLoaderStart (
   APFS_EFI_BOOT_RECORD          *EfiBootRecordBlock          = NULL;
   APFS_NXSB                     *ContainerSuperBlock         = NULL;
   UINT64                        ApfsDriverBootRecordOffset   = 0;
+  EFI_GUID                      ContainerUuid;
+  APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo;
   
-  /*if (mFoundAppleFileSystemDriver) {
+  if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
-  }*/
+  }
+
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gAppleFileSystemMutexProtocolGuid,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
     NULL,
     This->DriverBindingHandle,
     ControllerHandle,
@@ -758,6 +760,13 @@ ApfsDriverLoaderStart (
   } 
 
   //
+  // Extract Container UUID
+  //
+  //ContainerUuid = AllocateZeroPool(sizeof(EFI_GUID));
+  ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
+  CopyMem(&ContainerUuid, &ContainerSuperBlock->Uuid, 16);
+
+  //
   // Calculate Offset of EfiBootRecordBlock...
   //
   EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + LegacyBaseOffset; 
@@ -825,28 +834,37 @@ ApfsDriverLoaderStart (
     return EFI_DEVICE_ERROR;
   }
 
-  //mFoundAppleFileSystemDriver = TRUE;
+  mFoundAppleFileSystemDriver = TRUE;
   
-  Status = gBS->InstallProtocolInterface (
-    ControllerHandle,
-    &gAppleFileSystemMutexProtocolGuid,
-    0,
+  //
+  // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
+  //
+  APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE *Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE));
+  Private->ControllerHandle  = ControllerHandle;
+  EfiBootRecordLocationInfo = &Private->EfiBootRecordLocationInfo;
+  EfiBootRecordLocationInfo->ControllerHandle = ControllerHandle;
+  CopyMem(&EfiBootRecordLocationInfo->ContainerUuid, &ContainerUuid, 16);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+    &Private->ControllerHandle,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+    &Private->EfiBootRecordLocationInfo,
     NULL
     );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "AppleFileSystemMutexProtocol install failed with Status %r\n", Status));
+    DEBUG ((DEBUG_WARN, "AppleFileSystemDriverInfoProtocol install failed with Status %r\n", Status));
     return Status;
   }
 
   Status = StartApfsDriver(ControllerHandle);
 
   if (EFI_ERROR (Status)) {
-    //mFoundAppleFileSystemDriver = FALSE;
+    mFoundAppleFileSystemDriver = FALSE;
     
     gBS->UninstallProtocolInterface (
       ControllerHandle,
-      &gAppleFileSystemMutexProtocolGuid,
+      &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
       NULL
       );
 
@@ -938,21 +956,6 @@ ApfsDriverLoaderInit (
   VOID                                *PartitionInfoInterface = NULL;
   
   DEBUG ((DEBUG_VERBOSE, "Starting ApfdDriverLoader ver. %s\n", APFSDRIVERLOADER_VERSION));
-
-  // 
-  // Install StartApfsDriver event
-  //  
-  /*Status = gBS->CreateEvent (
-    EVT_NOTIFY_SIGNAL,
-    TPL_CALLBACK,
-    LoadAppleFileSystemDriverNotify,
-    NULL,
-    &mLoadAppleFileSystemEvent
-    );
-
-  if (EFI_ERROR (Status)) {
-    return Status;
-  } */ 
 
   //
   // Check that PartitionInfo protocol present

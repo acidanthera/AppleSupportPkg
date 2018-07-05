@@ -44,6 +44,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/LoadedImage.h>
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
+#include <Protocol/ApfsEfiBootRecordInfo.h>
 #include "NullTextOutputProtocol.h"
 
 //
@@ -140,9 +141,9 @@ typedef struct APFS_NXSB_
     UINT64             TotalBlocks;
     UINT8              Reserved_1[24];
     //
-    // GUID of the container, must be equal APFS_CONTAINER_GUID
+    // UUID of the container
     //
-    EFI_GUID           Guid;
+    EFI_GUID           Uuid;
     //
     // Next free block id
     //

@@ -65,7 +65,7 @@
   gEfiUnicodeCollation2ProtocolGuid
   gEfiPartitionInfoProtocolGuid
   gApplePartitionInfoProtocolGuid
-  gAppleFileSystemMutexProtocolGuid   ## PRODUCES
+  gAppleFileSystemEfiBootRecordInfoProtocolGuid   ## PRODUCES
 
 [Pcd]
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang
