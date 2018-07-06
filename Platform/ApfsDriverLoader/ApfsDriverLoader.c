@@ -920,9 +920,7 @@ ApfsDriverLoaderStop (
 // According to UEFI Spec 2.6 , we should define Supported, Start, Stop function for
 // DriverBinding
 //
-STATIC
-EFI_DRIVER_BINDING_PROTOCOL
-mApfsDriverLoaderBinding = {
+EFI_DRIVER_BINDING_PROTOCOL gApfsDriverLoaderBinding = {
   ApfsDriverLoaderSupported,
   ApfsDriverLoaderStart,
   ApfsDriverLoaderStop,
@@ -995,13 +993,11 @@ ApfsDriverLoaderInit (
   Status = EfiLibInstallDriverBindingComponentName2 (
     ImageHandle,
     SystemTable,
-    &mApfsDriverLoaderBinding,
+    &gApfsDriverLoaderBinding,
     ImageHandle,
-    NULL,
-    NULL
+    &gApfsDriverLoaderComponentName,
+    &gApfsDriverLoaderComponentName2
     );    
-
-  DEBUG ((DEBUG_VERBOSE, "Installed driver binding: %r\n", Status));
   
   return Status;
 }

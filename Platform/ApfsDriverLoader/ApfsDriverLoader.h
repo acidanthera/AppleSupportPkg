@@ -33,6 +33,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DevicePathLib.h>
 #include <Library/PrintLib.h>
 #include <Library/UefiLib.h>
+#include <Protocol/ComponentName.h>
 #include <Protocol/DriverBinding.h>
 #include <Protocol/DevicePathFromText.h>
 #include <Protocol/DevicePathToText.h>
@@ -48,10 +49,17 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "NullTextOutputProtocol.h"
 
 //
+// Global Variables
+//
+extern EFI_DRIVER_BINDING_PROTOCOL   gApfsDriverLoaderDriverBinding;
+extern EFI_COMPONENT_NAME_PROTOCOL   gApfsDriverLoaderComponentName;
+extern EFI_COMPONENT_NAME2_PROTOCOL  gApfsDriverLoaderComponentName2;
+
+//
 // Container Superblock magic
 // 'NXSB'
 //
-STATIC CONST UINT32 CsbMagic           = 0x4253584e;
+STATIC CONST UINT32 CsbMagic           = 0x4253584E;
 //
 // Volume Superblock magic
 // 'APSB'
@@ -61,7 +69,7 @@ STATIC CONST UINT32 VsbMagic           = 0x42535041;
 // EfiBootRecord block magic
 // 'JSDR'
 //
-STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
+STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534A;
 
 #pragma pack(push, 1)
 typedef struct APFS_BLOCK_HEADER_
@@ -324,6 +332,10 @@ typedef struct APFS_EFI_BOOT_RECORD_
 
 extern EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL mNullTextOutputProtocol;
 
+//
+// Fletcher checksum Functions
+//
+
 extern
 UINT64
 ApfsBlockChecksumCalculate (
@@ -337,5 +349,28 @@ ApfsBlockChecksumVerify (
   UINT8   *Data,
   UINTN  DataSize
   );
+
+//
+// EFI Component Name Functions
+//
+EFI_STATUS
+EFIAPI
+ApfsDriverLoaderComponentNameGetDriverName (
+  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
+  IN  CHAR8                        *Language,
+  OUT CHAR16                       **DriverName
+  );
+
+
+EFI_STATUS
+EFIAPI
+ApfsDriverLoaderComponentNameGetControllerName (
+  IN  EFI_COMPONENT_NAME_PROTOCOL                     *This,
+  IN  EFI_HANDLE                                      ControllerHandle,
+  IN  EFI_HANDLE                                      ChildHandle        OPTIONAL,
+  IN  CHAR8                                           *Language,
+  OUT CHAR16                                          **ControllerName
+  );
+
 
 #endif // APFS_DRIVER_LOADER_H_
