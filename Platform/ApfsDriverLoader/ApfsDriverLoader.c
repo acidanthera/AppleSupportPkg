@@ -21,7 +21,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "Version.h"
 
 
-STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
+//STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
@@ -39,9 +39,9 @@ StartApfsDriver (
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
-  EFI_HANDLE                 *HandleBuffer       = NULL;
-  UINTN                      HandleCount         = 0;
-  UINTN                      Index               = 0;
+  //EFI_HANDLE                 *HandleBuffer       = NULL;
+  //UINTN                      HandleCount         = 0;
+  //UINTN                      Index               = 0;
 
   if (mAppleFileSystemDriverBuffer == NULL) {
     DEBUG ((DEBUG_WARN, "Second attempt to load apfs.efi, aborting...\n"));
@@ -133,7 +133,7 @@ StartApfsDriver (
     gBS->UnloadImage (ImageHandle);
     return Status;
   }
-  
+  /*
   //
   // Locate AllHandles
   //
@@ -156,6 +156,13 @@ StartApfsDriver (
   for (Index = 0; Index < HandleCount; Index++) {
     gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
   }
+
+  */
+  
+  //
+  // Connect loaded apfs.efi to controller from which we retrieve it
+  //
+  gBS->ConnectController(ControllerHandle, NULL, NULL, TRUE);
  
   return EFI_SUCCESS;
 }
@@ -405,9 +412,9 @@ ApfsDriverLoaderSupported (
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
   
-  if (mFoundAppleFileSystemDriver) {
+ /* if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
-  }
+  }*/
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -594,9 +601,9 @@ ApfsDriverLoaderStart (
   EFI_GUID                                     ContainerUuid;
   APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
   
-  if (mFoundAppleFileSystemDriver) {
+ /* if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
-  }
+  }*/
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -834,7 +841,7 @@ ApfsDriverLoaderStart (
     return EFI_DEVICE_ERROR;
   }
 
-  mFoundAppleFileSystemDriver = TRUE;
+//  mFoundAppleFileSystemDriver = TRUE;
   
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
@@ -865,7 +872,7 @@ ApfsDriverLoaderStart (
   Status = StartApfsDriver(ControllerHandle);
 
   if (EFI_ERROR (Status)) {
-    mFoundAppleFileSystemDriver = FALSE;
+   // mFoundAppleFileSystemDriver = FALSE;
     
     gBS->UninstallProtocolInterface (
       ControllerHandle,
