@@ -16,6 +16,7 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 Implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver. This protocol installs in CoreDxe Apple's firmware.
 
 - Gives ability to use native ApfsJumpStart driver from Apple firmware
+- **WARNING**: ApplePartitionDriver also needed
 
 ## Credits
 - [cugu](https://github.com/cugu) for awesome research according APFS structure

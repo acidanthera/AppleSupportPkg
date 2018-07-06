@@ -21,7 +21,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "Version.h"
 
 
-//STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
@@ -411,10 +410,6 @@ ApfsDriverLoaderSupported (
   EFI_STATUS                    Status;
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
-  
- /* if (mFoundAppleFileSystemDriver) {
-    return EFI_UNSUPPORTED;
-  }*/
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -601,10 +596,6 @@ ApfsDriverLoaderStart (
   EFI_GUID                                     ContainerUuid;
   APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
   
- /* if (mFoundAppleFileSystemDriver) {
-    return EFI_UNSUPPORTED;
-  }*/
-
   Status = gBS->OpenProtocol (
     ControllerHandle,
     &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
@@ -840,14 +831,11 @@ ApfsDriverLoaderStart (
   if (EFI_ERROR (Status)) {
     return EFI_DEVICE_ERROR;
   }
-
-//  mFoundAppleFileSystemDriver = TRUE;
   
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
   APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE *Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE));
-
   if (Private == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
@@ -872,14 +860,11 @@ ApfsDriverLoaderStart (
   Status = StartApfsDriver(ControllerHandle);
 
   if (EFI_ERROR (Status)) {
-   // mFoundAppleFileSystemDriver = FALSE;
-    
     gBS->UninstallProtocolInterface (
       ControllerHandle,
       &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
       NULL
       );
-
     return EFI_UNSUPPORTED;
   }
   

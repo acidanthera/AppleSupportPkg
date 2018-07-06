@@ -19,6 +19,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APPLE_FILESYSTEM_EFIBOOTRECORD_INFO_PROTOCOL_H_
 #define APPLE_FILESYSTEM_EFIBOOTRECORD_INFO_PROTOCOL_H_
 
+#define APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA_SIGNATURE  SIGNATURE_32 ('A', 'F', 'J', 'S')
 
 #define APPLE_FILESYSTEM_EFIBOOTRECORD_INFO_PROTOCOL_GUID \
   { 0x03B8D751, 0xA02F, 0x4FF8, {0x9B, 0x1A, 0x55, 0x24, 0xAF, 0xA3, 0x94, 0x5F } }
@@ -50,7 +51,7 @@ typedef struct  _APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO
 // ApfsJumpStart private data structure gathered from
 // reverse-engineered Apple's implementation
 //
-typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE 
+typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA 
 {
     UINT32                                       Magic;
     EFI_HANDLE                                   ControllerHandle;
@@ -67,11 +68,12 @@ typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE
     EFI_BLOCK_IO_PROTOCOL                        *BlockIoInterface;
     UNKNOWNFIELD                                 *Unknown4;
     UINT64                                       UnknownAddress;
-} APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE;
+} APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA;
 
 
 #define APPLE_FILESYSTEM_EFIBOOTRECORD_INFO_PRIVATE_DATA_FROM_THIS(a) \
-          CR(a, APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE, EfiBootRecordLocationInfo, Magic)
+          CR(a, APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA, EfiBootRecordLocationInfo, 
+          	 APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA_SIGNATURE)
 
 extern EFI_GUID gAppleFileSystemEfiBootRecordInfoProtocolGuid;
 

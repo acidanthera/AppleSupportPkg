@@ -43,15 +43,13 @@ GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME2_PROTOCOL gApfsDriverLoaderComp
 GLOBAL_REMOVE_IF_UNREFERENCED EFI_UNICODE_STRING_TABLE gApfsDriverLoaderNameTable[] = {
   {
     "eng;en",
-    L"ApfsDriverLoader"
+    L"Apfs Driver Loader"
   },
   {
     NULL,
     NULL
   }
 };
-
-
 
 /**
   Retrieves a Unicode string that is the user readable name of the driver.
