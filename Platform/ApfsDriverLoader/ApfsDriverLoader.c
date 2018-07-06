@@ -20,12 +20,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "ApfsDriverLoader.h"
 #include "Version.h"
 
+
 STATIC BOOLEAN                     mFoundAppleFileSystemDriver    = FALSE;
 STATIC VOID                        *mAppleFileSystemDriverBuffer  = NULL;
 STATIC UINTN                       mAppleFileSystemDriverSize     = 0;
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
 STATIC UINT64                      LegacyBaseOffset               = 0;
-
 
 
 EFI_STATUS
@@ -577,22 +577,22 @@ ApfsDriverLoaderStart (
   IN EFI_DEVICE_PATH_PROTOCOL     *RemainingDevicePath
   )
 {
-  EFI_STATUS                    Status;
-  EFI_BLOCK_IO_PROTOCOL         *BlockIo                     = NULL;
-  EFI_BLOCK_IO2_PROTOCOL        *BlockIo2                    = NULL;
-  EFI_DISK_IO_PROTOCOL          *DiskIo                      = NULL;
-  EFI_DISK_IO2_PROTOCOL         *DiskIo2                     = NULL;
-  UINT32                        BlockSize                    = 0;
-  UINT32                        ApfsBlockSize                = 0;
-  UINT32                        MediaId                      = 0;
-  UINT8                         *ApfsBlock                   = NULL;
-  UINT64                        EfiBootRecordBlockOffset     = 0;
-  UINT64                        EfiBootRecordBlockPtr        = 0;
-  APFS_EFI_BOOT_RECORD          *EfiBootRecordBlock          = NULL;
-  APFS_NXSB                     *ContainerSuperBlock         = NULL;
-  UINT64                        ApfsDriverBootRecordOffset   = 0;
-  EFI_GUID                      ContainerUuid;
-  APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo;
+  EFI_STATUS                                   Status;
+  EFI_BLOCK_IO_PROTOCOL                        *BlockIo                     = NULL;
+  EFI_BLOCK_IO2_PROTOCOL                       *BlockIo2                    = NULL;
+  EFI_DISK_IO_PROTOCOL                         *DiskIo                      = NULL;
+  EFI_DISK_IO2_PROTOCOL                        *DiskIo2                     = NULL;
+  UINT32                                       BlockSize                    = 0;
+  UINT32                                       ApfsBlockSize                = 0;
+  UINT32                                       MediaId                      = 0;
+  UINT8                                        *ApfsBlock                   = NULL;
+  UINT64                                       EfiBootRecordBlockOffset     = 0;
+  UINT64                                       EfiBootRecordBlockPtr        = 0;
+  APFS_EFI_BOOT_RECORD                         *EfiBootRecordBlock          = NULL;
+  APFS_NXSB                                    *ContainerSuperBlock         = NULL;
+  UINT64                                       ApfsDriverBootRecordOffset   = 0;
+  EFI_GUID                                     ContainerUuid;
+  APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
   
   if (mFoundAppleFileSystemDriver) {
     return EFI_UNSUPPORTED;
@@ -907,15 +907,6 @@ ApfsDriverLoaderStop (
   
   return EFI_SUCCESS;
 }
-
-
-/*VOID
-EFIAPI
-LoadAppleFileSystemDriverNotify (
-  IN EFI_EVENT  Event,
-  IN VOID       *Context
-  )
-  */
 
 //
 // Interface structure for the EFI Driver Binding protocol.
