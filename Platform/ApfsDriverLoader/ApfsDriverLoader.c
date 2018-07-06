@@ -835,7 +835,7 @@ ApfsDriverLoaderStart (
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
-  APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE *Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE));
+  APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA *Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA));
   if (Private == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
