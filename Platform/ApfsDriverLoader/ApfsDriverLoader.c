@@ -18,187 +18,146 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include "ApfsDriverLoader.h"
-#include "ApfsDriverLoaderVersion.h"
+#include "Version.h"
 
-STATIC BOOLEAN                     mFoundAppleFileSystemDriver;
-STATIC EFI_EVENT                   mLoadAppleFileSystemEvent;
-STATIC VOID                        *mAppleFileSystemDriverBuffer;
-STATIC UINTN                       mAppleFileSystemDriverSize;
+
 STATIC BOOLEAN                     LegacyScan                     = FALSE;
 STATIC UINT64                      LegacyBaseOffset               = 0;
 
-STATIC
-EFI_STATUS
-EFIAPI 
-NullTextReset (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN BOOLEAN                         ExtendedVerification
-  )
-{
-  return EFI_SUCCESS;
-}
 
-STATIC
 EFI_STATUS
 EFIAPI
-NullTextOutputString (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN CHAR16                          *String
+StartApfsDriver (
+  IN EFI_HANDLE ControllerHandle,
+  IN VOID       *AppleFileSystemDriverBuffer,
+  IN UINTN      AppleFileSystemDriverSize
   )
 {
-  return EFI_SUCCESS;
-}
+  EFI_STATUS                 Status;
+  EFI_HANDLE                 ImageHandle         = NULL;
+  EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
+  EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
 
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextTestString (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN CHAR16                          *String
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextQueryMode (
-  IN  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN  UINTN                           ModeNumber,
-  OUT UINTN                           *Columns,
-  OUT UINTN                           *Rows
-  )
-{
-  return EFI_UNSUPPORTED;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextSetMode (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN UINTN                           ModeNumber
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextSetAttribute (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN UINTN                           Attribute
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextClearScreen (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextSetCursorPosition (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN UINTN                           Column,
-  IN UINTN                           Row
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_STATUS
-EFIAPI
-NullTextEnableCursor (
-  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This,
-  IN BOOLEAN                         Visible
-  )
-{
-  return EFI_SUCCESS;
-}
-
-STATIC
-EFI_SIMPLE_TEXT_OUTPUT_MODE
-mNullTextOutputMode;
-
-STATIC
-EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL
-mNullTextOutputProtocol = {
-  NullTextReset,
-  NullTextOutputString,
-  NullTextTestString,
-  NullTextQueryMode,
-  NullTextSetMode,
-  NullTextSetAttribute,
-  NullTextClearScreen,
-  NullTextSetCursorPosition,
-  NullTextEnableCursor,
-  &mNullTextOutputMode
-};
-
-
-//
-// Function to calculate APFS block checksum.
-// According to the apple docs the Fletcher’s checksum algorithm is used.
-// Apple uses a variant of the algorithm described in a paper by John Kodis.
-// The following algorithm shows this procedure.
-// The input is the block without the first 8 byte.
-//
-STATIC
-UINT64
-ApfsBlockChecksumCalculate (
-  UINT32  *Data,
-  UINTN  DataSize
-  )
-{
-  UINTN         Index;
-  UINT64        Sum1 = 0;
-  UINT64        Check1 = 0;
-  UINT64        Sum2 = 0;
-  UINT64        Check2 = 0;
-  CONST UINT64  ModValue = 0xFFFFFFFF;
-  for (Index = 0; Index < DataSize / sizeof (UINT32); Index++) {
-    Sum1 = ((Sum1 + (UINT64)Data[Index]) % ModValue);
-    Sum2 = (Sum2 + Sum1) % ModValue;
+  if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {
+    DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
+    return EFI_UNSUPPORTED;
   }
 
-  Check1 = ModValue - ((Sum1 + Sum2) % ModValue);
-  Check2 = ModValue - ((Sum1 + Check1) % ModValue);
+  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
 
-  return (Check2 << 32) | Check1;
-}
+  //
+  // Try to retrieve DevicePath
+  //
+  Status = gBS->HandleProtocol (
+    ControllerHandle, 
+    &gEfiDevicePathProtocolGuid, 
+    (VOID **) &ParentDevicePath
+    );
+  
+  if (EFI_ERROR (Status)) {
+      ParentDevicePath = NULL;
+      DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
+  }
 
-//
-// Function to check block checksum.
-// Returns TRUE if the checksum is valid.
-//
-STATIC
-BOOLEAN
-ApfsBlockChecksumVerify (
-  UINT8   *Data,
-  UINTN  DataSize
-  )
-{
-  UINT64  NewChecksum;
-  UINT64  *CurrChecksum = (UINT64 *)Data;
-
-  NewChecksum = ApfsBlockChecksumCalculate (
-    (UINT32 *)(Data + sizeof (UINT64)),
-    DataSize - sizeof (UINT64)
+  Status = gBS->LoadImage (
+    FALSE,
+    gImageHandle,
+    ParentDevicePath,
+    AppleFileSystemDriverBuffer, 
+    AppleFileSystemDriverSize,
+    &ImageHandle
     );
 
-  return NewChecksum == *CurrChecksum;
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+    return Status;
+  }
+
+  Status = gBS->HandleProtocol (
+    ImageHandle,
+    &gEfiLoadedImageProtocolGuid,
+    (VOID *) &LoadedApfsDrvImage
+    ); 
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to Handle LoadedImage Protool with Status: %r\n", Status));
+    return Status;
+  }
+
+  //
+  // Patch verbose
+  //
+  NewSystemTable = (EFI_SYSTEM_TABLE *) AllocateZeroPool (gST->Hdr.HeaderSize);
+
+  if (NewSystemTable == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+  }  
+
+  CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
+  NewSystemTable->ConOut = &mNullTextOutputProtocol;
+  NewSystemTable->Hdr.CRC32 = 0;
+  
+  Status = gBS->CalculateCrc32 (
+    NewSystemTable, 
+    NewSystemTable->Hdr.HeaderSize, 
+    &NewSystemTable->Hdr.CRC32
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to calculated new system table CRC32 with Status: %r\n", Status));
+    return Status;
+  }
+
+  LoadedApfsDrvImage->SystemTable = NewSystemTable;
+
+  Status = gBS->StartImage (
+    ImageHandle, 
+    NULL, 
+    NULL
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to start ApfsDriver with Status: %r\n", Status));
+
+    //
+    // Unload ApfsDriver image from memory
+    //
+    gBS->UnloadImage (ImageHandle);
+    return Status;
+  }
+  /*
+  //
+  // Locate AllHandles
+  //
+  Status = gBS->LocateHandleBuffer (
+    AllHandles,
+    NULL,
+    NULL,
+    &HandleCount,
+    &HandleBuffer
+    );
+  
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "Failed to locate handle buffer with Status: %r\n", Status));
+    return Status;
+  }
+
+  //
+  // Connect all controllers
+  //  
+  for (Index = 0; Index < HandleCount; Index++) {
+    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
+  }
+
+  */
+  
+  //
+  // Connect loaded apfs.efi to controller from which we retrieve it
+  //
+  gBS->ConnectController(ControllerHandle, NULL, NULL, TRUE);
+ 
+  return EFI_SUCCESS;
 }
 
 STATIC
@@ -446,9 +405,18 @@ ApfsDriverLoaderSupported (
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
 
-  if (mFoundAppleFileSystemDriver) {
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+    NULL,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+    );
+   
+   if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
-  }
+   }
 
   //
   // We check for both DiskIO and BlockIO protocols.
@@ -605,24 +573,39 @@ ApfsDriverLoaderStart (
   IN EFI_DEVICE_PATH_PROTOCOL     *RemainingDevicePath
   )
 {
-  EFI_STATUS                    Status;
-  EFI_BLOCK_IO_PROTOCOL         *BlockIo                     = NULL;
-  EFI_BLOCK_IO2_PROTOCOL        *BlockIo2                    = NULL;
-  EFI_DISK_IO_PROTOCOL          *DiskIo                      = NULL;
-  EFI_DISK_IO2_PROTOCOL         *DiskIo2                     = NULL;
-  UINT32                        BlockSize                    = 0;
-  UINT32                        ApfsBlockSize                = 0;
-  UINT32                        MediaId                      = 0;
-  UINT8                         *ApfsBlock                   = NULL;
-  UINT64                        EfiBootRecordBlockOffset     = 0;
-  UINT64                        EfiBootRecordBlockPtr        = 0;
-  APFS_EFI_BOOT_RECORD          *EfiBootRecordBlock          = NULL;
-  APFS_NXSB                     *ContainerSuperBlock         = NULL;
-  UINT64                        ApfsDriverBootRecordOffset   = 0;
+  EFI_STATUS                                   Status;
+  EFI_BLOCK_IO_PROTOCOL                        *BlockIo                     = NULL;
+  EFI_BLOCK_IO2_PROTOCOL                       *BlockIo2                    = NULL;
+  EFI_DISK_IO_PROTOCOL                         *DiskIo                      = NULL;
+  EFI_DISK_IO2_PROTOCOL                        *DiskIo2                     = NULL;
+  UINT32                                       BlockSize                    = 0;
+  UINT32                                       ApfsBlockSize                = 0;
+  UINT32                                       MediaId                      = 0;
+  UINT8                                        *ApfsBlock                   = NULL;
+  EFI_GUID                                     ContainerUuid;
+  UINT64                                       EfiBootRecordBlockOffset     = 0;
+  UINT64                                       EfiBootRecordBlockPtr        = 0;
+  APFS_EFI_BOOT_RECORD                         *EfiBootRecordBlock          = NULL;
+  APFS_NXSB                                    *ContainerSuperBlock         = NULL;
+  UINT64                                       ApfsDriverBootRecordOffset   = 0;
+  VOID                                         *AppleFileSystemDriverBuffer = NULL;
+  UINTN                                        AppleFileSystemDriverSize    = 0;
+  APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA    *Private                     = NULL;
+  APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
+
   
-  if (mFoundAppleFileSystemDriver) {
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+    NULL,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+    );
+   
+   if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
-  }
+   }  
 
   DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
 
@@ -709,12 +692,20 @@ ApfsDriverLoaderStart (
     FreePool (ApfsBlock);
     return EFI_DEVICE_ERROR;
   }
+ 
+  ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
+
+  //
+  // Verify NodeId and NodeType
+  //
+  if (ContainerSuperBlock->BlockHeader.NodeType != 0x80000001
+      || ContainerSuperBlock->BlockHeader.NodeId != 1) {
+    return EFI_UNSUPPORTED;
+  }
   
   //
   // Verify ContainerSuperblock magic.
   //
-  ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
-
   DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->MagicNumber));
   DEBUG ((DEBUG_VERBOSE, "Should be: %04x\n", CsbMagic));
 
@@ -773,6 +764,13 @@ ApfsDriverLoaderStart (
   } 
 
   //
+  // Extract Container UUID
+  //
+  //ContainerUuid = AllocateZeroPool(sizeof(EFI_GUID));
+  ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
+  CopyMem(&ContainerUuid, &ContainerSuperBlock->Uuid, 16);
+
+  //
   // Calculate Offset of EfiBootRecordBlock...
   //
   EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + LegacyBaseOffset; 
@@ -814,16 +812,16 @@ ApfsDriverLoaderStart (
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver located at: %llu block\n", EfiBootRecordBlock->BootRecordLBA));
 
   ApfsDriverBootRecordOffset = MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + LegacyBaseOffset;
-  mAppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
+  AppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
 
   DEBUG ((DEBUG_VERBOSE, "ApfsDriver offset: %08llx \n", ApfsDriverBootRecordOffset));
-  DEBUG ((DEBUG_VERBOSE, "ApfsDriver size: %llu bytes\n", mAppleFileSystemDriverSize));
+  DEBUG ((DEBUG_VERBOSE, "ApfsDriver size: %llu bytes\n", AppleFileSystemDriverSize));
 
   FreePool (ApfsBlock);
 
-  mAppleFileSystemDriverBuffer = AllocateZeroPool (mAppleFileSystemDriverSize);
+  AppleFileSystemDriverBuffer = AllocateZeroPool (AppleFileSystemDriverSize);
 
-  if (mAppleFileSystemDriverBuffer == NULL) {
+  if (AppleFileSystemDriverBuffer == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -832,16 +830,79 @@ ApfsDriverLoaderStart (
     DiskIo2,
     MediaId,
     ApfsDriverBootRecordOffset,
-    mAppleFileSystemDriverSize,
-    mAppleFileSystemDriverBuffer
+    AppleFileSystemDriverSize,
+    AppleFileSystemDriverBuffer
     );
 
   if (EFI_ERROR (Status)) {
     return EFI_DEVICE_ERROR;
   }
+  
+  //
+  // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
+  //
+  Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA));
+  if (Private == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
 
-  mFoundAppleFileSystemDriver = TRUE;
-  Status = gBS->SignalEvent (mLoadAppleFileSystemEvent);
+  Private->ControllerHandle  = ControllerHandle;
+  EfiBootRecordLocationInfo = &Private->EfiBootRecordLocationInfo;
+  EfiBootRecordLocationInfo->ControllerHandle = ControllerHandle;
+  CopyMem(&EfiBootRecordLocationInfo->ContainerUuid, &ContainerUuid, 16);
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+    &Private->ControllerHandle,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+    &Private->EfiBootRecordLocationInfo,
+    NULL
+    );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", Status));
+    return Status;
+  }
+
+  Status = StartApfsDriver(
+    ControllerHandle,
+    AppleFileSystemDriverBuffer,
+    AppleFileSystemDriverSize
+    );
+
+  if (EFI_ERROR (Status)) {
+    gBS->UninstallProtocolInterface (
+      ControllerHandle,
+      &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+      NULL
+      );
+    return EFI_UNSUPPORTED;
+  }
+
+  //
+  // Free memory and close DiskIo protocol
+  //
+  if (AppleFileSystemDriverBuffer != NULL) { 
+    FreePool (AppleFileSystemDriverBuffer);
+  }
+  if (Private != NULL) {
+    FreePool(Private);
+  }
+  if (DiskIo2 != NULL) {
+    gBS->CloseProtocol(
+      ControllerHandle, 
+      &gEfiDiskIo2ProtocolGuid, 
+      This->DriverBindingHandle, 
+      ControllerHandle
+      );
+  } else {
+    gBS->CloseProtocol(
+      ControllerHandle, 
+      &gEfiDiskIoProtocolGuid, 
+      This->DriverBindingHandle, 
+      ControllerHandle
+      );
+  }
+
   return EFI_SUCCESS;
 }
 
@@ -870,78 +931,40 @@ ApfsDriverLoaderStop (
   IN  EFI_HANDLE                   *ChildHandleBuffer
   )
 {
+  EFI_STATUS                                   Status;
+  APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
   
-  return EFI_SUCCESS;
-}
-
-
-VOID
-EFIAPI
-LoadAppleFileSystemDriverNotify (
-  IN EFI_EVENT  Event,
-  IN VOID       *Context
-  )
-{
-  EFI_STATUS                 Status;
-  EFI_HANDLE                 ImageHandle         = NULL;
-  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
-  EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
-  EFI_HANDLE                 *HandleBuffer       = NULL;
-  UINTN                      HandleCount         = 0;
-  UINTN                      Index               = 0;
-
-  if (mAppleFileSystemDriverBuffer == NULL) {
-    DEBUG ((DEBUG_WARN, "Second attempt to load apfs.efi, aborting...\n"));
-    return;
-  }
-
-  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
-
-  Status = gBS->LoadImage (
-    FALSE,
-    gImageHandle,
-    NULL,
-    mAppleFileSystemDriverBuffer, 
-    mAppleFileSystemDriverSize,
-    &ImageHandle
+  Status = gBS->OpenProtocol(
+    ControllerHandle,
+    &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+    (VOID **) &EfiBootRecordLocationInfo,
+    This->DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_GET_PROTOCOL
     );
 
-  FreePool (mAppleFileSystemDriverBuffer);
-  mAppleFileSystemDriverBuffer = NULL;
-  Status = gBS->HandleProtocol (
-    ImageHandle,
-    &gEfiLoadedImageProtocolGuid,
-    (VOID *) &LoadedApfsDrvImage
-    ); 
-
-  //
-  // Patch verbose
-  //
-  NewSystemTable = (EFI_SYSTEM_TABLE *) AllocateZeroPool (gST->Hdr.HeaderSize);
-  if (NewSystemTable != NULL) {
-    CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
-    NewSystemTable->ConOut = &mNullTextOutputProtocol;
-    NewSystemTable->Hdr.CRC32 = 0;
-    gBS->CalculateCrc32 (NewSystemTable, NewSystemTable->Hdr.HeaderSize, &NewSystemTable->Hdr.CRC32);
-    LoadedApfsDrvImage->SystemTable = NewSystemTable;
+  if (EFI_ERROR (Status)) {
+    Status = gBS->CloseProtocol(
+      ControllerHandle,
+      &gEfiDiskIoProtocolGuid,
+      This->DriverBindingHandle,
+      ControllerHandle
+      );
+    Status = gBS->CloseProtocol(
+      ControllerHandle, 
+      &gEfiDiskIo2ProtocolGuid, 
+      This->DriverBindingHandle, 
+      ControllerHandle
+      );
+  } else { 
+    Status = gBS->UninstallMultipleProtocolInterfaces(
+      EfiBootRecordLocationInfo->ControllerHandle,
+      &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
+      EfiBootRecordLocationInfo
+      );
   }
 
-  gBS->StartImage (ImageHandle, NULL, NULL);
-
-  //
-  // Connect all controllers
-  //
-
-  Status = gBS->LocateHandleBuffer (
-                AllHandles,
-                NULL,
-                NULL,
-                &HandleCount,
-                &HandleBuffer
-                );
-  for (Index = 0; Index < HandleCount; Index++) {
-    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
-  }
+  return Status;
 }
 
 //
@@ -949,9 +972,7 @@ LoadAppleFileSystemDriverNotify (
 // According to UEFI Spec 2.6 , we should define Supported, Start, Stop function for
 // DriverBinding
 //
-STATIC
-EFI_DRIVER_BINDING_PROTOCOL
-mApfsDriverLoaderBinding = {
+EFI_DRIVER_BINDING_PROTOCOL gApfsDriverLoaderDriverBinding = {
   ApfsDriverLoaderSupported,
   ApfsDriverLoaderStart,
   ApfsDriverLoaderStop,
@@ -987,20 +1008,7 @@ ApfsDriverLoaderInit (
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface = NULL;
   
-  // 
-  // Install StartApfsDriver event
-  //  
-  Status = gBS->CreateEvent (
-    EVT_NOTIFY_SIGNAL,
-    TPL_CALLBACK,
-    LoadAppleFileSystemDriverNotify,
-    NULL,
-    &mLoadAppleFileSystemEvent
-    );
-
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }  
+  DEBUG ((DEBUG_VERBOSE, "Starting ApfdDriverLoader ver. %s\n", APFSDRIVERLOADER_VERSION));
 
   //
   // Check that PartitionInfo protocol present
@@ -1037,13 +1045,11 @@ ApfsDriverLoaderInit (
   Status = EfiLibInstallDriverBindingComponentName2 (
     ImageHandle,
     SystemTable,
-    &mApfsDriverLoaderBinding,
+    &gApfsDriverLoaderDriverBinding,
     ImageHandle,
-    NULL,
-    NULL
+    &gApfsDriverLoaderComponentName,
+    &gApfsDriverLoaderComponentName2
     );    
-
-  DEBUG ((DEBUG_VERBOSE, "Installed driver binding: %r\n", Status));
   
   return Status;
 }

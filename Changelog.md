@@ -2,6 +2,15 @@ ApfsSupport Changelog
 ==================
 
 ## ApfsDriverLoader
+#### v1.3.2
+- Cleanup and code style
+
+#### v1.3.0
+- Version system: connects each apfs.efi to the device from which it was retrieved
+
+#### v1.2.0
+- Discovered ApfsJumpStart driver protocol
+
 #### v1.1.9 
 - Add legacy partition entry scan back for incompatible PartitionDriver's;
 

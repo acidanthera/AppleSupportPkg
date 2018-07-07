@@ -1,8 +1,8 @@
 /** @file
 
-Apple FileSystem Mutex protocol used in Driverbinding
+APFS Driver Loader - loads apfs.efi from EfiBootRecord block
 
-Copyright (c) 2018, savvas
+Copyright (c) 2017-2018, savvas
 
 All rights reserved.
 
@@ -16,13 +16,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#ifndef APPLE_FILESYSTEM_MUTEX_PROTOCOL_H_
-#define APPLE_FILESYSTEM_MUTEX_PROTOCOL_H_
+#ifndef APFS_DRIVER_LOADER_VERSION_H
+#define APFS_DRIVER_LOADER_VERSION_H
+
+#define APFSDRIVERLOADER_VERSION  L"1.3.2"
 
 
-#define APPLE_FILESYSTEM_MUTEX_PROTOCOL_GUID \
-  { 0x03B8D751, 0x0A02, 0x4FF8, {0xB9, 0x1A, 0x55, 0x24, 0xAF, 0xA3, 0x94, 0x5F } }
-
-extern EFI_GUID gAppleFileSystemMutexProtocolGuid;
-
-#endif // APPLE_FILESYSTEM_MUTEX_PROTOCOL_H_
+#endif // APFS_DRIVER_LOADER_VERSION_H

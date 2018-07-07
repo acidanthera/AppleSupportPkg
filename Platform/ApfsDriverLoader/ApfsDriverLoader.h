@@ -33,6 +33,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DevicePathLib.h>
 #include <Library/PrintLib.h>
 #include <Library/UefiLib.h>
+#include <Protocol/ComponentName.h>
 #include <Protocol/DriverBinding.h>
 #include <Protocol/DevicePathFromText.h>
 #include <Protocol/DevicePathToText.h>
@@ -44,12 +45,21 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/LoadedImage.h>
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
+#include <Protocol/ApfsEfiBootRecordInfo.h>
+#include "NullTextOutputProtocol.h"
+
+//
+// Global Variables
+//
+extern EFI_DRIVER_BINDING_PROTOCOL   gApfsDriverLoaderDriverBinding;
+extern EFI_COMPONENT_NAME_PROTOCOL   gApfsDriverLoaderComponentName;
+extern EFI_COMPONENT_NAME2_PROTOCOL  gApfsDriverLoaderComponentName2;
 
 //
 // Container Superblock magic
 // 'NXSB'
 //
-STATIC CONST UINT32 CsbMagic           = 0x4253584e;
+STATIC CONST UINT32 CsbMagic           = 0x4253584E;
 //
 // Volume Superblock magic
 // 'APSB'
@@ -59,7 +69,7 @@ STATIC CONST UINT32 VsbMagic           = 0x42535041;
 // EfiBootRecord block magic
 // 'JSDR'
 //
-STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534a;
+STATIC CONST UINT32 EfiBootRecordMagic = 0x5244534A;
 
 #pragma pack(push, 1)
 typedef struct APFS_BLOCK_HEADER_
@@ -139,9 +149,9 @@ typedef struct APFS_NXSB_
     UINT64             TotalBlocks;
     UINT8              Reserved_1[24];
     //
-    // GUID of the container, must be equal APFS_CONTAINER_GUID
+    // UUID of the container
     //
-    EFI_GUID           Guid;
+    EFI_GUID           Uuid;
     //
     // Next free block id
     //
@@ -320,39 +330,47 @@ typedef struct APFS_EFI_BOOT_RECORD_
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 
-//
-// Apple Filesystem Notify context
-//
-/*#pragma pack(push, 1)
-typedef struct APFS_NOTIFY_CONTEXT_
-{
-    UINT32                Magic;
-    EFI_HANDLE            ControllerHandle;
-    EFI_HANDLE            DriverBindingHandle;
-    int                   AppleFilesystemMutexInterface;
-    __declspec(align(8)) EFI_GUID ContainerGuid; //???
-    _BYTE                 gap30[24];
-    EFI_EVENT             NotifyEvent;
-    void                  *ApfsDriverPtr;
-    UINT32                ApfsDriverSize;
-    UINT32                ContainerBlockSize;
-    UINT64                ContainerTotalBlocks;
-    _BYTE                 gap68[4];
-    int                   field_6C;
-    EFI_BLOCK_IO_PROTOCOL *BlockIoInterface;
-    __int64 field_78; //???
-    __int64 UnknownAddress; //???
-} APFS_NOTIFY_CONTEXT;
-#pragma pack(pop)*/
+extern EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL mNullTextOutputProtocol;
 
-/*
-#pragma pack(push, 1)
-typedef struct PARTITION_DRIVER_PRESENT_EVT_CTX_ 
-{
-    EFI_HANDLE ImageHandle;
-    EFI_SYSTEM_TABLE *SystemTable;
-} PARTITION_DRIVER_PRESENT_EVT_CTX;
-#pragma pack(pop)
-*/
+//
+// Fletcher checksum Functions
+//
+
+extern
+UINT64
+ApfsBlockChecksumCalculate (
+  UINT32  *Data,
+  UINTN  DataSize
+  );
+
+extern
+BOOLEAN
+ApfsBlockChecksumVerify (
+  UINT8   *Data,
+  UINTN  DataSize
+  );
+
+//
+// EFI Component Name Functions
+//
+EFI_STATUS
+EFIAPI
+ApfsDriverLoaderComponentNameGetDriverName (
+  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
+  IN  CHAR8                        *Language,
+  OUT CHAR16                       **DriverName
+  );
+
+
+EFI_STATUS
+EFIAPI
+ApfsDriverLoaderComponentNameGetControllerName (
+  IN  EFI_COMPONENT_NAME_PROTOCOL                     *This,
+  IN  EFI_HANDLE                                      ControllerHandle,
+  IN  EFI_HANDLE                                      ChildHandle        OPTIONAL,
+  IN  CHAR8                                           *Language,
+  OUT CHAR16                                          **ControllerName
+  );
+
 
 #endif // APFS_DRIVER_LOADER_H_
