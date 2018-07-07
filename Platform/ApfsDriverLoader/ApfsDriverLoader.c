@@ -950,6 +950,12 @@ ApfsDriverLoaderStop (
       This->DriverBindingHandle,
       ControllerHandle
       );
+    Status = gBS->CloseProtocol(
+      ControllerHandle, 
+      &gEfiDiskIo2ProtocolGuid, 
+      This->DriverBindingHandle, 
+      ControllerHandle
+      );
   } else { 
     Status = gBS->UninstallMultipleProtocolInterfaces(
       EfiBootRecordLocationInfo->ControllerHandle,
