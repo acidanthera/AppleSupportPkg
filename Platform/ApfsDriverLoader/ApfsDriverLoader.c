@@ -126,31 +126,6 @@ StartApfsDriver (
     gBS->UnloadImage (ImageHandle);
     return Status;
   }
-  /*
-  //
-  // Locate AllHandles
-  //
-  Status = gBS->LocateHandleBuffer (
-    AllHandles,
-    NULL,
-    NULL,
-    &HandleCount,
-    &HandleBuffer
-    );
-  
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Failed to locate handle buffer with Status: %r\n", Status));
-    return Status;
-  }
-
-  //
-  // Connect all controllers
-  //  
-  for (Index = 0; Index < HandleCount; Index++) {
-    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
-  }
-
-  */
   
   //
   // Connect loaded apfs.efi to controller from which we retrieve it
