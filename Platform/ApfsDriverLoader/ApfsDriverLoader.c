@@ -698,8 +698,8 @@ ApfsDriverLoaderStart (
   //
   // Verify NodeId and NodeType
   //
-  if (ContainerSuperBlock->BlockHeader.NodeType != 0x80000001 
-      || ContainerSuperBlock->BlockHeader.NodeType != 1) {
+  if (ContainerSuperBlock->BlockHeader.NodeType != 0x80000001
+      || ContainerSuperBlock->BlockHeader.NodeId != 1) {
     return EFI_UNSUPPORTED;
   }
   
