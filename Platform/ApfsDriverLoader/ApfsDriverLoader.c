@@ -68,16 +68,19 @@ StartApfsDriver (
     );
 
   if (!EFI_ERROR(Status)) {
-    AppleLoadImageInterface->LoadImage (
+    Status = AppleLoadImageInterface->LoadImage (
       FALSE,
       gImageHandle,
       ParentDevicePath,
       AppleFileSystemDriverBuffer, 
       AppleFileSystemDriverSize,
       &ImageHandle,
-      0x01,
-      Status
+      0x01
       );
+      if (EFI_ERROR (Status)) {
+        DEBUG ((DEBUG_WARN, "Apple Load image failed with Status: %r\n", Status));
+        return Status;
+      }    
   } else {
     DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Loading image without signature check!"));
     Status = gBS->LoadImage (
@@ -88,11 +91,10 @@ StartApfsDriver (
       AppleFileSystemDriverSize,
       &ImageHandle
       );    
-  }
-
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
-    return Status;
+      if (EFI_ERROR (Status)) {
+        DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+        return Status;
+      }
   }
 
   Status = gBS->HandleProtocol (
@@ -506,7 +508,6 @@ ApfsDriverLoaderSupported (
 
       if (EFI_ERROR (Status)) {
         ApplePartitionInfo = NULL;
-        DEBUG ((DEBUG_WARN, "Error! No PartitionInfo protocol! No chance!\n"));
         return Status;
       }
 
