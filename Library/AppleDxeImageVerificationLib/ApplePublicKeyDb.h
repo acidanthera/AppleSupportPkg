@@ -1,6 +1,6 @@
 /** @file
 
-AppleEfiSignTool – Tool for signing and verifying Apple EFI binaries.
+AppleDxeImageVerificationLib
 
 Copyright (c) 2018, savvas
 
