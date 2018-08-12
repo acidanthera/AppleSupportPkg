@@ -19,7 +19,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/AppleDxeImageVerificationLib.h>
 #include <Protocol/AppleLoadImage.h>
+
 
 STATIC EFI_HANDLE       Handle = NULL;
 
@@ -36,8 +38,19 @@ AppleLoadImage (
   EFI_STATUS               Status
   )
 {
+  //
+  // @TODO: Add read from devicepath
+  // 
 
-   Status = gBS->LoadImage (
+  // Verify ApplePeImage signature  
+  if (SourceBuffer != NULL && SourceSize != 0) {
+    Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }
+  }
+
+  Status = gBS->LoadImage (
     BootPolicy,
     ParentImageHandle,
     DevicePath,
