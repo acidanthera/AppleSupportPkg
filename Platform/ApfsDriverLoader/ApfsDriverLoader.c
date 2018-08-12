@@ -29,7 +29,6 @@ EFI_STATUS
 EFIAPI
 StartApfsDriver (
   IN EFI_HANDLE ControllerHandle,
-  IN EFI_HANDLE DriverBindingHandle,
   IN VOID       *AppleFileSystemDriverBuffer,
   IN UINTN      AppleFileSystemDriverSize
   )
@@ -62,13 +61,10 @@ StartApfsDriver (
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
 
-  Status = gBS->OpenProtocol (
-    ControllerHandle,
+  Status = gBS->LocateProtocol (
     &gAppleLoadImageProtocolGuid,
-    (VOID **) &AppleLoadImageInterface,
-    DriverBindingHandle,
-    ControllerHandle,
-    EFI_OPEN_PROTOCOL_GET_PROTOCOL
+    NULL,
+    (VOID **) &AppleLoadImageInterface
     );
 
   if (!EFI_ERROR(Status)) {
@@ -865,7 +861,6 @@ ApfsDriverLoaderStart (
 
   Status = StartApfsDriver(
     ControllerHandle,
-    This->DriverBindingHandle,
     AppleFileSystemDriverBuffer,
     AppleFileSystemDriverSize
     );
