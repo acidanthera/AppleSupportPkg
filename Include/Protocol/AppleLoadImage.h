@@ -27,6 +27,21 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define APPLE_LOAD_IMAGE_PROTOCOL_GUID \
   { 0x6C6148A4, 0x97B8, 0x429C, {0x95, 0x5E, 0x41, 0x03, 0xE8, 0xAC, 0xA0, 0xFA } }
 
+typedef EFI_STATUS (EFIAPI *APPLE_LOAD_IMAGE) (
+  IN BOOLEAN                  BootPolicy,
+  IN EFI_HANDLE               ParentImageHandle,
+  IN EFI_DEVICE_PATH_PROTOCOL *DevicePath,
+  IN VOID                     *SourceBuffer,
+  IN UINTN                    SourceSize,
+  IN EFI_HANDLE               *ImageHandle,
+  IN  UINT64                  Version,
+  OUT EFI_STATUS              Status
+);
+
+typedef struct {
+  APPLE_LOAD_IMAGE   LoadImage;
+} APPLE_LOAD_IMAGE_PROTOCOL;
+
 extern EFI_GUID gAppleLoadImageProtocolGuid;
 
 #endif // APPLE_LOAD_IMAGE_PROTOCOL_H_

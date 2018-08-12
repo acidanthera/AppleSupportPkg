@@ -1,6 +1,6 @@
 /** @file
 
-AppleEfiSignTool v1.0 – Tool for signing and verifying Apple EFI binaries.
+AppleEfiSignTool – Tool for signing and verifying Apple EFI binaries.
 
 Copyright (c) 2018, savvas
 

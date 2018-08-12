@@ -1,4 +1,4 @@
-ApfsSupportPkg
+AppleSupportPkg
 ==============
 
 [![Build Status](https://travis-ci.org/acidanthera/ApfsSupportPkg.svg?branch=master)](https://travis-ci.org/acidanthera/ApfsSupportPkg)

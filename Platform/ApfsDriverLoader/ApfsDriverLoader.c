@@ -29,6 +29,7 @@ EFI_STATUS
 EFIAPI
 StartApfsDriver (
   IN EFI_HANDLE ControllerHandle,
+  IN EFI_HANDLE DriverBindingHandle,
   IN VOID       *AppleFileSystemDriverBuffer,
   IN UINTN      AppleFileSystemDriverSize
   )
@@ -38,6 +39,7 @@ StartApfsDriver (
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
+  APPLE_LOAD_IMAGE_PROTOCOL  *AppleLoadImageInterface = NULL;
 
   if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {
     DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
@@ -60,14 +62,36 @@ StartApfsDriver (
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
 
-  Status = gBS->LoadImage (
-    FALSE,
-    gImageHandle,
-    ParentDevicePath,
-    AppleFileSystemDriverBuffer, 
-    AppleFileSystemDriverSize,
-    &ImageHandle
+  Status = gBS->OpenProtocol (
+    ControllerHandle,
+    &gAppleLoadImageProtocolGuid,
+    (VOID **) &AppleLoadImageInterface,
+    DriverBindingHandle,
+    ControllerHandle,
+    EFI_OPEN_PROTOCOL_GET_PROTOCOL
     );
+
+  if (!EFI_ERROR(Status)) {
+    AppleLoadImageInterface->LoadImage (
+      FALSE,
+      gImageHandle,
+      ParentDevicePath,
+      AppleFileSystemDriverBuffer, 
+      AppleFileSystemDriverSize,
+      &ImageHandle,
+      0x01,
+      Status
+      );
+  } else {
+    Status = gBS->LoadImage (
+      FALSE,
+      gImageHandle,
+      ParentDevicePath,
+      AppleFileSystemDriverBuffer, 
+      AppleFileSystemDriverSize,
+      &ImageHandle
+      );    
+  }
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
@@ -840,6 +864,7 @@ ApfsDriverLoaderStart (
 
   Status = StartApfsDriver(
     ControllerHandle,
+    This->DriverBindingHandle,
     AppleFileSystemDriverBuffer,
     AppleFileSystemDriverSize
     );

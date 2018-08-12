@@ -66,6 +66,7 @@
   gEfiUnicodeCollation2ProtocolGuid
   gEfiPartitionInfoProtocolGuid
   gApplePartitionInfoProtocolGuid
+  gAppleLoadImageProtocolGuid
   gAppleFileSystemEfiBootRecordInfoProtocolGuid   ## PRODUCES
 
 [Pcd]

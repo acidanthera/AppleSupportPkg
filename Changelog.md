@@ -1,4 +1,4 @@
-ApfsSupport Changelog
+AppleSupport Changelog
 ==================
 
 ## ApfsDriverLoader
@@ -30,5 +30,9 @@ ApfsSupport Changelog
 - Initial release
 
 ## AppleLoadImage
+### v1.0
+- Initial release
+
+## AppleEfiSignTool
 ### v1.0
 - Initial release
