@@ -38,7 +38,7 @@
   ComponentName.c
 
 [Packages]
-  ApfsSupportPkg/ApfsSupportPkg.dec
+  AppleSupportPkg/AppleSupportPkg.dec
   MdePkg/MdePkg.dec
   IntelFrameworkModulePkg/IntelFrameworkModulePkg.dec
   EfiPkg/EfiPkg.dec
