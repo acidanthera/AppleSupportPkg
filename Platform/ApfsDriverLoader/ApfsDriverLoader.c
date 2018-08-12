@@ -83,6 +83,7 @@ StartApfsDriver (
       Status
       );
   } else {
+    DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Loading image without signature check!"));
     Status = gBS->LoadImage (
       FALSE,
       gImageHandle,
