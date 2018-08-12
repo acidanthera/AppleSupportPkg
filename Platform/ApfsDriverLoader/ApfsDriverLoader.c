@@ -34,10 +34,10 @@ StartApfsDriver (
   )
 {
   EFI_STATUS                 Status;
-  EFI_HANDLE                 ImageHandle         = NULL;
-  EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
-  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
-  EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
+  EFI_HANDLE                 ImageHandle              = NULL;
+  EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath        = NULL;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage      = NULL;
+  EFI_SYSTEM_TABLE           *NewSystemTable          = NULL;
   APPLE_LOAD_IMAGE_PROTOCOL  *AppleLoadImageInterface = NULL;
 
   if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {

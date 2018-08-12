@@ -32,6 +32,7 @@
   gAppleLoadImageProtocolGuid             ## PRODUCES
 
 [LibraryClasses]
+  AppleDxeImageVerificationLib
   BaseLib
   UefiLib
   UefiDriverEntryPoint
