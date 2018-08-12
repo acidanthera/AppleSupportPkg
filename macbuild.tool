@@ -45,7 +45,7 @@ package() {
   #mkdir -p tmp/Tools || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
   pushd tmp || exit 1
-  zip -qry ../"ApfsSupport-v${ver}-${2}.zip" * || exit 1
+  zip -qry ../"AppleSupport-v${ver}-${2}.zip" * || exit 1
   popd || exit 1
   rm -rf tmp || exit 1
   popd || exit 1
@@ -90,8 +90,8 @@ fi
 if [ ! -d "Binaries" ]; then
   mkdir Binaries || exit 1
   cd Binaries || exit 1
-  ln -s ../UDK/Build/ApfsSupportPkg/RELEASE_XCODE5/X64 RELEASE || exit 1
-  ln -s ../UDK/Build/ApfsSupportPkg/DEBUG_XCODE5/X64 DEBUG || exit 1
+  ln -s ../UDK/Build/AppleSupportPkg/RELEASE_XCODE5/X64 RELEASE || exit 1
+  ln -s ../UDK/Build/AppleSupportPkg/DEBUG_XCODE5/X64 DEBUG || exit 1
   cd .. || exit 1
 fi
 
@@ -125,8 +125,8 @@ updaterepo "https://github.com/CupertinoNet/CupertinoModulePkg" CupertinoModuleP
 updaterepo "https://github.com/CupertinoNet/EfiMiscPkg" EfiMiscPkg development || exit 1
 updaterepo "https://github.com/CupertinoNet/EfiPkg" EfiPkg development || exit 1
 
-if [ ! -d ApfsSupportPkg ]; then
-  ln -s .. ApfsSupportPkg || exit 1
+if [ ! -d AppleSupportPkg ]; then
+  ln -s .. AppleSupportPkg || exit 1
 fi
 
 source edksetup.sh || exit 1
@@ -138,11 +138,11 @@ fi
 
 if [ "$SKIP_BUILD" != "1" ]; then
   if [ "$MODE" = "" ] || [ "$MODE" = "DEBUG" ]; then
-    build -a X64 -b DEBUG -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+    build -a X64 -b DEBUG -t XCODE5 -p AppleSupportPkg/AppleSupportPkg.dsc || exit 1
   fi
 
   if [ "$MODE" = "" ] || [ "$MODE" = "RELEASE" ]; then
-    build -a X64 -b RELEASE -t XCODE5 -p ApfsSupportPkg/ApfsSupportPkg.dsc || exit 1
+    build -a X64 -b RELEASE -t XCODE5 -p AppleSupportPkg/AppleSupportPkg.dsc || exit 1
   fi
 fi
 

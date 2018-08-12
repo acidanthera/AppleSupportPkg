@@ -23,22 +23,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 STATIC EFI_HANDLE       Handle = NULL;
 
-typedef EFI_STATUS (EFIAPI *APPLE_LOAD_IMAGE) (
-  IN BOOLEAN                  BootPolicy,
-  IN EFI_HANDLE               ParentImageHandle,
-  IN EFI_DEVICE_PATH_PROTOCOL *DevicePath,
-  IN VOID                     *SourceBuffer,
-  IN UINTN                    SourceSize,
-  IN EFI_HANDLE               *ImageHandle,
-  IN  UINT64                  Version,
-  OUT EFI_STATUS              Status
-);
-
-typedef struct {
-  APPLE_LOAD_IMAGE   AppleLoadImageInterface;
-} APPLE_LOAD_IMAGE_PROTOCOL;
-
-
 EFI_STATUS
 EFIAPI
 AppleLoadImage (

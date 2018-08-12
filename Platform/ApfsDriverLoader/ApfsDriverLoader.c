@@ -38,6 +38,7 @@ StartApfsDriver (
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath   = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable     = NULL;
+  APPLE_LOAD_IMAGE_PROTOCOL  *AppleLoadImageInterface = NULL;
 
   if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {
     DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
@@ -60,14 +61,34 @@ StartApfsDriver (
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
 
-  Status = gBS->LoadImage (
-    FALSE,
-    gImageHandle,
-    ParentDevicePath,
-    AppleFileSystemDriverBuffer, 
-    AppleFileSystemDriverSize,
-    &ImageHandle
+  Status = gBS->LocateProtocol (
+    &gAppleLoadImageProtocolGuid,
+    NULL,
+    (VOID **) &AppleLoadImageInterface
     );
+
+  if (!EFI_ERROR(Status)) {
+    AppleLoadImageInterface->LoadImage (
+      FALSE,
+      gImageHandle,
+      ParentDevicePath,
+      AppleFileSystemDriverBuffer, 
+      AppleFileSystemDriverSize,
+      &ImageHandle,
+      0x01,
+      Status
+      );
+  } else {
+    DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Loading image without signature check!"));
+    Status = gBS->LoadImage (
+      FALSE,
+      gImageHandle,
+      ParentDevicePath,
+      AppleFileSystemDriverBuffer, 
+      AppleFileSystemDriverSize,
+      &ImageHandle
+      );    
+  }
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
@@ -126,31 +147,6 @@ StartApfsDriver (
     gBS->UnloadImage (ImageHandle);
     return Status;
   }
-  /*
-  //
-  // Locate AllHandles
-  //
-  Status = gBS->LocateHandleBuffer (
-    AllHandles,
-    NULL,
-    NULL,
-    &HandleCount,
-    &HandleBuffer
-    );
-  
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Failed to locate handle buffer with Status: %r\n", Status));
-    return Status;
-  }
-
-  //
-  // Connect all controllers
-  //  
-  for (Index = 0; Index < HandleCount; Index++) {
-    gBS->ConnectController(HandleBuffer[Index], NULL, NULL, TRUE);
-  }
-
-  */
   
   //
   // Connect loaded apfs.efi to controller from which we retrieve it
