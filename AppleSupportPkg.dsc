@@ -48,7 +48,6 @@
   UefiRuntimeServicesTableLib|MdePkg/Library/UefiRuntimeServicesTableLib/UefiRuntimeServicesTableLib.inf
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
   IoLib|MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
-  DxeServicesLib|EfiMiscPkg/Library/DxeServicesLib/DxeServicesLib.inf
   AppleDxeImageVerificationLib|AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf
 
 [Components]
