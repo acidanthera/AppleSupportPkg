@@ -511,11 +511,13 @@ GetApplePeImageSha256 (
   //
   // Hash all remaining data
   //
-  if (ImageSize > SumOfBytesHashed) {
+  // FIXME: Drop tail
+  //
+  /*if (ImageSize > SumOfBytesHashed) {
     HashBase = (UINT8 *) Image + SumOfBytesHashed;
     HashSize = ImageSize - SumOfBytesHashed;
     Sha256Update (&Sha256Ctx, HashBase, HashSize);
-  }
+  }*/
 
   Sha256Final (&Sha256Ctx, CalcucatedHash);
   return EFI_SUCCESS;

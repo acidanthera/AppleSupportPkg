@@ -34,10 +34,10 @@ AppleLoadImage (
   VOID                     *SourceBuffer,
   UINTN                    SourceSize,
   EFI_HANDLE               *ImageHandle,
-  UINT64                   Version,
-  EFI_STATUS               Status
+  UINT64                   Version
   )
 {
+  EFI_STATUS  Status;
   //
   // @TODO: Add read from devicepath
   // 

@@ -34,8 +34,7 @@ typedef EFI_STATUS (EFIAPI *APPLE_LOAD_IMAGE) (
   IN VOID                     *SourceBuffer,
   IN UINTN                    SourceSize,
   IN EFI_HANDLE               *ImageHandle,
-  IN  UINT64                  Version,
-  OUT EFI_STATUS              Status
+  IN  UINT64                  Version
 );
 
 typedef struct {
