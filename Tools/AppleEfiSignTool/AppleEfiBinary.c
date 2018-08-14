@@ -683,8 +683,8 @@ VerifyAppleImageSignature (
                                        Hdr->Archs[Index].Size) != 0) {
         return -1;
       }
-      SizeOfBinary = (uint64_t) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
     }
+    SizeOfBinary = (uint64_t) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
   }
   
   if (SizeOfBinary != ImageSize) { 

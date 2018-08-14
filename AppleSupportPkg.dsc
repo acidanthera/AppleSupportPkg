@@ -49,10 +49,11 @@
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
   IoLib|MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
   AppleDxeImageVerificationLib|AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf
+  DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
 
 [Components]
   AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf
-  AppleSupportPkg/Platform/AppleLoadImage/AppleLoadImage.inf
+  AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
 
 [PcdsFixedAtBuild]

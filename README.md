@@ -1,7 +1,7 @@
 AppleSupportPkg
 ==============
 
-[![Build Status](https://travis-ci.org/acidanthera/ApfsSupportPkg.svg?branch=master)](https://travis-ci.org/acidanthera/ApfsSupportPkg)
+[![Build Status](https://travis-ci.org/acidanthera/AppleSupportPkg.svg?branch=master)](https://travis-ci.org/acidanthera/AppleSupportPkg) [![Scan Status](https://scan.coverity.com/projects/16467/badge.svg?flat=1)](https://scan.coverity.com/projects/16467)
 
 -----
 
@@ -12,15 +12,12 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Apfs driver verbose logging suppressed.
 - Version system: connects each apfs.efi to the device from which it was retrieved
 - Supports AppleLoadImage protocol provides EfiBinary signature check
-- **WARNING**: Please load AppleLoadImage.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
+- **WARNING**: Please load AppleImageLoader.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
 
-## AppleLoadImage
-Implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver. This protocol installs in CoreDxe Apple's firmware.
+## AppleImageLoader
+Secure Apple Efi Fat binary driver with implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver and with signature check.
 
-It provides safe EFI binary loading into memory by verifiyng it's signature.
-
-- Also gives ability to use native ApfsJumpStart driver from Apple firmware
-- **WARNING**: ApplePartitionDriver needed
+It provides safe Apple's EFI images loading into memory by verifiyng it's signature.
 
 ## AppleDxeImageVerificationLib
 This library provides reverse-engineered Apple's crypto signature algorithms.
