@@ -1,5 +1,5 @@
 ## @file
-# Apple LoadImage protocol. 
+# AppleImageLoader
 #
 # Copyright (c) 2018, savvas 
 #
@@ -16,24 +16,27 @@
 ##
 
 [Defines]
-  BASE_NAME   = AppleLoadImage
+  BASE_NAME   = AppleImageLoader
   FILE_GUID   = 44769453-A392-4FC7-B6FF-F33889B7EE38
   MODULE_TYPE = UEFI_DRIVER
-  ENTRY_POINT = AppleLoadImageEntryPoint
+  ENTRY_POINT = AppleImageLoaderEntryPoint
   INF_VERSION = 0x00010006
   VERSION_STRING  = 1.5
 
 [Packages]
-  AppleSupportPkg/AppleSupportPkg.dec
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  AppleSupportPkg/AppleSupportPkg.dec
 
 [Protocols]
   gAppleLoadImageProtocolGuid             ## PRODUCES
 
 [LibraryClasses]
   AppleDxeImageVerificationLib
+  DxeServicesLib
   BaseLib
+  DebugLib
+  DevicePathLib
   UefiLib
   UefiDriverEntryPoint
   UefiBootServicesTableLib
@@ -41,4 +44,4 @@
   MemoryAllocationLib
 
 [Sources]
-  AppleLoadImage.c
+  AppleImageLoader.c
