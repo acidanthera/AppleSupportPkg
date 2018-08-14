@@ -12,7 +12,7 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Apfs driver verbose logging suppressed.
 - Version system: connects each apfs.efi to the device from which it was retrieved
 - Supports AppleLoadImage protocol provides EfiBinary signature check
-- **WARNING**: Please load AppleLoadImage.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
+- **WARNING**: Please load AppleImageLoader.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
 
 ## AppleImageLoader
 Secure Apple Efi Fat binary driver with implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver and with signature check.

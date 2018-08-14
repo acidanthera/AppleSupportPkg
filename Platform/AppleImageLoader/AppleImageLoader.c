@@ -55,7 +55,7 @@ ParseAppleEfiFatBinary (
       return EFI_UNSUPPORTED;
     }
     DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));    
-    SizeOfBinary += sizeof (APPLE_EFI_FAT_HEADER) 
+    SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER) 
                     + sizeof (APPLE_EFI_FAT_ARCH_HEADER) 
                       * Hdr->NumArchs;
     
@@ -157,19 +157,19 @@ LoadImageEx (
       if (EFI_ERROR (Status)) {
         return Status;
       }      
-    } else {
-      //
-      // Load image with original function
-      //
-      return OriginalLoadImage (
-        BootPolicy,
-        ParentImageHandle,
-        FilePath,
-        SourceBuffer,
-        SourceSize,
-        ImageHandle
-        );
-    }      
+    }
+
+    //
+    // Load image with original function
+    //
+    Status =  OriginalLoadImage (
+      BootPolicy,
+      ParentImageHandle,
+      FilePath,
+      SourceBuffer,
+      SourceSize,
+      ImageHandle
+      );     
   }
 
   return Status;
@@ -215,32 +215,27 @@ AppleLoadImage (
       );
 
     if (!EFI_ERROR (Status)) {
-      Status = VerifyApplePeImageSignature (ImageBuffer, ImageSize);
-      if (EFI_ERROR (Status)) {
-        return Status;
-      }
-      Status = gBS->LoadImage (
-        BootPolicy,
-        ParentImageHandle,
-        FilePath,
-        ImageBuffer, 
-        ImageSize,
-        ImageHandle
-        ); 
-    } else {
+      SourceBuffer = ImageBuffer;
+      SourceSize = ImageSize;
+
       Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       if (EFI_ERROR (Status)) {
         return Status;
       }
-      Status = gBS->LoadImage (
-        BootPolicy,
-        ParentImageHandle,
-        FilePath,
-        SourceBuffer, 
-        SourceSize,
-        ImageHandle
-        );    
+    } else {
+      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      if (EFI_ERROR (Status)) {
+        return Status;
+      }    
     }
+    Status = OriginalLoadImage (
+      BootPolicy,
+      ParentImageHandle,
+      FilePath,
+      SourceBuffer, 
+      SourceSize,
+      ImageHandle
+      );     
   }
 
   return Status;
