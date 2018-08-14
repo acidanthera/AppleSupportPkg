@@ -181,13 +181,17 @@ ReadDisk (
       Buffer
       );
   } else {
-    Status = DiskIo->ReadDisk (
-      DiskIo,
-      MediaId,
-      Offset,
-      BufferSize,
-      Buffer
-      );
+    if (DiskIo != NULL) {
+      Status = DiskIo->ReadDisk (
+        DiskIo,
+        MediaId,
+        Offset,
+        BufferSize,
+        Buffer
+        );
+    } else {
+      Status = EFI_UNSUPPORTED;
+    }
   }
 
   return Status;
@@ -276,8 +280,12 @@ LegacyApfsContainerScan (
     BlockSize     = BlockIo2->Media->BlockSize;
     MediaId       = BlockIo2->Media->MediaId;
   } else {
-    BlockSize     = BlockIo->Media->BlockSize;
-    MediaId       = BlockIo->Media->MediaId;
+    if (BlockIo != NULL) {
+      BlockSize     = BlockIo->Media->BlockSize;
+      MediaId       = BlockIo->Media->MediaId;
+    } else {
+      return EFI_UNSUPPORTED;
+    }
   }
 
   Block = AllocateZeroPool ((UINTN)BlockSize);
@@ -1005,7 +1013,7 @@ ApfsDriverLoaderInit (
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface = NULL;
   
-  DEBUG ((DEBUG_VERBOSE, "Starting ApfdDriverLoader ver. %s\n", APFSDRIVERLOADER_VERSION));
+  DEBUG ((DEBUG_VERBOSE, "Starting ApfsDriverLoader ver. %s\n", APFSDRIVERLOADER_VERSION));
 
   //
   // Check that PartitionInfo protocol present
