@@ -33,85 +33,84 @@ ParseAppleEfiFatBinary (
   UINTN                 Index        = 0;
   UINT64                SizeOfBinary = 0;
 
-  if (SourceBuffer != NULL && SourceSize != 0) {
-    //
-    // Cause when image loaded from memory
-    //
-    if (SourceSize < sizeof (APPLE_EFI_FAT_HEADER)) {
-      DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed binary\n"));
-      return EFI_INVALID_PARAMETER;
-    }
+  //
+  // Cause when image loaded from memory
+  //
+  if (SourceSize < sizeof (APPLE_EFI_FAT_HEADER)) {
+    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed binary\n"));
+    return EFI_INVALID_PARAMETER;
+  }
 
-    //
-    // Get AppleEfiFatHeader
-    //     
-    Hdr = (APPLE_EFI_FAT_HEADER *) SourceBuffer;
+  //
+  // Get AppleEfiFatHeader
+  //     
+  Hdr = (APPLE_EFI_FAT_HEADER *) SourceBuffer;
 
-    //
-    // Verify magic number
-    //
-    if (Hdr->Magic != APPLE_EFI_FAT_MAGIC) {
-      DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
-      return EFI_UNSUPPORTED;
-    }
-    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));    
-    SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER) 
-                    + sizeof (APPLE_EFI_FAT_ARCH_HEADER) 
-                      * Hdr->NumArchs;
-    
-    if (SizeOfBinary > SourceSize) {
-      DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed AppleEfiFat header\n"));
-      return EFI_INVALID_PARAMETER;
-    }    
+  //
+  // Verify magic number
+  //
+  if (Hdr->Magic != APPLE_EFI_FAT_MAGIC) {
+    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
+    return EFI_UNSUPPORTED;
+  }
+  DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));    
+  SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER) 
+                  + sizeof (APPLE_EFI_FAT_ARCH_HEADER) 
+                    * Hdr->NumArchs;
+  
+  if (SizeOfBinary > SourceSize) {
+    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed AppleEfiFat header\n"));
+    return EFI_INVALID_PARAMETER;
+  }    
 
+  //
+  // Loop over number of arch's
+  //
+  for (Index = 0; Index < Hdr->NumArchs; Index++) {
     //
-    // Loop over number of arch's
+    // Arch dependency parse
     //
-    for (Index = 0; Index < Hdr->NumArchs; Index++) {
-      //
-      // Arch dependency parse
-      //
 #if defined(EFI32) || defined(MDE_CPU_IA32)
-      if (Hdr->Archs[Index].CpuType == CPUYPE_X86) { 
+    if (Hdr->Archs[Index].CpuType == CPUYPE_X86) { 
 #elif defined(EFIX64) || defined(MDE_CPU_X64)
-      if (Hdr->Archs[Index].CpuType == CPUYPE_X86_64) {
+    if (Hdr->Archs[Index].CpuType == CPUYPE_X86_64) {
 #else
 #error "Undefined Platform"
 #endif
-        DEBUG ((
-          DEBUG_VERBOSE, 
-          "AppleImageLoader: ApplePeImage at offset %u\n", 
-          Hdr->Archs[Index].Offset
-          ));
+      DEBUG ((
+        DEBUG_VERBOSE, 
+        "AppleImageLoader: ApplePeImage at offset %u\n", 
+        Hdr->Archs[Index].Offset
+        ));
 
-        //
-        // Check offset boundary and its size
-        // 
-        if (Hdr->Archs[Index].Offset < SizeOfBinary 
-          || Hdr->Archs[Index].Offset >= SourceSize
-          || SourceSize < ((UINT64) Hdr->Archs[Index].Offset 
-                          + Hdr->Archs[Index].Size)) {
-          DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Wrong offset of Image or it's size\n"));
-          return EFI_INVALID_PARAMETER;
-        }
-
-        DEBUG ((
-          DEBUG_VERBOSE, 
-          "AppleImageLoader: ApplePeImage size %u\n", 
-          Hdr->Archs[Index].Size
-          ));
-
-        //
-        // Extract ApplePeImage and return EFI_SUCCESS
-        //
-        *ImageSize   = Hdr->Archs[Index].Size;
-        *ImageBuffer = (UINT8 *) SourceBuffer + Hdr->Archs[Index].Offset;
-
-        return EFI_SUCCESS;
+      //
+      // Check offset boundary and its size
+      // 
+      if (Hdr->Archs[Index].Offset < SizeOfBinary 
+        || Hdr->Archs[Index].Offset >= SourceSize
+        || SourceSize < ((UINT64) Hdr->Archs[Index].Offset 
+                        + Hdr->Archs[Index].Size)) {
+        DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Wrong offset of Image or it's size\n"));
+        return EFI_INVALID_PARAMETER;
       }
-      SizeOfBinary = (UINT64) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
-    }    
-  }  
+
+      DEBUG ((
+        DEBUG_VERBOSE, 
+        "AppleImageLoader: ApplePeImage size %u\n", 
+        Hdr->Archs[Index].Size
+        ));
+
+      //
+      // Extract ApplePeImage and return EFI_SUCCESS
+      //
+      *ImageSize   = Hdr->Archs[Index].Size;
+      *ImageBuffer = (UINT8 *) SourceBuffer + Hdr->Archs[Index].Offset;
+
+      return EFI_SUCCESS;
+    }
+    SizeOfBinary = (UINT64) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
+  }    
+  
   return EFI_UNSUPPORTED;
 }
 
@@ -126,22 +125,17 @@ LoadImageEx (
   OUT  EFI_HANDLE               *ImageHandle)
 {
   EFI_STATUS        Status;
-  VOID              *SrcBuf               = NULL;
-  UINTN             SrcSize               = 0;
   VOID              *ImageBuffer          = NULL;
   UINTN             ImageSize             = 0;
   UINT32            AuthenticationStatus  = 0;
   
   Status = EFI_INVALID_PARAMETER;
-  SrcBuf = SourceBuffer;
-  SrcSize = SourceSize;
-  
 
-  if (SrcBuf == NULL && FilePath != NULL) {
-    SrcBuf = GetFileBufferByFilePath (
+  if (SourceBuffer == NULL && FilePath != NULL) {
+    SourceBuffer = GetFileBufferByFilePath (
       BootPolicy,
       FilePath,
-      &SrcSize,
+      &SourceSize,
       &AuthenticationStatus
       );
   }
@@ -149,21 +143,21 @@ LoadImageEx (
   //
   // Try to parse as AppleEfiFatBinary
   // 
-  if (SrcBuf != NULL && SrcSize != 0) {
+  if (SourceBuffer != NULL && SourceSize != 0) {
     Status = ParseAppleEfiFatBinary (
-      SrcBuf, 
-      SrcSize, 
+      SourceBuffer, 
+      SourceSize, 
       &ImageBuffer, 
       &ImageSize
       );
 
     if (!EFI_ERROR (Status)) {
-      SrcBuf = ImageBuffer;
-      SrcSize = ImageSize;
+      SourceBuffer = ImageBuffer;
+      SourceSize = ImageSize;
       //
       // Verify ApplePeImage signature
       //
-      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
+      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       
       if (EFI_ERROR (Status)) {
         return Status;
@@ -177,8 +171,8 @@ LoadImageEx (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SrcBuf,
-      SrcSize,
+      SourceBuffer,
+      SourceSize,
       ImageHandle
       );     
   }
@@ -199,47 +193,43 @@ AppleLoadImage (
   )
 {
   EFI_STATUS  Status;
-  VOID        *SrcBuf               = NULL;
-  UINTN       SrcSize               = 0;  
   VOID        *ImageBuffer          = NULL;
   UINTN       ImageSize             = 0;  
   UINT32      AuthenticationStatus  = 0;
 
   Status = EFI_INVALID_PARAMETER;
-  SrcBuf = SourceBuffer;
-  SrcSize = SourceSize;
 
-  if (SrcBuf == NULL && FilePath != NULL) {
-    SrcBuf = GetFileBufferByFilePath (
+  if (SourceBuffer == NULL && FilePath != NULL) {
+    SourceBuffer = GetFileBufferByFilePath (
       BootPolicy,
       FilePath,
-      &SrcSize,
+      &SourceSize,
       &AuthenticationStatus
       );
   }
 
   // Verify ApplePeImage signature  
-  if (SrcBuf != NULL && SrcSize != 0) {
+  if (SourceBuffer != NULL && SourceSize != 0) {
     //
     // Parse fat structure
     //
     Status = ParseAppleEfiFatBinary (
-      SrcBuf, 
-      SrcSize, 
+      SourceBuffer, 
+      SourceSize, 
       &ImageBuffer, 
       &ImageSize
       );
 
     if (!EFI_ERROR (Status)) {
-      SrcBuf = ImageBuffer;
-      SrcSize = ImageSize;
+      SourceBuffer = ImageBuffer;
+      SourceSize = ImageSize;
 
-      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
+      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       if (EFI_ERROR (Status)) {
         return Status;
       }
     } else {
-      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
+      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       if (EFI_ERROR (Status)) {
         return Status;
       }    
@@ -249,8 +239,8 @@ AppleLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SrcBuf, 
-      SrcSize,
+      SourceBuffer, 
+      SourceSize,
       ImageHandle
       );     
   }
