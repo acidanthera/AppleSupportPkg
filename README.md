@@ -14,13 +14,10 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Supports AppleLoadImage protocol provides EfiBinary signature check
 - **WARNING**: Please load AppleLoadImage.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
 
-## AppleLoadImage
-Implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver. This protocol installs in CoreDxe Apple's firmware.
+## AppleImageLoader
+Secure Apple Efi Fat binary driver with implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver and with signature check.
 
-It provides safe EFI binary loading into memory by verifiyng it's signature.
-
-- Also gives ability to use native ApfsJumpStart driver from Apple firmware
-- **WARNING**: ApplePartitionDriver needed
+It provides safe Apple's EFI images loading into memory by verifiyng it's signature.
 
 ## AppleDxeImageVerificationLib
 This library provides reverse-engineered Apple's crypto signature algorithms.
