@@ -189,7 +189,11 @@ AppleLoadImage (
   )
 {
   EFI_STATUS  Status;
+  VOID        *ImageBuffer          = NULL;
+  UINTN       ImageSize             = 0;  
   UINT32      *AuthenticationStatus = NULL;
+
+  Status = EFI_INVALID_PARAMETER;
 
   SourceBuffer = GetFileBufferByFilePath (
     BootPolicy,
@@ -200,20 +204,43 @@ AppleLoadImage (
 
   // Verify ApplePeImage signature  
   if (SourceBuffer != NULL && SourceSize != 0) {
-    Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
-    if (EFI_ERROR (Status)) {
-      return Status;
-    }
-    Status = gBS->LoadImage (
-      BootPolicy,
-      ParentImageHandle,
-      FilePath,
+    //
+    // Parse fat structure
+    //
+    Status = ParseAppleEfiFatBinary (
       SourceBuffer, 
-      SourceSize,
-      ImageHandle
-      );    
-  } else {
-    return EFI_INVALID_PARAMETER;
+      SourceSize, 
+      ImageBuffer, 
+      ImageSize
+      );
+
+    if (!EFI_ERROR (Status)) {
+      Status = VerifyApplePeImageSignature (ImageBuffer, ImageSize);
+      if (EFI_ERROR (Status)) {
+        return Status;
+      }
+      Status = gBS->LoadImage (
+        BootPolicy,
+        ParentImageHandle,
+        FilePath,
+        ImageBuffer, 
+        ImageSize,
+        ImageHandle
+        ); 
+    } else {
+      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      if (EFI_ERROR (Status)) {
+        return Status;
+      }
+      Status = gBS->LoadImage (
+        BootPolicy,
+        ParentImageHandle,
+        FilePath,
+        SourceBuffer, 
+        SourceSize,
+        ImageHandle
+        );    
+    }
   }
 
   return Status;

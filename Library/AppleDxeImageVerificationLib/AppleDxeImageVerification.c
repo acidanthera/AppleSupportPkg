@@ -545,7 +545,7 @@ VerifyApplePeImageSignature (
     return EFI_INVALID_PARAMETER;    
   }
 
-  if (EFI_ERROR (GetPeHeader (PeImage, ImageSize, Context)) {
+  if (EFI_ERROR (GetPeHeader (PeImage, ImageSize, Context))) {
     DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
     FreePool (Context);
     return EFI_INVALID_PARAMETER;
@@ -554,7 +554,7 @@ VerifyApplePeImageSignature (
   //
   // Extract AppleSignature from PEImage
   //
-  if (EFI_ERROR (GetApplePeImageSignature (PeImage, Context, PkLe, PkBe, SigLe, SigBe)) {
+  if (EFI_ERROR (GetApplePeImageSignature (PeImage, Context, PkLe, PkBe, SigLe, SigBe))) {
     DEBUG ((DEBUG_WARN, "AppleSignature broken or not present!\n"));
     FreePool (Context);
     return EFI_UNSUPPORTED;
@@ -563,7 +563,7 @@ VerifyApplePeImageSignature (
   //
   // Calcucate PeImage hash via AppleAuthenticode algorithm
   //
-  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, ImageSize, Context, CalcucatedHash)) {
+  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, ImageSize, Context, CalcucatedHash))) {
     DEBUG ((DEBUG_WARN, "Couldn't calcuate hash of PeImage\n"));
     FreePool (Context);
     return EFI_INVALID_PARAMETER;
