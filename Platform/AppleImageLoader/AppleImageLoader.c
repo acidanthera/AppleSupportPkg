@@ -51,7 +51,7 @@ ParseAppleEfiFatBinary (
     // Verify magic number
     //
     if (Hdr->Magic != APPLE_EFI_FAT_MAGIC) {
-      DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AplpeEfiFat\n"));
+      DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
       return EFI_UNSUPPORTED;
     }
     DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));    
@@ -186,7 +186,6 @@ LoadImageEx (
   return Status;
 }
 
-
 EFI_STATUS
 EFIAPI
 AppleLoadImage (
@@ -255,7 +254,6 @@ AppleLoadImage (
       ImageHandle
       );     
   }
-
 
   return Status;
 }
