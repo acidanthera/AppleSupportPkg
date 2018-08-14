@@ -99,6 +99,9 @@ ParseAppleEfiFatBinary (
         // Extract ApplePeImage and return EFI_SUCCESS
         //
         ImageBuffer = AllocateZeroPool (Hdr->Archs[Index].Size);
+        if (ImageBuffer == NULL) {
+          return EFI_OUT_OF_RESOURCES;
+        }
         ImageSize   = Hdr->Archs[Index].Size;
         CopyMem (
           ImageBuffer, 
@@ -124,37 +127,47 @@ LoadImageEx (
   OUT  EFI_HANDLE               *ImageHandle)
 {
   EFI_STATUS        Status;
+  VOID              *SrcBuf               = NULL;
+  UINTN             SrcSize               = 0;
   VOID              *ImageBuffer          = NULL;
   UINTN             ImageSize             = 0;
   UINT32            *AuthenticationStatus = NULL;
 
+  SrcBuf = SourceBuffer;
+  SrcSize = SourceSize;
+
   Status = EFI_INVALID_PARAMETER;
 
-  SourceBuffer = GetFileBufferByFilePath (
-    BootPolicy,
-    FilePath,
-    &SourceSize,
-    AuthenticationStatus
-    );
+  if (SrcBuf == NULL && FilePath != NULL) {
+    SrcBuf = GetFileBufferByFilePath (
+      BootPolicy,
+      FilePath,
+      &SrcSize,
+      AuthenticationStatus
+      );
+  }
 
   //
   // Try to parse as AppleEfiFatBinary
   // 
-  if (SourceBuffer != NULL && SourceSize != 0) {
+  if (SrcBuf != NULL && SrcSize != 0) {
     Status = ParseAppleEfiFatBinary (
-      SourceBuffer, 
-      SourceSize, 
+      SrcBuf, 
+      SrcSize, 
       ImageBuffer, 
       ImageSize
       );
 
     if (!EFI_ERROR (Status)) {
+      SrcBuf = ImageBuffer;
+      SrcSize = ImageSize;
       //
       // Verify ApplePeImage signature
       //
-      Status = VerifyApplePeImageSignature (ImageBuffer, ImageSize);
+      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
       
       if (EFI_ERROR (Status)) {
+        FreePool (ImageBuffer);
         return Status;
       }      
     }
@@ -166,10 +179,13 @@ LoadImageEx (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SourceBuffer,
-      SourceSize,
+      SrcBuf,
+      SrcSize,
       ImageHandle
       );     
+  }
+  if (ImageBuffer) {
+    FreePool (ImageBuffer);
   }
 
   return Status;
@@ -189,55 +205,63 @@ AppleLoadImage (
   )
 {
   EFI_STATUS  Status;
+  VOID        *SrcBuf               = NULL;
+  UINTN       SrcSize               = 0;  
   VOID        *ImageBuffer          = NULL;
   UINTN       ImageSize             = 0;  
   UINT32      *AuthenticationStatus = NULL;
 
   Status = EFI_INVALID_PARAMETER;
 
-  SourceBuffer = GetFileBufferByFilePath (
-    BootPolicy,
-    FilePath,
-    &SourceSize,
-    AuthenticationStatus
-    );
+  if (SrcBuf == NULL && FilePath != NULL) {
+    SrcBuf = GetFileBufferByFilePath (
+      BootPolicy,
+      FilePath,
+      &SrcSize,
+      AuthenticationStatus
+      );
+  }
 
   // Verify ApplePeImage signature  
-  if (SourceBuffer != NULL && SourceSize != 0) {
+  if (SrcBuf != NULL && SrcSize != 0) {
     //
     // Parse fat structure
     //
     Status = ParseAppleEfiFatBinary (
-      SourceBuffer, 
-      SourceSize, 
+      SrcBuf, 
+      SrcSize, 
       ImageBuffer, 
       ImageSize
       );
 
     if (!EFI_ERROR (Status)) {
-      SourceBuffer = ImageBuffer;
-      SourceSize = ImageSize;
+      SrcBuf = ImageBuffer;
+      SrcSize = ImageSize;
 
-      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
       if (EFI_ERROR (Status)) {
+        FreePool (ImageBuffer);
         return Status;
       }
     } else {
-      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      Status = VerifyApplePeImageSignature (SrcBuf, SrcSize);
       if (EFI_ERROR (Status)) {
         return Status;
       }    
     }
+
     Status = OriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SourceBuffer, 
-      SourceSize,
+      SrcBuf, 
+      SrcSize,
       ImageHandle
       );     
   }
-
+  if (ImageBuffer) {
+    FreePool (ImageBuffer);
+  }
   return Status;
 }
 
