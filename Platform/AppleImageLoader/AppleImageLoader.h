@@ -30,7 +30,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DxeServicesLib.h>
 #include <Library/DevicePathLib.h>
 #include <Protocol/LoadedImage.h>
-#include <Protocol/LoadFile.h>
 #include <Protocol/AppleLoadImage.h>
 
 

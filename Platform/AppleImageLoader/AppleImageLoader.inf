@@ -29,8 +29,7 @@
   AppleSupportPkg/AppleSupportPkg.dec
 
 [Protocols]
-  gEfiLoadFileProtocolGuid                ## PROTOCOL CONSUMES
-  gEfiLoadFileProtocolGuid                ## PROTOCOL CONSUMES
+  gEfiLoadedImageProtocolGuid             ## PROTOCOL CONSUMES
   gAppleLoadImageProtocolGuid             ## PROTOCOL PRODUCES
 
 [LibraryClasses]
