@@ -124,10 +124,12 @@ LoadImageEx (
   IN   UINTN                    SourceSize, 
   OUT  EFI_HANDLE               *ImageHandle)
 {
-  EFI_STATUS        Status;
-  VOID              *ImageBuffer          = NULL;
-  UINTN             ImageSize             = 0;
-  UINT32            AuthenticationStatus  = 0;
+  EFI_STATUS                 Status;
+  VOID                       *ImageBuffer          = NULL;
+  UINTN                      ImageSize             = 0;
+  UINT32                     AuthenticationStatus  = 0;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
+  EFI_HANDLE                 DeviceHandle         = 0;
   
   Status = EFI_INVALID_PARAMETER;
 
@@ -164,6 +166,16 @@ LoadImageEx (
       }      
     }
 
+    Status = gBS->LocateDevicePath (
+      &gEfiLoadFileProtocolGuid, 
+      &FilePath, 
+      &DeviceHandle
+      );
+    
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }    
+
     //
     // Load image with original function
     //
@@ -175,6 +187,22 @@ LoadImageEx (
       SourceSize,
       ImageHandle
       );     
+
+    if (!EFI_ERROR(Status) && DeviceHandle != 0) {
+      Status = gBS->OpenProtocol (
+        *ImageHandle,
+        &gEfiLoadedImageProtocolGuid,
+        (VOID **)&LoadedImage,
+        gImageHandle,
+        NULL,
+        EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );
+
+      if (!EFI_ERROR(Status) && LoadedImage->DeviceHandle != DeviceHandle) {
+        LoadedImage->DeviceHandle = DeviceHandle;
+        LoadedImage->FilePath     = DuplicateDevicePath(FilePath);
+      }   
+    } 
   }
 
   return Status;
@@ -192,10 +220,12 @@ AppleLoadImage (
   UINT64                   Version
   )
 {
-  EFI_STATUS  Status;
-  VOID        *ImageBuffer          = NULL;
-  UINTN       ImageSize             = 0;  
-  UINT32      AuthenticationStatus  = 0;
+  EFI_STATUS                 Status;
+  VOID                       *ImageBuffer          = NULL;
+  UINTN                      ImageSize             = 0;  
+  UINT32                     AuthenticationStatus  = 0;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage          = NULL;
+  EFI_HANDLE                 DeviceHandle          = 0;
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -235,6 +265,16 @@ AppleLoadImage (
       }    
     }
 
+    Status = gBS->LocateDevicePath (
+      &gEfiLoadFileProtocolGuid, 
+      &FilePath, 
+      &DeviceHandle
+      );
+    
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }     
+
     Status = OriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
@@ -243,6 +283,27 @@ AppleLoadImage (
       SourceSize,
       ImageHandle
       );     
+    
+    //
+    // dmazar: some boards do not put device handle to EfiLoadedImageProtocol->DeviceHandle
+    // when image is loaded from SrcBuffer, and then boot.efi fails.
+    // we'll fix EfiLoadedImageProtocol here.
+    //    
+    if (!EFI_ERROR(Status) && DeviceHandle != 0) {
+      Status = gBS->OpenProtocol(
+        *ImageHandle,
+        &gEfiLoadedImageProtocolGuid,
+        (VOID **)&LoadedImage,
+        gImageHandle,
+        NULL,
+        EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );
+
+      if (!EFI_ERROR(Status) && LoadedImage->DeviceHandle != DeviceHandle) {
+        LoadedImage->DeviceHandle = DeviceHandle;
+        LoadedImage->FilePath     = DuplicateDevicePath(FilePath);
+      }   
+    } 
   }
 
   return Status;
