@@ -358,16 +358,33 @@ AppleImageLoaderEntryPoint (
   EFI_BOOT_SERVICES             *gBS;
    
   gBS = SystemTable->BootServices;
-  
-  //
-  // Install AppleLoadImage protocol
-  // 
-  Status = gBS->InstallMultipleProtocolInterfaces (
-    &Handle, 
-    &gAppleLoadImageProtocolGuid, 
-    &mAppleLoadImageProtocol,
-    NULL
+
+  Status = gBS->LocateProtocol (
+    &gAppleImageCodecProtocolGuid,
+    NULL,
+    (VOID **)&AppleImageCodecInterface
     );
+
+  if (EFI_ERROR (Status)){
+    //
+    // Install AppleLoadImage protocol
+    // 
+    Status = gBS->InstallMultipleProtocolInterfaces (
+      &Handle, 
+      &gAppleLoadImageProtocolGuid, 
+      &mAppleLoadImageProtocol,
+      NULL
+      );
+    if (EFI_ERROR (Status)) {
+      DEBUG ((
+        DEBUG_VERBOSE, 
+        "AppleLoadImage install failed with Status: %r\n",
+        Status
+        ));
+    }
+  } else {
+    DEBUG ((DEBUG_VERBOSE, "AppleLoadImage already present\n"));
+  }
 
   //
   // Override Edk2LoadImage protocol for AppleFatBinary support
