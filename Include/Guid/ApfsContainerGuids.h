@@ -1,6 +1,6 @@
 /** @file
 
-Apfs specific GUIDs for UEFI Variable Storage, version 1.0.
+Apfs specific GUIDs for UEFI Variable Storage.
 
 Copyright (c) 2017-2018, savvas
 
