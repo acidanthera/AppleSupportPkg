@@ -1,6 +1,8 @@
 /** @file
-  Copyright (C) 2005-2016, Apple Inc. All rights reserved.
-  Portions copyright (C) 2016 Alex James. All rights reserved.<BR>
+  Copyright (c) 2016 CupertinoNet.<BR>
+  Portions copyright (c) 2016 Alex James.<BR>
+
+  All rights reserved.
 
   This program and the accompanying materials are licensed and made
   available under the terms and conditions of the BSD License which
