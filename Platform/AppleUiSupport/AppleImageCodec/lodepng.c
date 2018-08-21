@@ -4196,7 +4196,7 @@ static unsigned unfilter(unsigned char* out, const unsigned char* in, unsigned w
 
   /*bytewidth is used for filtering, is 1 when bpp < 8, number of bytes per pixel otherwise*/
   size_t bytewidth = (bpp + 7) / 8;
-  size_t linebytes = (w * bpp + 7) / 8;
+  size_t linebytes = ((UINTN )w * bpp + 7) / 8;
 
   for(y = 0; y < h; ++y)
   {
@@ -4261,7 +4261,7 @@ static void Adam7_deinterlace(unsigned char* out, const unsigned char* in, unsig
       for(x = 0; x < passw[i]; ++x)
       {
         ibp = (8 * passstart[i]) + (y * ilinebits + x * bpp);
-        obp = (ADAM7_IY[i] + y * ADAM7_DY[i]) * olinebits + (ADAM7_IX[i] + x * ADAM7_DX[i]) * bpp;
+        obp = (ADAM7_IY[i] + (UINTN) y * ADAM7_DY[i]) * (UINTN) olinebits + (ADAM7_IX[i] + (UINTN) x * ADAM7_DX[i]) * (UINTN) bpp;
         for(b = 0; b < bpp; ++b)
         {
           unsigned char bit = readBitFromReversedStream(&ibp, in);
