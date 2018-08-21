@@ -15,12 +15,15 @@
 #
 
 [Defines]
-  INF_VERSION                    = 0x00010005
-  BASE_NAME                      = AppleUiSupport
-  FILE_GUID                      = 4F735154-9E9D-4014-8168-369CFFE377A1
-  MODULE_TYPE                    = UEFI_DRIVER
-  VERSION_STRING                 = 1.0
-  ENTRY_POINT                    = AppleUiSupportEntrypoint
+  INF_VERSION                         = 0x00010005
+  BASE_NAME                           = AppleUiSupport
+  FILE_GUID                           = 4F735154-9E9D-4014-8168-369CFFE377A1
+  MODULE_TYPE                         = UEFI_DRIVER
+  ENTRY_POINT                         = AppleUiSupportEntrypoint
+  VERSION_STRING                      = 1.0.0  
+  INF_VERSION                         = 0x00010005
+  EDK_RELEASE_VERSION                 = 0x00020000
+  EFI_SPECIFICATION_VERSION           = 0x00010000  
 
 [Packages]
   AppleSupportPkg/AppleSupportPkg.dec
@@ -40,26 +43,26 @@
   DebugLib
 
 [Guids]
-  gAppleVendorVariableGuid                    ## CONSUMES
-  gAppleImageListGuid                         ## CONSUMES
-  gAppleArrowCursorImageGuid                  ## CONSUMES
-  gAppleArrowCursor2xImageGuid                ## CONSUMES
-  gEfiHashAlgorithmMD5Guid                    ## CONSUMES
-  gEfiHashAlgorithmSha1Guid                   ## CONSUMES
-  gEfiHashAlgorithmSha256Guid                 ## CONSUMES
+  gAppleVendorVariableGuid            ## GUID CONSUMES
+  gAppleImageListGuid                 ## GUID CONSUMES
+  gAppleArrowCursorImageGuid          ## GUID CONSUMES
+  gAppleArrowCursor2xImageGuid        ## GUID CONSUMES
+  gEfiHashAlgorithmMD5Guid            ## GUID CONSUMES
+  gEfiHashAlgorithmSha1Guid           ## GUID CONSUMES
+  gEfiHashAlgorithmSha256Guid         ## GUID CONSUMES
 
 [Protocols]
-  gEfiFirmwareVolumeProtocolGuid              ## PRODUCES
-  gAppleImageCodecProtocolGuid                ## PRODUCES
-  gEfiUserInterfaceThemeProtocolGuid          ## PRODUCES
-  gEfiUnicodeCollation2ProtocolGuid           ## CONSUMES
-  gEfiHashServiceBindingProtocolGuid          ## CONSUMES
-  gEfiHashProtocolGuid                        ## CONSUMES
-  gAppleEventProtocolGuid                     ## PRODUCES
-  gAppleKeyMapAggregatorProtocolGuid          ## CONSUMES
-  gEfiConsoleControlProtocolGuid              ## CONSUMES
-  gEfiSimplePointerProtocolGuid               ## CONSUMES
-  gAppleKeyMapDatabaseProtocolGuid
+  gEfiFirmwareVolumeProtocolGuid      ## PROTOCOL PRODUCES
+  gAppleImageCodecProtocolGuid        ## PROTOCOL PRODUCES
+  gEfiUserInterfaceThemeProtocolGuid  ## PROTOCOL PRODUCES
+  gEfiUnicodeCollation2ProtocolGuid   ## PROTOCOL CONSUMES
+  gEfiHashServiceBindingProtocolGuid  ## PROTOCOL CONSUMES
+  gEfiHashProtocolGuid                ## PROTOCOL CONSUMES
+  gAppleEventProtocolGuid             ## PROTOCOL PRODUCES
+  gAppleKeyMapAggregatorProtocolGuid  ## PROTOCOL CONSUMES
+  gEfiConsoleControlProtocolGuid      ## PROTOCOL CONSUMES
+  gEfiSimplePointerProtocolGuid       ## PROTOCOL CONSUMES
+  gAppleKeyMapDatabaseProtocolGuid    ## PROTOCOL PRODUCES
   
 [Sources]
   FirmwareVolumeInject/FirmwareVolumeInject.c

@@ -127,16 +127,13 @@ LoadImageEx (
   IN   UINTN                     SourceSize, 
   OUT  EFI_HANDLE                *ImageHandle)
 {
-  EFI_STATUS                 Status;
+  EFI_STATUS                 Status                = EFI_INVALID_PARAMETER;
   VOID                       *ImageBuffer          = NULL;
   UINTN                      ImageSize             = 0;
   UINT32                     AuthenticationStatus  = 0;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage          = NULL;
   EFI_HANDLE                 DeviceHandle          = 0;
-  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = NULL;
-
-  Status = EFI_INVALID_PARAMETER;
-  RemainingDevicePath = FilePath;
+  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;  
 
   if (SourceBuffer == NULL && FilePath != NULL) {
     SourceBuffer = GetFileBufferByFilePath (
@@ -227,16 +224,13 @@ AppleLoadImage (
   UINT64                    Version
   )
 {
-  EFI_STATUS                 Status;
+  EFI_STATUS                 Status                = EFI_INVALID_PARAMETER;
   VOID                       *ImageBuffer          = NULL;
   UINTN                      ImageSize             = 0;  
   UINT32                     AuthenticationStatus  = 0;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage          = NULL;
   EFI_HANDLE                 DeviceHandle          = 0;
-  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = NULL;
-
-  Status = EFI_INVALID_PARAMETER;
-  RemainingDevicePath = FilePath;
+  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;
 
   if (SourceBuffer == NULL && FilePath != NULL) {
     SourceBuffer = GetFileBufferByFilePath (
@@ -314,7 +308,7 @@ AppleLoadImage (
       }      
     }
   }
-
+  
   return Status;
 }
 

@@ -15,21 +15,17 @@
 #
 ##
 [Defines]
-  INF_VERSION                    = 0x00010005
-  BASE_NAME                      = ApfsDriverLoader
-  FILE_GUID                      = BA6ED98D-D133-4F5B-8787-D2464BB21122
-  MODULE_TYPE                    = UEFI_DRIVER
-  VERSION_STRING                 = 2.0.0
-  EDK_RELEASE_VERSION            = 0x00020000
-  EFI_SPECIFICATION_VERSION      = 0x00010000
-  ENTRY_POINT                    = ApfsDriverLoaderInit
+  INF_VERSION                         = 0x00010005
+  BASE_NAME                           = ApfsDriverLoader
+  FILE_GUID                           = BA6ED98D-D133-4F5B-8787-D2464BB21122
+  MODULE_TYPE                         = UEFI_DRIVER
+  VERSION_STRING                      = 2.0.0
+  INF_VERSION                         = 0x00010005
+  EDK_RELEASE_VERSION                 = 0x00020000
+  EFI_SPECIFICATION_VERSION           = 0x00010000
+  ENTRY_POINT                         = ApfsDriverLoaderInit
 
-#
-# The following information is for reference only and not required by the build tools.
-#
-  VALID_ARCHITECTURES           = X64
-#
-[Sources.common]
+[Sources.X64]
   ApfsDriverLoader.c
   ApfsDriverLoader.h
   Version.h
@@ -55,19 +51,19 @@
   PcdLib
 
 [Guids]
-  gApfsContainerPartitionTypeGuid
+  gApfsContainerPartitionTypeGuid                 ## GUID CONSUMES
 
 [Protocols]
-  gEfiDiskIoProtocolGuid
-  gEfiDiskIo2ProtocolGuid
-  gEfiBlockIoProtocolGuid
-  gEfiBlockIo2ProtocolGuid
-  gEfiUnicodeCollationProtocolGuid
-  gEfiUnicodeCollation2ProtocolGuid
-  gEfiPartitionInfoProtocolGuid
-  gApplePartitionInfoProtocolGuid
-  gAppleLoadImageProtocolGuid
-  gAppleFileSystemEfiBootRecordInfoProtocolGuid   ## PRODUCES
+  gEfiDiskIoProtocolGuid                          ## PROTOCOL CONSUMES
+  gEfiDiskIo2ProtocolGuid                         ## PROTOCOL CONSUMES
+  gEfiBlockIoProtocolGuid                         ## PROTOCOL CONSUMES
+  gEfiBlockIo2ProtocolGuid                        ## PROTOCOL CONSUMES
+  gEfiUnicodeCollationProtocolGuid                ## PROTOCOL CONSUMES
+  gEfiUnicodeCollation2ProtocolGuid               ## PROTOCOL CONSUMES
+  gEfiPartitionInfoProtocolGuid                   ## PROTOCOL CONSUMES
+  gApplePartitionInfoProtocolGuid                 ## PROTOCOL CONSUMES
+  gAppleLoadImageProtocolGuid                     ## PROTOCOL CONSUMES
+  gAppleFileSystemEfiBootRecordInfoProtocolGuid   ## PROTOCOL PRODUCES
 
 [Pcd]
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang

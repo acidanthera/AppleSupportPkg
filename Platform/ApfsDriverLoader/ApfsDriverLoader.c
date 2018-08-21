@@ -180,8 +180,7 @@ ReadDisk (
       BufferSize,
       Buffer
       );
-  } else {
-    if (DiskIo != NULL) {
+  } else if (DiskIo != NULL) {
       Status = DiskIo->ReadDisk (
         DiskIo,
         MediaId,
@@ -192,7 +191,7 @@ ReadDisk (
     } else {
       Status = EFI_UNSUPPORTED;
     }
-  }
+  
 
   return Status;
 }
@@ -279,14 +278,13 @@ LegacyApfsContainerScan (
   if (BlockIo2 != NULL) {
     BlockSize     = BlockIo2->Media->BlockSize;
     MediaId       = BlockIo2->Media->MediaId;
-  } else {
-    if (BlockIo != NULL) {
+  } else if (BlockIo != NULL) {
       BlockSize     = BlockIo->Media->BlockSize;
       MediaId       = BlockIo->Media->MediaId;
     } else {
       return EFI_UNSUPPORTED;
     }
-  }
+  
 
   Block = AllocateZeroPool ((UINTN)BlockSize);
   if (Block == NULL) {
@@ -771,7 +769,6 @@ ApfsDriverLoaderStart (
   //
   // Extract Container UUID
   //
-  //ContainerUuid = AllocateZeroPool(sizeof(EFI_GUID));
   ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
   CopyMem(&ContainerUuid, &ContainerSuperBlock->Uuid, 16);
 
