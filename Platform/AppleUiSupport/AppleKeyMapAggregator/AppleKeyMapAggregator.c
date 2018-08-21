@@ -2,8 +2,7 @@
 
 AppleKeyMapAggregator
 
-Copyright (c) 2018, CupertinoNet.<BR>
-Portions copyright (c) 2018, savvas.<BR>
+Copyright (c) 2018, CupertinoNet
 
 All rights reserved.
 
@@ -26,15 +25,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
-//
+
 // KEY_MAP_AGGREGATOR_DATA_SIGNATURE
-//
 #define KEY_MAP_AGGREGATOR_DATA_SIGNATURE  \
   SIGNATURE_32 ('K', 'e', 'y', 'A')
 
-//
 // KEY_MAP_AGGREGATOR_DATA_FROM_AGGREGATOR_THIS
-//
 #define KEY_MAP_AGGREGATOR_DATA_FROM_AGGREGATOR_THIS(This)  \
   CR (                                                      \
     (This),                                                 \
@@ -43,9 +39,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
     KEY_MAP_AGGREGATOR_DATA_SIGNATURE                       \
     )
 
-//
 // KEY_MAP_AGGREGATOR_DATA_FROM_DATABASE_THIS
-//
 #define KEY_MAP_AGGREGATOR_DATA_FROM_DATABASE_THIS(This)  \
   CR (                                                    \
     (This),                                               \
@@ -54,27 +48,21 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
     KEY_MAP_AGGREGATOR_DATA_SIGNATURE                     \
     )
 
-//
 // KEY_MAP_AGGREGATOR_DATA
-//
 typedef struct {
-    UINTN                             Signature;
-    UINTN                             NextKeyStrokeIndex;
-    APPLE_KEY_CODE                    *KeyCodeBuffer;
-    UINTN                             KeyCodeBufferLength;
-    LIST_ENTRY                        KeyStrokesInfoList;
-    APPLE_KEY_MAP_DATABASE_PROTOCOL   Database;
-    APPLE_KEY_MAP_AGGREGATOR_PROTOCOL Aggregator;
+  UINTN                             Signature;
+  UINTN                             NextKeyStrokeIndex;
+  APPLE_KEY_CODE                    *KeyCodeBuffer;
+  UINTN                             KeyCodeBufferLength;
+  LIST_ENTRY                        KeyStrokesInfoList;
+  APPLE_KEY_MAP_DATABASE_PROTOCOL   Database;
+  APPLE_KEY_MAP_AGGREGATOR_PROTOCOL Aggregator;
 } KEY_MAP_AGGREGATOR_DATA;
 
-//
 // APPLE_KEY_STROKES_INFO_SIGNATURE
-//
 #define APPLE_KEY_STROKES_INFO_SIGNATURE  SIGNATURE_32 ('K', 'e', 'y', 'S')
 
-//
 // APPLE_KEY_STROKES_INFO_FROM_LIST_ENTRY
-//
 #define APPLE_KEY_STROKES_INFO_FROM_LIST_ENTRY(Entry)  \
   CR (                                                 \
     (Entry),                                           \
@@ -88,18 +76,16 @@ typedef struct {
 
 // APPLE_KEY_STROKES_INFO
 typedef struct {
-    UINTN              Signature;
-    LIST_ENTRY         Link;
-    UINTN              Index;
-    UINTN              KeyCodeBufferLength;
-    UINTN              NumberOfKeyCodes;
-    APPLE_MODIFIER_MAP Modifiers;
-    APPLE_KEY_CODE     KeyCodes[1];
+  UINTN              Signature;
+  LIST_ENTRY         Link;
+  UINTN              Index;
+  UINTN              KeyCodeBufferLength;
+  UINTN              NumberOfKeyCodes;
+  APPLE_MODIFIER_MAP Modifiers;
+  APPLE_KEY_CODE     KeyCodes[1];
 } APPLE_KEY_STROKES_INFO;
 
-//
 // InternalGetKeyStrokesByIndex
-//
 STATIC
 APPLE_KEY_STROKES_INFO *
 InternalGetKeyStrokesByIndex (
@@ -107,9 +93,12 @@ InternalGetKeyStrokesByIndex (
   IN UINTN                    Index
   )
 {
-  APPLE_KEY_STROKES_INFO *KeyStrokesInfo       = NULL;
-  LIST_ENTRY             *Entry                = NULL;
-  APPLE_KEY_STROKES_INFO *KeyStrokesInfoWalker = NULL;
+  APPLE_KEY_STROKES_INFO *KeyStrokesInfo;
+
+  LIST_ENTRY             *Entry;
+  APPLE_KEY_STROKES_INFO *KeyStrokesInfoWalker;
+
+  KeyStrokesInfo = NULL;
 
   for (
     Entry = GetFirstNode (&KeyMapAggregatorData->KeyStrokesInfoList);
@@ -128,9 +117,7 @@ InternalGetKeyStrokesByIndex (
   return KeyStrokesInfo;
 }
 
-//
 // InternalMinSort
-//
 STATIC
 VOID
 InternalMinSort (
@@ -138,9 +125,10 @@ InternalMinSort (
   IN     UINTN   NumberOfChilds
   )
 {
-  UINTN  Index      = 0;
-  UINTN  Index2     = 0;
-  UINT16 FirstChild = 0;
+
+  UINTN  Index;
+  UINTN  Index2;
+  UINT16 FirstChild;
 
   for (Index = 0; Index < NumberOfChilds; ++Index) {
     for (Index2 = (Index + 1); Index2 < NumberOfChilds; ++Index2) {
@@ -185,17 +173,21 @@ InternalGetKeyStrokes (
   )
 {
   EFI_STATUS              Status;
-  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData    = NULL;
-  LIST_ENTRY              *Entry                   = NULL;
-  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo          = NULL;
-  BOOLEAN                 Result                   = FALSE;
-  APPLE_MODIFIER_MAP      DbModifiers              = 0;
-  UINTN                   DbNumberOfKeyCodestrokes = 0;
-  UINTN                   Index                    = 0;
-  UINTN                   Index2                   = 0;
-  APPLE_KEY_CODE          Key                      = 0;
+
+  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData;
+  LIST_ENTRY              *Entry;
+  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo;
+  BOOLEAN                 Result;
+  APPLE_MODIFIER_MAP      DbModifiers;
+  UINTN                   DbNumberOfKeyCodestrokes;
+  UINTN                   Index;
+  UINTN                   Index2;
+  APPLE_KEY_CODE          Key;
 
   KeyMapAggregatorData = KEY_MAP_AGGREGATOR_DATA_FROM_AGGREGATOR_THIS (This);
+
+  DbModifiers              = 0;
+  DbNumberOfKeyCodestrokes = 0;
 
   for (
     Entry = GetFirstNode (&KeyMapAggregatorData->KeyStrokesInfoList);
@@ -222,7 +214,7 @@ InternalGetKeyStrokes (
     }
   }
 
-  Result = (BOOLEAN) (DbNumberOfKeyCodestrokes > *NumberOfKeyCodes);
+  Result = (BOOLEAN)(DbNumberOfKeyCodestrokes > *NumberOfKeyCodes);
 
   *NumberOfKeyCodes = DbNumberOfKeyCodestrokes;
 
@@ -275,12 +267,12 @@ InternalContainsKeyStrokes (
 {
   EFI_STATUS         Status;
 
-  UINTN              DbNumberOfKeyCodes = 0;
-  APPLE_MODIFIER_MAP DbModifiers        = 0;
+  UINTN              DbNumberOfKeyCodes;
+  APPLE_MODIFIER_MAP DbModifiers;
   APPLE_KEY_CODE     DbKeyCodes[8];
-  INTN               Result             = 0;
-  UINTN              Index              = 0;
-  UINTN              DbIndex            = 0;
+  INTN               Result;
+  UINTN              Index;
+  UINTN              DbIndex;
 
   DbNumberOfKeyCodes = ARRAY_SIZE (DbKeyCodes);
   Status             = This->GetKeyStrokes (
@@ -300,8 +292,8 @@ InternalContainsKeyStrokes (
       return EFI_NOT_FOUND;
     }
 
-    InternalMinSort ((UINT16 *) KeyCodes, NumberOfKeyCodes);
-    InternalMinSort ((UINT16 *) DbKeyCodes, DbNumberOfKeyCodes);
+    InternalMinSort ((UINT16 *)KeyCodes, NumberOfKeyCodes);
+    InternalMinSort ((UINT16 *)DbKeyCodes, DbNumberOfKeyCodes);
 
     Result = CompareMem (
                 (VOID *)KeyCodes,
@@ -358,15 +350,16 @@ InternalCreateKeyStrokesBuffer (
   )
 {
   EFI_STATUS              Status;
-  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData = NULL;
-  UINTN                   TotalBufferLength     = 0;
-  APPLE_KEY_CODE          *Buffer               = NULL;
-  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo       = NULL;
+
+  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData;
+  UINTN                   TotalBufferLength;
+  APPLE_KEY_CODE          *Buffer;
+  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo;
 
   KeyMapAggregatorData = KEY_MAP_AGGREGATOR_DATA_FROM_DATABASE_THIS (This);
 
   if (KeyMapAggregatorData->KeyCodeBuffer != NULL) {
-    gBS->FreePool ((VOID *) KeyMapAggregatorData->KeyCodeBuffer);
+    gBS->FreePool ((VOID *)KeyMapAggregatorData->KeyCodeBuffer);
   }
 
   TotalBufferLength = (KeyMapAggregatorData->KeyCodeBufferLength + BufferLength);
@@ -374,35 +367,34 @@ InternalCreateKeyStrokesBuffer (
   KeyMapAggregatorData->KeyCodeBufferLength = TotalBufferLength;
 
   Buffer = AllocateZeroPool (TotalBufferLength * sizeof (*Buffer));
-  if (Buffer == NULL) {
-    Status = EFI_OUT_OF_RESOURCES;
-    return Status;
-  }
 
   KeyMapAggregatorData->KeyCodeBuffer = Buffer;
 
-  KeyStrokesInfo = AllocateZeroPool (
-                     SIZE_OF_APPLE_KEY_STROKES_INFO
-                       + (BufferLength * sizeof (*Buffer))
-                     );
+  Status = EFI_OUT_OF_RESOURCES;
 
-  if (KeyStrokesInfo != NULL) {
+  if (Buffer != NULL) {
+    KeyStrokesInfo = AllocateZeroPool (
+                       SIZE_OF_APPLE_KEY_STROKES_INFO
+                         + (BufferLength * sizeof (*Buffer))
+                       );
+
     Status = EFI_OUT_OF_RESOURCES;
-    return Status;
+
+    if (KeyStrokesInfo != NULL) {
+      KeyStrokesInfo->Signature           = APPLE_KEY_STROKES_INFO_SIGNATURE;
+      KeyStrokesInfo->KeyCodeBufferLength = BufferLength;
+      KeyStrokesInfo->Index               = KeyMapAggregatorData->NextKeyStrokeIndex++;
+      
+      InsertTailList (
+        &KeyMapAggregatorData->KeyStrokesInfoList,
+        &KeyStrokesInfo->Link
+        );
+
+      Status = EFI_SUCCESS;
+
+      *Index = KeyStrokesInfo->Index;
+    }
   }
-
-  KeyStrokesInfo->Signature           = APPLE_KEY_STROKES_INFO_SIGNATURE;
-  KeyStrokesInfo->KeyCodeBufferLength = BufferLength;
-  KeyStrokesInfo->Index               = KeyMapAggregatorData->NextKeyStrokeIndex++;
-  
-  InsertTailList (
-    &KeyMapAggregatorData->KeyStrokesInfoList,
-    &KeyStrokesInfo->Link
-    );
-
-  Status = EFI_SUCCESS;
-
-  *Index = KeyStrokesInfo->Index;
 
   return Status;
 }
@@ -427,8 +419,9 @@ InternalRemoveKeyStrokesBuffer (
   )
 {
   EFI_STATUS              Status;
-  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData = NULL;
-  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo       = NULL;
+
+  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData;
+  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo;
 
   KeyMapAggregatorData = KEY_MAP_AGGREGATOR_DATA_FROM_DATABASE_THIS (This);
 
@@ -483,8 +476,8 @@ InternalSetKeyStrokeBufferKeys (
 {
   EFI_STATUS               Status;
 
-  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData = NULL;
-  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo       = NULL;
+  KEY_MAP_AGGREGATOR_DATA *KeyMapAggregatorData;
+  APPLE_KEY_STROKES_INFO  *KeyStrokesInfo;
 
   KeyMapAggregatorData = KEY_MAP_AGGREGATOR_DATA_FROM_DATABASE_THIS (This);
 
@@ -532,19 +525,26 @@ InitializeAppleKeyMapAggregator (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-  EFI_STATUS                      Status;
-  EFI_HANDLE                      NewHandle             = NULL;
-  KEY_MAP_AGGREGATOR_DATA         *KeyMapAggregatorData = NULL;
-  APPLE_KEY_MAP_DATABASE_PROTOCOL *AppleKeyMapDatabaseInterface = NULL;
+  EFI_STATUS               Status;
+  EFI_HANDLE               NewHandle             = NULL;
+  EFI_HANDLE               *Buffer               = NULL;
+  UINTN                    NumberOfHandles       = 0;
+  KEY_MAP_AGGREGATOR_DATA  *KeyMapAggregatorData = NULL;
 
-  Status = gBS->LocateProtocol (
-    &gAppleKeyMapDatabaseProtocolGuid,
-    NULL,
-    (VOID **)&AppleKeyMapDatabaseInterface
-    );
+  Status = gBS->LocateHandleBuffer (
+                  ByProtocol,
+                  &gAppleKeyMapDatabaseProtocolGuid,
+                  NULL,
+                  &NumberOfHandles,
+                  &Buffer
+                  );
 
   if (!EFI_ERROR (Status)) {
     Status = EFI_ALREADY_STARTED;
+
+    if (Buffer != NULL) {
+      gBS->FreePool ((VOID *)Buffer);
+    }
   } else {
     KeyMapAggregatorData = AllocateZeroPool (sizeof (*KeyMapAggregatorData));
     
@@ -574,6 +574,7 @@ InitializeAppleKeyMapAggregator (
       (VOID *)&KeyMapAggregatorData->Aggregator,
       NULL
       );
+
   }
 
   return Status;
