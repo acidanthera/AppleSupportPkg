@@ -355,14 +355,13 @@ AppleImageLoaderEntryPoint (
   )
 {
   EFI_STATUS                    Status;
-  EFI_BOOT_SERVICES             *gBS;
-   
-  gBS = SystemTable->BootServices;
+  EFI_BOOT_SERVICES             *gBS                     = SystemTable->BootServices;
+  APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
 
   Status = gBS->LocateProtocol (
-    &gAppleImageCodecProtocolGuid,
+    &gAppleLoadImageProtocolGuid,
     NULL,
-    (VOID **)&AppleImageCodecInterface
+    (VOID **)&AppleLoadImageInterface
     );
 
   if (EFI_ERROR (Status)){
