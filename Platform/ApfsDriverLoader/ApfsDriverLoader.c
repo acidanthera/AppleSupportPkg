@@ -927,12 +927,14 @@ ApfsDriverLoaderStart (
       &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
       NULL
       );
+
     if (AppleFileSystemDriverBuffer != NULL) { 
       FreePool (AppleFileSystemDriverBuffer);
     }
     if (Private != NULL) {
       FreePool(Private);
     }
+    
     return EFI_UNSUPPORTED;
   }
 

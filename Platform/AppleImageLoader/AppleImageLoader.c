@@ -70,9 +70,9 @@ ParseAppleEfiFatBinary (
     //
     // Arch dependency parse
     //
-#if defined(EFI32) || defined(MDE_CPU_IA32)
+#if defined(MDE_CPU_IA32)
     if (Hdr->Archs[Index].CpuType == CPUYPE_X86) { 
-#elif defined(EFIX64) || defined(MDE_CPU_X64)
+#elif defined(MDE_CPU_X64)
     if (Hdr->Archs[Index].CpuType == CPUYPE_X86_64) {
 #else
 #error "Undefined Platform"
