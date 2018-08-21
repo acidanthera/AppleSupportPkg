@@ -722,15 +722,27 @@ ApfsDriverLoaderStart (
   //
   ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
-  DEBUG ((DEBUG_VERBOSE, "Container Blocksize: %u bytes\n", ApfsBlockSize));
-  DEBUG ((DEBUG_VERBOSE, "ContainerSuperblock checksum: %08llx \n", ContainerSuperBlock->BlockHeader.Checksum));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "Container Blocksize: %u bytes\n", 
+    ApfsBlockSize
+    ));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "ContainerSuperblock checksum: %08llx \n", 
+    ContainerSuperBlock->BlockHeader.Checksum
+    ));
 
   //
   // Take pointer to EfiBootRecordBlock.
   //
   EfiBootRecordBlockPtr = ContainerSuperBlock->EfiBootRecordBlock;
 
-  DEBUG ((DEBUG_VERBOSE, "EfiBootRecord located at: %llu block\n", EfiBootRecordBlockPtr));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "EfiBootRecord located at: %llu block\n",
+    EfiBootRecordBlockPtr
+    ));
 
   //
   // Free ApfsBlock and allocate one of a correct size.
@@ -775,9 +787,14 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock...
   //
-  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) + LegacyBaseOffset; 
+  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) 
+                              + LegacyBaseOffset; 
   
-  DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock offset: %08llx \n", EfiBootRecordBlockOffset));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "EfiBootRecordBlock offset: %08llx \n",
+     EfiBootRecordBlockOffset
+     ));
   
   //
   // Read EfiBootRecordBlock.
@@ -810,14 +827,36 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
   }
 
-  DEBUG ((DEBUG_VERBOSE, "EfiBootRecordBlock checksum: %08llx\n", EfiBootRecordBlock->BlockHeader.Checksum));
-  DEBUG ((DEBUG_VERBOSE, "ApfsDriver located at: %llu block\n", EfiBootRecordBlock->BootRecordLBA));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "EfiBootRecordBlock checksum: %08llx\n", 
+    EfiBootRecordBlock->BlockHeader.Checksum
+    ));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "ApfsDriver located at: %llu block\n", 
+    EfiBootRecordBlock->BootRecordLBA
+    ));
 
-  ApfsDriverBootRecordOffset = MultU64x32 (EfiBootRecordBlock->BootRecordLBA, ApfsBlockSize) + LegacyBaseOffset;
-  AppleFileSystemDriverSize = MultU64x32 (EfiBootRecordBlock->BootRecordSize, ApfsBlockSize);
+  ApfsDriverBootRecordOffset = MultU64x32 (
+                                EfiBootRecordBlock->BootRecordLBA, 
+                                ApfsBlockSize
+                                )  + LegacyBaseOffset;
+  AppleFileSystemDriverSize = MultU64x32 (
+                                EfiBootRecordBlock->BootRecordSize, 
+                                ApfsBlockSize
+                                );
 
-  DEBUG ((DEBUG_VERBOSE, "ApfsDriver offset: %08llx \n", ApfsDriverBootRecordOffset));
-  DEBUG ((DEBUG_VERBOSE, "ApfsDriver size: %llu bytes\n", AppleFileSystemDriverSize));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "ApfsDriver offset: %08llx \n", 
+    ApfsDriverBootRecordOffset
+    ));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "ApfsDriver size: %llu bytes\n", 
+    AppleFileSystemDriverSize
+    ));
 
   FreePool (ApfsBlock);
 
@@ -843,9 +882,13 @@ ApfsDriverLoaderStart (
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
-  Private = AllocatePool (sizeof(APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA));
+
+  //
+  // FIXME: free private on error
+  //
+  Private = AllocatePool (sizeof (APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA));
   if (Private == NULL) {
-    return EFI_OUT_OF_RESOURCES;
+    return EFI_OUT_OF_RESOURCES; // <--
   }
 
   Private->ControllerHandle  = ControllerHandle;
@@ -861,7 +904,11 @@ ApfsDriverLoaderStart (
     );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", Status));
+    DEBUG ((
+      DEBUG_WARN, 
+      "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", 
+      Status
+      ));
     return Status;
   }
 
@@ -1010,7 +1057,11 @@ ApfsDriverLoaderInit (
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface = NULL;
   
-  DEBUG ((DEBUG_VERBOSE, "Starting ApfsDriverLoader ver. %s\n", APFSDRIVERLOADER_VERSION));
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "Starting ApfsDriverLoader ver. %s\n", 
+    APFSDRIVERLOADER_VERSION
+    ));
 
   //
   // Check that PartitionInfo protocol present
@@ -1037,7 +1088,10 @@ ApfsDriverLoaderInit (
   }
 
   if (EFI_ERROR(Status)) {
-    DEBUG ((DEBUG_VERBOSE, "No partition info protocol, using Legacy scan\n"));
+    DEBUG ((
+      DEBUG_VERBOSE, 
+      "No partition info protocol, using Legacy scan\n"
+      ));
     LegacyScan = TRUE;
   } 
 
