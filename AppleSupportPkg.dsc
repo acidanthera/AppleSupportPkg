@@ -54,6 +54,7 @@
 [Components]
   AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
+  AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
 
 [PcdsFixedAtBuild]

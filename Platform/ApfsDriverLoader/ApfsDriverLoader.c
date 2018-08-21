@@ -21,8 +21,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "Version.h"
 
 
-STATIC BOOLEAN                     LegacyScan                     = FALSE;
-STATIC UINT64                      LegacyBaseOffset               = 0;
+STATIC BOOLEAN  LegacyScan       = FALSE;
+STATIC UINT64   LegacyBaseOffset = 0;
 
 
 EFI_STATUS

@@ -16,11 +16,11 @@
 ##
 
 [Defines]
-  BASE_NAME   = AppleImageLoader
-  FILE_GUID   = 44769453-A392-4FC7-B6FF-F33889B7EE38
-  MODULE_TYPE = UEFI_DRIVER
-  ENTRY_POINT = AppleImageLoaderEntryPoint
-  INF_VERSION = 0x00010006
+  BASE_NAME       = AppleImageLoader
+  FILE_GUID       = 44769453-A392-4FC7-B6FF-F33889B7EE38
+  MODULE_TYPE     = UEFI_DRIVER
+  ENTRY_POINT     = AppleImageLoaderEntryPoint
+  INF_VERSION     = 0x00010005
   VERSION_STRING  = 1.5
 
 [Packages]
