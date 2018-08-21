@@ -128,6 +128,8 @@ LoadImageEx (
   OUT  EFI_HANDLE                *ImageHandle)
 {
   EFI_STATUS                 Status                = EFI_INVALID_PARAMETER;
+  VOID                       *FileBuffer           = NULL;
+  UINTN                      FileSize              = 0;  
   VOID                       *ImageBuffer          = NULL;
   UINTN                      ImageSize             = 0;
   UINT32                     AuthenticationStatus  = 0;
@@ -136,12 +138,14 @@ LoadImageEx (
   EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;  
 
   if (SourceBuffer == NULL && FilePath != NULL) {
-    SourceBuffer = GetFileBufferByFilePath (
+    FileBuffer = GetFileBufferByFilePath (
       BootPolicy,
       FilePath,
-      &SourceSize,
+      &FileSize,
       &AuthenticationStatus
       );
+    SourceBuffer = FileBuffer;
+    SourceSize = FileSize;
   }
 
   //
@@ -164,6 +168,9 @@ LoadImageEx (
       Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       
       if (EFI_ERROR (Status)) {
+        if (FileBuffer != NULL) {
+          FreePool (FileBuffer);
+        }        
         return Status;
       }      
     }   
@@ -175,6 +182,9 @@ LoadImageEx (
       );
     
     if (EFI_ERROR (Status)) {
+      if (FileBuffer != NULL) {
+        FreePool (FileBuffer);
+      }      
       return Status;
     } 
 
@@ -209,6 +219,10 @@ LoadImageEx (
     } 
   }
 
+  if (FileBuffer != NULL) {
+    FreePool (FileBuffer);
+  }
+
   return Status;
 }
 
@@ -225,6 +239,8 @@ AppleLoadImage (
   )
 {
   EFI_STATUS                 Status                = EFI_INVALID_PARAMETER;
+  VOID                       *FileBuffer           = NULL;
+  UINTN                      FileSize              = 0;
   VOID                       *ImageBuffer          = NULL;
   UINTN                      ImageSize             = 0;  
   UINT32                     AuthenticationStatus  = 0;
@@ -233,12 +249,14 @@ AppleLoadImage (
   EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;
 
   if (SourceBuffer == NULL && FilePath != NULL) {
-    SourceBuffer = GetFileBufferByFilePath (
+    FileBuffer = GetFileBufferByFilePath (
       BootPolicy,
       FilePath,
-      &SourceSize,
+      &FileSize,
       &AuthenticationStatus
       );
+    SourceBuffer = FileBuffer;
+    SourceSize = FileSize;
   }
 
   // Verify ApplePeImage signature  
@@ -259,11 +277,17 @@ AppleLoadImage (
 
       Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       if (EFI_ERROR (Status)) {
+        if (FileBuffer != NULL) {
+          FreePool (FileBuffer);
+        }        
         return Status;
       }
     } else {
       Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
       if (EFI_ERROR (Status)) {
+        if (FileBuffer != NULL) {
+          FreePool (FileBuffer);
+        }        
         return Status;
       }    
     }
@@ -275,6 +299,9 @@ AppleLoadImage (
       );
     
     if (EFI_ERROR (Status)) {
+      if (FileBuffer != NULL) {
+        FreePool (FileBuffer);
+      }      
       return Status;
     } 
 
@@ -308,7 +335,11 @@ AppleLoadImage (
       }      
     }
   }
-  
+
+  if (FileBuffer != NULL) {
+    FreePool (FileBuffer);
+  }  
+
   return Status;
 }
 
