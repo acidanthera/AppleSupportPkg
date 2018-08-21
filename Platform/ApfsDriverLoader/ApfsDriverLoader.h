@@ -316,7 +316,7 @@ typedef struct APFS_EFI_BOOT_RECORD_
     UINT32             MagicNumber;
     //
     // EfiBootRecord version
-    // should be 1
+    // should be 1 ?
     //
     UINT32             Version;
     UINT8              Reserved2[136];
@@ -366,11 +366,11 @@ ApfsDriverLoaderComponentNameGetDriverName (
 EFI_STATUS
 EFIAPI
 ApfsDriverLoaderComponentNameGetControllerName (
-  IN  EFI_COMPONENT_NAME_PROTOCOL                     *This,
-  IN  EFI_HANDLE                                      ControllerHandle,
-  IN  EFI_HANDLE                                      ChildHandle        OPTIONAL,
-  IN  CHAR8                                           *Language,
-  OUT CHAR16                                          **ControllerName
+  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
+  IN  EFI_HANDLE                   ControllerHandle,
+  IN  EFI_HANDLE                   ChildHandle        OPTIONAL,
+  IN  CHAR8                        *Language,
+  OUT CHAR16                       **ControllerName
   );
 
 

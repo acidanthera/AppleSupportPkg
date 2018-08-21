@@ -883,12 +883,9 @@ ApfsDriverLoaderStart (
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
 
-  //
-  // FIXME: free private on error
-  //
   Private = AllocatePool (sizeof (APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA));
   if (Private == NULL) {
-    return EFI_OUT_OF_RESOURCES; // <--
+    return EFI_OUT_OF_RESOURCES;
   }
 
   Private->ControllerHandle  = ControllerHandle;
@@ -909,6 +906,12 @@ ApfsDriverLoaderStart (
       "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", 
       Status
       ));
+    if (AppleFileSystemDriverBuffer != NULL) { 
+      FreePool (AppleFileSystemDriverBuffer);
+    }
+    if (Private != NULL) {
+      FreePool(Private);
+    }
     return Status;
   }
 
@@ -924,6 +927,12 @@ ApfsDriverLoaderStart (
       &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
       NULL
       );
+    if (AppleFileSystemDriverBuffer != NULL) { 
+      FreePool (AppleFileSystemDriverBuffer);
+    }
+    if (Private != NULL) {
+      FreePool(Private);
+    }
     return EFI_UNSUPPORTED;
   }
 
