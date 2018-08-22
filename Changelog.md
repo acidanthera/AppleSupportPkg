@@ -2,6 +2,14 @@ AppleSupport Changelog
 ==================
 
 ## ApfsDriverLoader
+#### v2.0.2
+- Fixed potential memory leaks
+
+#### v2.0.1 
+- Implemented support for AppleLoadImage protocol
+	
+	* Now for security reasons you should load AppleLoadImage.efi right before ApfsDriverLoader.efi. If you use Clover bootloader, you can just put AppleLoadImage.efi and ApfsDriverLoader.efi into your drivers64uefi folder.
+
 #### v1.3.2
 - Cleanup and code style
 
@@ -21,7 +29,6 @@ AppleSupport Changelog
 - Optimization;
 - Don't parse GPT by ourself, now using PartitionInfo protocols;
 - Also added support for ApplePartitionInfo;
-- **WARNING**: Now your system should have **Partition Driver** loaded.  Most UEFI system have it out of box. On legacy you should load **PartitionDXE** from Clover or binary from EDK2.
 
 #### v1.0.1
 - Fix byteorder in APFS Container GUID
@@ -29,8 +36,16 @@ AppleSupport Changelog
 #### v1.0
 - Initial release
 
-## AppleLoadImage
-### v1.0
+## AppleImageLoader
+### v1.5.0
+- Added support for AppleEfiFatBinary with signature verification
+- Extended AppleLoadImage protocol with signature verification of EFI binary
+
+### v1.0.0
+- Initial release
+
+## AppleUiSupport
+### v1.0.0
 - Initial release
 
 ## AppleEfiSignTool
