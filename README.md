@@ -19,10 +19,10 @@ Secure AppleEfiFat binary driver with implementation of AppleLoadImage protocol 
 It provides secure loading of Apple EFI binary files into memory by pre-authenticating its signature.
 
 ## AppleUiSupport
-Driver which implements set of protocol for support EfiLoginUi which used for FileVault as login window. In short, it implements FileVault support and replaces AppleKeyMapAggregator. efi, AppleEvent. efi, AppleUiTheme. efi, FirmwareVolume. efi, AppleImageCodec. efi. Also, it contains hash service fixes and unicode collation for some boards. This fixes removed from AptioMemoryFix in R23.
+Driver which implements set of protocol for support EfiLoginUi which used for FileVault as login window. In short, it implements FileVault support and replaces AppleKeyMapAggregator.efi, AppleEvent.efi, AppleUiTheme.efi, FirmwareVolume.efi, AppleImageCodec.efi. Also, it contains hash service fixes and unicode collation for some boards. These fixes removed from AptioMemoryFix in R23.
 
 ## AppleEfiSignTool
-Open source tool verifying Apple EFI binaries. It supports ApplePE and AppleFat binaries.
+Open source tool for verifying Apple EFI binaries. It supports ApplePE and AppleFat binaries.
 
 ## AppleDxeImageVerificationLib
 This library provides Apple's crypto signature algorithm for EFI binaries.

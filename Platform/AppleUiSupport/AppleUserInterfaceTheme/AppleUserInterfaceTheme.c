@@ -17,9 +17,11 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/UserInterfaceTheme.h>
 
-STATIC UINT32           mCurrentColor = 0;
+STATIC UINT32  mCurrentColor = 0;
 
 STATIC
 EFI_STATUS
@@ -57,16 +59,11 @@ InitializeUserInterfaceTheme (
   IN EFI_SYSTEM_TABLE     *SystemTable
   )
 {
-  EFI_STATUS             Status;
-  UINTN                  DataSize                   = 0;
-  UINT32                 Color                      = 0;
-  EFI_BOOT_SERVICES*     gBS                        = NULL;
-  EFI_RUNTIME_SERVICES*  gRT                        = NULL;
-  EFI_HANDLE             NewHandle                  = NULL;
-  EFI_USER_INTERFACE_THEME_PROTOCOL *EfiUiInterface = NULL;
-
-  gRT = SystemTable->RuntimeServices;      
-  gBS = SystemTable->BootServices;
+  EFI_STATUS                        Status;
+  UINTN                             DataSize                   = 0;
+  UINT32                            Color                      = 0;
+  EFI_HANDLE                        NewHandle                  = NULL;
+  EFI_USER_INTERFACE_THEME_PROTOCOL *EfiUiInterface            = NULL;
   
   //
   // Default color is black
