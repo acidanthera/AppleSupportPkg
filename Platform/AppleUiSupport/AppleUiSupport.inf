@@ -20,10 +20,10 @@
   FILE_GUID                           = 4F735154-9E9D-4014-8168-369CFFE377A1
   MODULE_TYPE                         = UEFI_DRIVER
   ENTRY_POINT                         = AppleUiSupportEntrypoint
-  VERSION_STRING                      = 1.0.0  
+  VERSION_STRING                      = 1.0.0
   INF_VERSION                         = 0x00010005
   EDK_RELEASE_VERSION                 = 0x00020000
-  EFI_SPECIFICATION_VERSION           = 0x00010000  
+  EFI_SPECIFICATION_VERSION           = 0x00010000
 
 [Packages]
   AppleSupportPkg/AppleSupportPkg.dec
@@ -63,7 +63,7 @@
   gEfiConsoleControlProtocolGuid      ## PROTOCOL CONSUMES
   gEfiSimplePointerProtocolGuid       ## PROTOCOL CONSUMES
   gAppleKeyMapDatabaseProtocolGuid    ## PROTOCOL PRODUCES
-  
+
 [Sources]
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
