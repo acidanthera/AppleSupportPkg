@@ -53,6 +53,7 @@
 
 [Protocols]
   gEfiFirmwareVolumeProtocolGuid      ## PROTOCOL PRODUCES
+  gEfiFirmwareVolume2ProtocolGuid     ## PROTOCOL PRODUCES
   gAppleImageCodecProtocolGuid        ## PROTOCOL PRODUCES
   gEfiUserInterfaceThemeProtocolGuid  ## PROTOCOL PRODUCES
   gEfiUnicodeCollation2ProtocolGuid   ## PROTOCOL CONSUMES
