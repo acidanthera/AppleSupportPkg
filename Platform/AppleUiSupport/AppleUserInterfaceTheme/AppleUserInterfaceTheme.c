@@ -77,6 +77,7 @@ InitializeUserInterfaceTheme (
     );
 
   if (EFI_ERROR (Status)) {
+    DataSize = sizeof (Color);
     Status = gRT->GetVariable (
       L"DefaultBackgroundColor", 
       &gAppleVendorVariableGuid, 
