@@ -34,7 +34,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/ComponentName.h>
 #include <Protocol/DriverBinding.h>
 #include <Protocol/PartitionInfo.h>
-#include <Protocol/AppleLoadImage.h>
 #include <Protocol/ApplePartitionInfo.h>
 #include <Protocol/ApfsEfiBootRecordInfo.h>
 #include <Protocol/NullTextOutputProtocol.h>
@@ -58,7 +57,6 @@ StartApfsDriver (
   EFI_DEVICE_PATH_PROTOCOL   *ParentDevicePath        = NULL;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage      = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable          = NULL;
-  APPLE_LOAD_IMAGE_PROTOCOL  *AppleLoadImageInterface = NULL;
 
   if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {
     DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
@@ -81,51 +79,29 @@ StartApfsDriver (
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
 
-  Status = gBS->LocateProtocol (
-    &gAppleLoadImageProtocolGuid,
-    NULL,
-    (VOID **) &AppleLoadImageInterface
+  DEBUG ((DEBUG_WARN, "Verifying binary signature"));
+  Status = VerifyApplePeImageSignature (
+    AppleFileSystemDriverBuffer,
+    AppleFileSystemDriverSize
     );
 
-  if (!EFI_ERROR(Status)) {
-    Status = AppleLoadImageInterface->LoadImage (
+  if (!EFI_ERROR (Status)) {
+    Status = gBS->LoadImage (
       FALSE,
       gImageHandle,
       ParentDevicePath,
       AppleFileSystemDriverBuffer, 
       AppleFileSystemDriverSize,
-      &ImageHandle,
-      0x01
-      );
+      &ImageHandle
+      );    
       if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_WARN, "Apple Load image failed with Status: %r\n", Status));
-        return Status;
-      }    
-  } else {
-    DEBUG ((DEBUG_WARN, "No AppleLoadImage protocol. Forcing signature verify"));
-    Status = VerifyApplePeImageSignature (
-      AppleFileSystemDriverBuffer,
-      AppleFileSystemDriverSize
-      );
-
-    if (!EFI_ERROR (Status)) {
-      Status = gBS->LoadImage (
-        FALSE,
-        gImageHandle,
-        ParentDevicePath,
-        AppleFileSystemDriverBuffer, 
-        AppleFileSystemDriverSize,
-        &ImageHandle
-        );    
-        if (EFI_ERROR (Status)) {
-          DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
-          return Status;
-        }
-      } else {
-        DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!"));
+        DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
         return Status;
       }
-  }
+    } else {
+      DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!"));
+      return Status;
+    }
 
   Status = gBS->HandleProtocol (
     ImageHandle,
