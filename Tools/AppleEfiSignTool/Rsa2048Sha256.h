@@ -10,15 +10,15 @@
 //
 // Default to 2048-bit key length
 //
-#define CONFIG_RSA_KEY_SIZE 2048 
+#define CONFIG_RSA_KEY_SIZE 2048
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
 #define RSANUMWORDS (RSANUMBYTES / sizeof(uint32_t))
 
 typedef struct _RsaPublicKey {
     uint32_t Size;
-    uint32_t N0Inv;       
-    uint32_t N[RSANUMWORDS];  
-    uint32_t Rr[RSANUMWORDS]; 
+    uint32_t N0Inv;
+    uint32_t N[RSANUMWORDS];
+    uint32_t Rr[RSANUMWORDS];
 } RsaPublicKey;
 
 int RsaVerify(

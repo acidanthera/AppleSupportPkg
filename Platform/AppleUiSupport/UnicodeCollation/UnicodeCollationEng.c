@@ -130,7 +130,7 @@ InitializeUnicodeCollationEng (
   }
 
   //
-  // On some platforms with missing gEfiUnicodeCollation2ProtocolGuid EFI_PLATFORM_LANG_VARIABLE_NAME is set 
+  // On some platforms with missing gEfiUnicodeCollation2ProtocolGuid EFI_PLATFORM_LANG_VARIABLE_NAME is set
   // to the value different from "en" or "en-...". This is not going to work with our driver UEFI Shell load failures:
   // we did not overwrite EFI_PLATFORM_LANG_VARIABLE_NAME, but it uses some other language.
   // Workaround by appending the other language to the list of supported ones.

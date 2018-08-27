@@ -384,7 +384,7 @@ InternalCreateKeyStrokesBuffer (
       KeyStrokesInfo->Signature           = APPLE_KEY_STROKES_INFO_SIGNATURE;
       KeyStrokesInfo->KeyCodeBufferLength = BufferLength;
       KeyStrokesInfo->Index               = KeyMapAggregatorData->NextKeyStrokeIndex++;
-      
+
       InsertTailList (
         &KeyMapAggregatorData->KeyStrokesInfoList,
         &KeyStrokesInfo->Link
@@ -547,7 +547,7 @@ InitializeAppleKeyMapAggregator (
     }
   } else {
     KeyMapAggregatorData = AllocateZeroPool (sizeof (*KeyMapAggregatorData));
-    
+
     if (KeyMapAggregatorData == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }

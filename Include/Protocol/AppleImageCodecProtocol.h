@@ -7,7 +7,7 @@
 // dmazar: changed ImageWidth and ImageHeight in GET_IMAGE_DIMS
 //         to UINT32 from UINTN to get it working in 64 bit
 //********************************************************************
-// savvas: fixed RecognizeImageData structure and its function. 
+// savvas: fixed RecognizeImageData structure and its function.
 //         code refactor and cleanup. use lodepng instead of picopng
 //********************************************************************
 

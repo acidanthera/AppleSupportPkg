@@ -40,7 +40,7 @@ AppleUiSupportEntrypoint (
   Status = InitializeUserInterfaceTheme (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleUserInterfaceTheme install failure - %r\n", Status));
-  }  
+  }
 
   Status = InitializeUnicodeCollationEng (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {

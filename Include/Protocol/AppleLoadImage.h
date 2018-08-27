@@ -1,6 +1,6 @@
 /** @file
 
-Apple LoadImage protocol. 
+Apple LoadImage protocol.
 
 Copyright (c) 2018, savvas
 

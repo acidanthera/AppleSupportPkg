@@ -64,7 +64,7 @@ InitializeUserInterfaceTheme (
   UINT32                            Color                      = 0;
   EFI_HANDLE                        NewHandle                  = NULL;
   EFI_USER_INTERFACE_THEME_PROTOCOL *EfiUiInterface            = NULL;
-  
+
   //
   // Default color is black
   //
@@ -79,10 +79,10 @@ InitializeUserInterfaceTheme (
   if (EFI_ERROR (Status)) {
     DataSize = sizeof (Color);
     Status = gRT->GetVariable (
-      L"DefaultBackgroundColor", 
-      &gAppleVendorVariableGuid, 
-      0, 
-      &DataSize, 
+      L"DefaultBackgroundColor",
+      &gAppleVendorVariableGuid,
+      0,
+      &DataSize,
       &Color
       );
     if (!EFI_ERROR (Status)) {
@@ -90,8 +90,8 @@ InitializeUserInterfaceTheme (
     }
 
     Status = gBS->InstallMultipleProtocolInterfaces (
-      &NewHandle, 
-      &gEfiUserInterfaceThemeProtocolGuid, 
+      &NewHandle,
+      &gEfiUserInterfaceThemeProtocolGuid,
       &mAppleUserInterfaceThemeProtocol,
       NULL
       );

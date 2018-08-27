@@ -40,7 +40,7 @@ static char UsageBanner[] = "AppleEfiSignTool v1.0 – Tool for signing and veri
 void
 OpenFile (
   char *FileName
-  ) 
+  )
 {
   FILE *ImageFp;
   ImageFp = fopen (FileName, "rb");
@@ -59,11 +59,11 @@ OpenFile (
   fclose (ImageFp);
 }
 
-int 
+int
 main (
-  int   argc, 
+  int   argc,
   char  *argv[]
-  ) 
+  )
 {
   int Opt;
 
@@ -96,7 +96,7 @@ main (
     puts(UsageBanner);
     exit(EXIT_FAILURE);
   }
-  
+
 
   int code = VerifyAppleImageSignature (Image, ImageSize);
 

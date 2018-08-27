@@ -43,7 +43,7 @@ ParseAppleEfiFatBinary (
 
   //
   // Get AppleEfiFatHeader
-  //     
+  //
   Hdr = (APPLE_EFI_FAT_HEADER *) SourceBuffer;
 
   //
@@ -53,15 +53,15 @@ ParseAppleEfiFatBinary (
     DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
     return EFI_UNSUPPORTED;
   }
-  DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));    
-  SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER) 
-                  + sizeof (APPLE_EFI_FAT_ARCH_HEADER) 
+  DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));
+  SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER)
+                  + sizeof (APPLE_EFI_FAT_ARCH_HEADER)
                     * Hdr->NumArchs;
-  
+
   if (SizeOfBinary > SourceSize) {
     DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed AppleEfiFat header\n"));
     return EFI_INVALID_PARAMETER;
-  }    
+  }
 
   //
   // Loop over number of arch's
@@ -71,35 +71,35 @@ ParseAppleEfiFatBinary (
     // Arch dependency parse
     //
 #if defined(MDE_CPU_IA32)
-    if (Hdr->Archs[Index].CpuType == CPUYPE_X86) { 
+    if (Hdr->Archs[Index].CpuType == CPUYPE_X86) {
 #elif defined(MDE_CPU_X64)
     if (Hdr->Archs[Index].CpuType == CPUYPE_X86_64) {
 #else
 #error "Undefined Platform"
 #endif
       DEBUG ((
-        DEBUG_VERBOSE, 
-        "AppleImageLoader: ApplePeImage at offset %u\n", 
+        DEBUG_VERBOSE,
+        "AppleImageLoader: ApplePeImage at offset %u\n",
         Hdr->Archs[Index].Offset
         ));
 
       //
       // Check offset boundary and its size
-      // 
-      if (Hdr->Archs[Index].Offset < SizeOfBinary 
+      //
+      if (Hdr->Archs[Index].Offset < SizeOfBinary
         || Hdr->Archs[Index].Offset >= SourceSize
-        || SourceSize < ((UINT64) Hdr->Archs[Index].Offset 
+        || SourceSize < ((UINT64) Hdr->Archs[Index].Offset
                         + Hdr->Archs[Index].Size)) {
         DEBUG ((
-          DEBUG_VERBOSE, 
+          DEBUG_VERBOSE,
           "AppleImageLoader: Wrong offset of Image or it's size\n"
           ));
         return EFI_INVALID_PARAMETER;
       }
 
       DEBUG ((
-        DEBUG_VERBOSE, 
-        "AppleImageLoader: ApplePeImage size %u\n", 
+        DEBUG_VERBOSE,
+        "AppleImageLoader: ApplePeImage size %u\n",
         Hdr->Archs[Index].Size
         ));
 
@@ -112,30 +112,30 @@ ParseAppleEfiFatBinary (
       return EFI_SUCCESS;
     }
     SizeOfBinary = (UINT64) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
-  }    
-  
+  }
+
   return EFI_UNSUPPORTED;
 }
 
 EFI_STATUS
 EFIAPI
 LoadImageEx (
-  IN   BOOLEAN                   BootPolicy, 
+  IN   BOOLEAN                   BootPolicy,
   IN   EFI_HANDLE                ParentImageHandle,
   IN   EFI_DEVICE_PATH_PROTOCOL  *FilePath,
   IN   VOID                      *SourceBuffer      OPTIONAL,
-  IN   UINTN                     SourceSize, 
+  IN   UINTN                     SourceSize,
   OUT  EFI_HANDLE                *ImageHandle)
 {
   EFI_STATUS                 Status                = EFI_INVALID_PARAMETER;
   VOID                       *FileBuffer           = NULL;
-  UINTN                      FileSize              = 0;  
+  UINTN                      FileSize              = 0;
   VOID                       *ImageBuffer          = NULL;
   UINTN                      ImageSize             = 0;
   UINT32                     AuthenticationStatus  = 0;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage          = NULL;
   EFI_HANDLE                 DeviceHandle          = 0;
-  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;  
+  EFI_DEVICE_PATH_PROTOCOL   *RemainingDevicePath  = FilePath;
 
   if (SourceBuffer == NULL && FilePath != NULL) {
     FileBuffer = GetFileBufferByFilePath (
@@ -150,12 +150,12 @@ LoadImageEx (
 
   //
   // Try to parse as AppleEfiFatBinary
-  // 
+  //
   if (SourceBuffer != NULL && SourceSize != 0) {
     Status = ParseAppleEfiFatBinary (
-      SourceBuffer, 
-      SourceSize, 
-      &ImageBuffer, 
+      SourceBuffer,
+      SourceSize,
+      &ImageBuffer,
       &ImageSize
       );
 
@@ -166,42 +166,42 @@ LoadImageEx (
       // Verify ApplePeImage signature
       //
       Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
-      
+
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
           FreePool (FileBuffer);
-        }        
+        }
         return Status;
-      }      
-    }   
+      }
+    }
 
     Status = gBS->LocateDevicePath (
-      &gEfiDevicePathProtocolGuid, 
-      &RemainingDevicePath, 
+      &gEfiDevicePathProtocolGuid,
+      &RemainingDevicePath,
       &DeviceHandle
       );
-    
+
     if (EFI_ERROR (Status)) {
       if (FileBuffer != NULL) {
         FreePool (FileBuffer);
-      }      
+      }
       return Status;
-    } 
+    }
 
     Status = OriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SourceBuffer, 
+      SourceBuffer,
       SourceSize,
       ImageHandle
-      );     
-    
+      );
+
     //
-    // dmazar: some boards do not put device handle to 
+    // dmazar: some boards do not put device handle to
     // EfiLoadedImageProtocol->DeviceHandle when image is loaded from SrcBuffer,
     // and then boot.efi fails. We'll fix EfiLoadedImageProtocol here.
-    //    
+    //
     if (!EFI_ERROR (Status) && DeviceHandle != 0) {
       Status = gBS->OpenProtocol (
         *ImageHandle,
@@ -215,8 +215,8 @@ LoadImageEx (
       if (!EFI_ERROR (Status) && LoadedImage->DeviceHandle != DeviceHandle) {
         LoadedImage->DeviceHandle = DeviceHandle;
         LoadedImage->FilePath     = DuplicateDevicePath (RemainingDevicePath);
-      }    
-    } 
+      }
+    }
   }
 
   if (FileBuffer != NULL) {
@@ -242,7 +242,7 @@ AppleLoadImage (
   VOID                       *FileBuffer           = NULL;
   UINTN                      FileSize              = 0;
   VOID                       *ImageBuffer          = NULL;
-  UINTN                      ImageSize             = 0;  
+  UINTN                      ImageSize             = 0;
   UINT32                     AuthenticationStatus  = 0;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage          = NULL;
   EFI_HANDLE                 DeviceHandle          = 0;
@@ -259,15 +259,15 @@ AppleLoadImage (
     SourceSize = FileSize;
   }
 
-  // Verify ApplePeImage signature  
+  // Verify ApplePeImage signature
   if (SourceBuffer != NULL && SourceSize != 0) {
     //
     // Parse fat structure
     //
     Status = ParseAppleEfiFatBinary (
-      SourceBuffer, 
-      SourceSize, 
-      &ImageBuffer, 
+      SourceBuffer,
+      SourceSize,
+      &ImageBuffer,
       &ImageSize
       );
 
@@ -279,7 +279,7 @@ AppleLoadImage (
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
           FreePool (FileBuffer);
-        }        
+        }
         return Status;
       }
     } else {
@@ -287,38 +287,38 @@ AppleLoadImage (
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
           FreePool (FileBuffer);
-        }        
+        }
         return Status;
-      }    
+      }
     }
 
     Status = gBS->LocateDevicePath (
-      &gEfiDevicePathProtocolGuid, 
-      &RemainingDevicePath, 
+      &gEfiDevicePathProtocolGuid,
+      &RemainingDevicePath,
       &DeviceHandle
       );
-    
+
     if (EFI_ERROR (Status)) {
       if (FileBuffer != NULL) {
         FreePool (FileBuffer);
-      }      
+      }
       return Status;
-    } 
+    }
 
     Status = OriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
-      SourceBuffer, 
+      SourceBuffer,
       SourceSize,
       ImageHandle
-      );     
-    
+      );
+
     //
-    // dmazar: some boards do not put device handle to 
+    // dmazar: some boards do not put device handle to
     // EfiLoadedImageProtocol->DeviceHandle when image is loaded from SrcBuffer,
     // and then boot.efi fails. We'll fix EfiLoadedImageProtocol here.
-    //    
+    //
     if (!EFI_ERROR (Status) && DeviceHandle != 0) {
       Status = gBS->OpenProtocol (
         *ImageHandle,
@@ -332,13 +332,13 @@ AppleLoadImage (
       if (!EFI_ERROR (Status) && LoadedImage->DeviceHandle != DeviceHandle) {
         LoadedImage->DeviceHandle = DeviceHandle;
         LoadedImage->FilePath = DuplicateDevicePath (RemainingDevicePath);
-      }      
+      }
     }
   }
 
   if (FileBuffer != NULL) {
     FreePool (FileBuffer);
-  }  
+  }
 
   return Status;
 }
@@ -366,16 +366,16 @@ AppleImageLoaderEntryPoint (
   if (EFI_ERROR (Status)){
     //
     // Install AppleLoadImage protocol
-    // 
+    //
     Status = gBS->InstallMultipleProtocolInterfaces (
-      &Handle, 
-      &gAppleLoadImageProtocolGuid, 
+      &Handle,
+      &gAppleLoadImageProtocolGuid,
       &mAppleLoadImageProtocol,
       NULL
       );
     if (EFI_ERROR (Status)) {
       DEBUG ((
-        DEBUG_VERBOSE, 
+        DEBUG_VERBOSE,
         "AppleLoadImage install failed with Status: %r\n",
         Status
         ));

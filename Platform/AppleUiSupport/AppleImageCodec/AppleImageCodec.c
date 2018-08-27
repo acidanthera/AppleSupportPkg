@@ -28,16 +28,16 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "AppleImageCodec.h"
 #include "lodepng.h"
 
-STATIC 
+STATIC
 EG_IMAGE *
 CreateEfiGraphicsImage (
-  INTN     Width, 
-  INTN     Height, 
+  INTN     Width,
+  INTN     Height,
   BOOLEAN  HasAlpha
   )
 {
     EG_IMAGE  *NewImage = NULL;
-    
+
     NewImage = (EG_IMAGE *) AllocateZeroPool (sizeof (EG_IMAGE));
     if (NewImage == NULL) {
       return NULL;
@@ -50,15 +50,15 @@ CreateEfiGraphicsImage (
         FreePool (NewImage);
         return NULL;
     }
-    
+
     NewImage->Width = Width;
     NewImage->Height = Height;
     NewImage->HasAlpha = HasAlpha;
     return NewImage;
 }
 
-STATIC 
-VOID 
+STATIC
+VOID
 FreeEfiGraphicsImage (
   EG_IMAGE  *Image
   )
@@ -66,7 +66,7 @@ FreeEfiGraphicsImage (
   if (Image != NULL) {
     if (Image->PixelData != NULL) {
       FreePool (Image->PixelData);
-      Image->PixelData = NULL; 
+      Image->PixelData = NULL;
     }
     FreePool (Image);
   }
@@ -75,8 +75,8 @@ FreeEfiGraphicsImage (
 STATIC
 EG_IMAGE *
 DecodePngImage (
-  UINT8  *FileData, 
-  UINTN  FileDataLength 
+  UINT8  *FileData,
+  UINTN  FileDataLength
   )
 {
   LodePNGState      State;
@@ -85,7 +85,7 @@ DecodePngImage (
   UINT8             *Data        = NULL;
   INTN              X            = 0;
   INTN              Y            = 0;
-  UINT32            Width        = 0; 
+  UINT32            Width        = 0;
   UINT32            Height       = 0;
   UINT32            Error        = 0;
   UINT32            HasAlphaType = 0;
@@ -95,16 +95,16 @@ DecodePngImage (
   // Init lodepng state
   //
   lodepng_state_init (&State);
-  
+
   //
   // It should return 0 on success
   //
   Error = lodepng_decode (
-    &Data, 
-    &Width, 
-    &Height, 
-    &State, 
-    FileData, 
+    &Data,
+    &Width,
+    &Height,
+    &State,
+    FileData,
     FileDataLength
     );
 
@@ -115,16 +115,16 @@ DecodePngImage (
   //
   // Extract color information
   //
-  Color = &State.info_png.color; 
-  
+  Color = &State.info_png.color;
+
   //
   // Check existence of alpha layer
   //
   HasAlphaType = lodepng_is_alpha_type (Color);
 
   NewImage = CreateEfiGraphicsImage (
-    Width, 
-    Height, 
+    Width,
+    Height,
     HasAlphaType
     );
   if (NewImage == NULL) {
@@ -185,7 +185,7 @@ GetImageDims (
   if (Image == NULL) {
     return EFI_UNSUPPORTED;
   }
-  
+
   *ImageWidth = (UINT32) Image->Width;
   *ImageHeight = (UINT32) Image->Height;
 
@@ -209,21 +209,21 @@ DecodeImageData (
   if (!RawImageData || !RawImageDataSize) {
     return EFI_INVALID_PARAMETER;
   }
-  
+
   Image = DecodePngImage ((UINT8*) ImageBuffer, ImageSize);
   if (Image == NULL) {
     return EFI_UNSUPPORTED;
   }
-  
+
   *RawImageDataSize = (UINT32) (
-    Image->Width 
-    * Image->Height 
+    Image->Width
+    * Image->Height
     * sizeof(EFI_UGA_PIXEL)
     );
 
   Status = gBS->AllocatePool (
-    EfiBootServicesData, 
-    *RawImageDataSize, 
+    EfiBootServicesData,
+    *RawImageDataSize,
     (VOID **)RawImageData
     );
   if (!EFI_ERROR (Status)) {
@@ -279,7 +279,7 @@ DecodeImageDataVersion (
 //
 STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
   // Version
-  0x20000,  
+  0x20000,
   // FileExt
   0,
   RecognizeImageData,
@@ -289,7 +289,7 @@ STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
   DecodeImageDataVersion
 };
 
-/** 
+/**
   InitializeAppleImageCodec
 
   @param[in] ImageHandle  The firmware allocated handle for the EFI image.
@@ -308,7 +308,7 @@ InitializeAppleImageCodec (
   EFI_STATUS                  Status;
   EFI_HANDLE                  NewHandle                 = NULL;
   APPLE_IMAGE_CODEC_PROTOCOL  *AppleImageCodecInterface = NULL;
-  
+
   Status = gBS->LocateProtocol (
     &gAppleImageCodecProtocolGuid,
     NULL,

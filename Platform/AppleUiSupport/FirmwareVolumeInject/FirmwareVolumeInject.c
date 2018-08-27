@@ -50,12 +50,12 @@ GetVolumeAttributesEx (
   EFI_STATUS  Status;
 
   if (mGetVolumeAttributes != NULL) {
-    Status = mGetVolumeAttributes (This, Attributes);  
+    Status = mGetVolumeAttributes (This, Attributes);
   } else {
     //
     // The firmware volume is configured to disallow reads.
     // UEFI PI Specification 1.6, page 90
-    //    
+    //
     Status = EFI_SUCCESS;
   }
 
@@ -72,12 +72,12 @@ SetVolumeAttributesEx (
   EFI_STATUS  Status;
 
   if (mSetVolumeAttributes != NULL) {
-    Status = mSetVolumeAttributes (This, Attributes);  
+    Status = mSetVolumeAttributes (This, Attributes);
   } else {
     //
     // The firmware volume is configured to disallow reads.
     // UEFI PI Specification 1.6, page 96
-    //        
+    //
     Status = EFI_INVALID_PARAMETER;
   }
 
@@ -107,12 +107,12 @@ ReadFileEx (
       FoundType,
       FileAttributes,
       AuthenticationStatus
-      );        
+      );
   } else {
     //
     // The firmware volume is configured to disallow reads.
     // UEFI PI Specification 1.6, page 98
-    //  
+    //
     Status = EFI_ACCESS_DENIED;
   }
 
@@ -206,7 +206,7 @@ WriteFileEx (
       //
       // The firmware volume is configured to disallow writes.
       // According UEFI PI Specification 1.6, page 101
-      //    
+      //
     Status = EFI_WRITE_PROTECTED;
   }
 
@@ -232,7 +232,7 @@ GetNextFileEx (
     //
     // The firmware volume is configured to disallow reads.
     // According UEFI PI Specification 1.6, page 101
-    // 
+    //
     Status = EFI_ACCESS_DENIED;
   }
 

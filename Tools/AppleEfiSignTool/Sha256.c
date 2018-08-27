@@ -25,23 +25,23 @@ static const uint32_t K[64] = {
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-void 
+void
 Sha256Transform (
-	Sha256Context *Context, 
+	Sha256Context *Context,
 	const uint8_t Data[]
 	)
 {
     uint32_t A      =     0;
-    uint32_t B      =     0; 
-    uint32_t C      =     0; 
-    uint32_t D      =     0; 
-    uint32_t E      =     0; 
-    uint32_t F      =     0; 
+    uint32_t B      =     0;
+    uint32_t C      =     0;
+    uint32_t D      =     0;
+    uint32_t E      =     0;
+    uint32_t F      =     0;
     uint32_t G      =     0;
     uint32_t H      =     0;
-    uint32_t Index1 =     0; 
+    uint32_t Index1 =     0;
     uint32_t Index2 =     0;
-    uint32_t T1     =     0; 
+    uint32_t T1     =     0;
     uint32_t T2     =     0;
     uint32_t M[64];
 
@@ -99,8 +99,8 @@ void Sha256Init (
 }
 
 void Sha256Update (
-	Sha256Context *Context, 
-	const uint8_t Data[], 
+	Sha256Context *Context,
+	const uint8_t Data[],
 	uint64_t Len
 	)
 {
@@ -118,7 +118,7 @@ void Sha256Update (
 }
 
 void Sha256Final (
-	Sha256Context *Context, 
+	Sha256Context *Context,
 	uint8_t HashDigest[]
 	)
 {

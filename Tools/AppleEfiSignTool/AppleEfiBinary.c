@@ -51,7 +51,7 @@ GetPeHeaderMagicValue (
            Magic value in the OptionalHeader is  EFI_IMAGE_NT_OPTIONAL_HDR32_MAGIC
            then override the returned value to EFI_IMAGE_NT_OPTIONAL_HDR64_MAGIC
   **/
-  if (Hdr->Pe32.FileHeader.Machine == IMAGE_FILE_MACHINE_IA64 && 
+  if (Hdr->Pe32.FileHeader.Machine == IMAGE_FILE_MACHINE_IA64 &&
       Hdr->Pe32.OptionalHeader.Magic == EFI_IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
     return EFI_IMAGE_NT_OPTIONAL_HDR64_MAGIC;
   }
@@ -77,7 +77,7 @@ GetPeHeader (
   EFI_IMAGE_SECTION_HEADER         *SectionCache        = NULL;
   uint32_t                         Index                = 0;
   uint32_t                         MaxHeaderSize        = 0;
-  
+
   //
   // Check context
   //
@@ -109,9 +109,9 @@ GetPeHeader (
       DEBUG_PRINT (("Invalid PE offset\n"));
       return -1;
     }
-    PeHdr = (EFI_IMAGE_OPTIONAL_HEADER_UNION *) ((uint8_t *) Image 
+    PeHdr = (EFI_IMAGE_OPTIONAL_HEADER_UNION *) ((uint8_t *) Image
                                                  + DosHdr->e_lfanew);
-    if ((uint8_t *) Image + ImageSize - 
+    if ((uint8_t *) Image + ImageSize -
       sizeof (EFI_IMAGE_OPTIONAL_HEADER_UNION) < (uint8_t *) PeHdr) {
       DEBUG_PRINT (("Invalid PE location\n"));
       return -1;
@@ -133,7 +133,7 @@ GetPeHeader (
     //
     // Check image header size
     //
-    if (EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES < 
+    if (EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES <
         PeHdr->Pe32.OptionalHeader.NumberOfRvaAndSizes) {
       DEBUG_PRINT (("Image header too small\n"));
       return -1;
@@ -142,8 +142,8 @@ GetPeHeader (
     //
     // Check image header aligment
     //
-    HeaderWithoutDataDir = sizeof (EFI_IMAGE_OPTIONAL_HEADER32) - 
-                           sizeof (EFI_IMAGE_DATA_DIRECTORY) * 
+    HeaderWithoutDataDir = sizeof (EFI_IMAGE_OPTIONAL_HEADER32) -
+                           sizeof (EFI_IMAGE_DATA_DIRECTORY) *
                            EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES;
     if (PeHdr->Pe32.FileHeader.SizeOfOptionalHeader < HeaderWithoutDataDir
       || PeHdr->Pe32.FileHeader.SizeOfOptionalHeader - HeaderWithoutDataDir
@@ -160,15 +160,15 @@ GetPeHeader (
         + PeHdr->Pe32.FileHeader.SizeOfOptionalHeader;
 
     if (PeHdr->Pe32.OptionalHeader.SizeOfImage < SectionHeaderOffset ||
-      ((PeHdr->Pe32.OptionalHeader.SizeOfImage - SectionHeaderOffset) 
+      ((PeHdr->Pe32.OptionalHeader.SizeOfImage - SectionHeaderOffset)
       / EFI_IMAGE_SIZEOF_SECTION_HEADER) <= PeHdr->Pe32.FileHeader.NumberOfSections) {
       DEBUG_PRINT (("Image sections overflow image size\n"));
       return -1;
     }
 
     if (PeHdr->Pe32.OptionalHeader.SizeOfHeaders < SectionHeaderOffset
-      || ((PeHdr->Pe32.OptionalHeader.SizeOfHeaders - SectionHeaderOffset) 
-      / EFI_IMAGE_SIZEOF_SECTION_HEADER) 
+      || ((PeHdr->Pe32.OptionalHeader.SizeOfHeaders - SectionHeaderOffset)
+      / EFI_IMAGE_SIZEOF_SECTION_HEADER)
       < (uint32_t) PeHdr->Pe32.FileHeader.NumberOfSections) {
         DEBUG_PRINT (("Image sections overflow section headers\n"));
         return -1;
@@ -181,7 +181,7 @@ GetPeHeader (
     //
     // Check image header size
     //
-    if (EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES < 
+    if (EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES <
         PeHdr->Pe32Plus.OptionalHeader.NumberOfRvaAndSizes) {
       DEBUG_PRINT (("Image header too small\n"));
       return -1;
@@ -190,8 +190,8 @@ GetPeHeader (
     //
     // Check image header aligment
     //
-    HeaderWithoutDataDir = sizeof (EFI_IMAGE_OPTIONAL_HEADER64) - 
-                           sizeof (EFI_IMAGE_DATA_DIRECTORY) * 
+    HeaderWithoutDataDir = sizeof (EFI_IMAGE_OPTIONAL_HEADER64) -
+                           sizeof (EFI_IMAGE_DATA_DIRECTORY) *
                            EFI_IMAGE_NUMBER_OF_DIRECTORY_ENTRIES;
     if (PeHdr->Pe32Plus.FileHeader.SizeOfOptionalHeader < HeaderWithoutDataDir
       || (PeHdr->Pe32Plus.FileHeader.SizeOfOptionalHeader - HeaderWithoutDataDir) !=
@@ -277,12 +277,12 @@ GetPeHeader (
   }
 
   //
-  // Fill sections info 
+  // Fill sections info
   //
   Context->PeHdrMagic = PeHdrMagic;
   SectionCache = Context->FirstSection;
 
-  for (Index = 0, Context->SumOfSectionBytes = 0; 
+  for (Index = 0, Context->SumOfSectionBytes = 0;
        Index < Context->NumberOfSections; Index++, SectionCache++) {
     if (Context->SumOfSectionBytes + SectionCache->SizeOfRawData
       < Context->SumOfSectionBytes) {
@@ -291,7 +291,7 @@ GetPeHeader (
     }
     Context->SumOfSectionBytes += SectionCache->SizeOfRawData;
   }
-  
+
   if (Context->SumOfSectionBytes >= ImageSize) {
     DEBUG_PRINT (("Malformed binary: %x %x\n", (uint32_t) Context->SumOfSectionBytes, ImageSize));
     return -1;
@@ -338,12 +338,12 @@ GetApplePeImageSignature (
   //
   // Extract AppleSignatureDirectory
   //
-  SignatureDirectory = (APPLE_SIGNATURE_DIRECTORY *) 
+  SignatureDirectory = (APPLE_SIGNATURE_DIRECTORY *)
                        ((uint8_t *) Image + SignatureDirectoryAddress);
 
   //
   // Load PublicKey and Signature into memory
-  //  
+  //
   memcpy (PkLe, SignatureDirectory->PublicKey, 256);
   memcpy (SigLe, SignatureDirectory->Signature, 256);
 
@@ -413,7 +413,7 @@ GetApplePeImageSha256 (
     // Hash from the end of SecDirEntry to the end of ImageHeader
     //
     HashBase = (uint8_t *) Context->RelocDir;
-    HashSize = Context->SizeOfHeaders - (uint32_t) ((uint8_t *) (Context->RelocDir) 
+    HashSize = Context->SizeOfHeaders - (uint32_t) ((uint8_t *) (Context->RelocDir)
                - (uint8_t *) Image);
     Sha256Update (&Sha256Ctx, HashBase, HashSize);
   }
@@ -424,7 +424,7 @@ GetApplePeImageSha256 (
   SumOfBytesHashed = (uint32_t) Context->SizeOfHeaders;
 
   SectionHeader = (EFI_IMAGE_SECTION_HEADER *) calloc (
-                    sizeof (EFI_IMAGE_SECTION_HEADER), 
+                    sizeof (EFI_IMAGE_SECTION_HEADER),
                     Context->NumberOfSections
                     );
 
@@ -434,25 +434,25 @@ GetApplePeImageSha256 (
   }
 
   //
-  // Sort the section headers 
+  // Sort the section headers
   //
   for (Index = 0; Index < Context->NumberOfSections; Index++) {
     CurPos = Index;
-    while ((CurPos > 0) && (Context->FirstSection->PointerToRawData < 
+    while ((CurPos > 0) && (Context->FirstSection->PointerToRawData <
            SectionHeader[CurPos - 1].PointerToRawData)) {
-      memcpy (&SectionHeader[CurPos], 
-              &SectionHeader[CurPos - 1], 
+      memcpy (&SectionHeader[CurPos],
+              &SectionHeader[CurPos - 1],
               sizeof (EFI_IMAGE_SECTION_HEADER)
              );
       CurPos--;
     }
-    memcpy (&SectionHeader[CurPos], 
-            Context->FirstSection, 
+    memcpy (&SectionHeader[CurPos],
+            Context->FirstSection,
             sizeof (EFI_IMAGE_SECTION_HEADER)
             );
     Context->FirstSection += 1;
   }
-    
+
 
   //
   // Hash the sections and codecaves
@@ -474,10 +474,10 @@ GetApplePeImageSha256 (
       }
       Sha256Update (&Sha256Ctx, HashBase, HashSize);
       SumOfBytesHashed += HashSize;
-    } 
-  
-    HashBase  = ImageAddress (Image, 
-                              ImageSize, 
+    }
+
+    HashBase  = ImageAddress (Image,
+                              ImageSize,
                               Context->FirstSection->PointerToRawData
                               );
     HashSize  = Context->FirstSection->SizeOfRawData;
@@ -508,7 +508,7 @@ GetApplePeImageSha256 (
     Sha256Update (&Sha256Ctx, HashBase, HashSize);
     SumOfBytesHashed += HashSize + 8;
     //
-    // Add AppleSignatureDirectory size 
+    // Add AppleSignatureDirectory size
     //
     SumOfBytesHashed += ((APPLE_SIGNATURE_DIRECTORY *)
                          (HashBase + HashSize))->SignatureDirectorySize;
@@ -527,11 +527,11 @@ GetApplePeImageSha256 (
   return 0;
 }
 
-int 
+int
 VerifyApplePeImageSignature (
   void     *PeImage,
   uint32_t ImageSize
-  ) 
+  )
 {
   uint8_t                            PkLe[256];
   uint8_t                            PkBe[256];
@@ -546,7 +546,7 @@ VerifyApplePeImageSignature (
   Context = malloc (sizeof (APPLE_PE_COFF_LOADER_IMAGE_CONTEXT));
   if (Context == NULL) {
     DEBUG_PRINT (("Pe context allocation failure\n"));
-    return -1;    
+    return -1;
   }
 
   if (GetPeHeader (PeImage, ImageSize, Context) != 0) {
@@ -554,7 +554,7 @@ VerifyApplePeImageSignature (
     free (Context);
     return -1;
   }
-  
+
   //
   // Extract AppleSignature from PEImage
   //
@@ -575,7 +575,7 @@ VerifyApplePeImageSignature (
 
   free (Context);
 
-  // 
+  //
   // Calculate Sha256 of extracted public key
   //
   Sha256Context Sha256Ctx;
@@ -602,7 +602,7 @@ VerifyApplePeImageSignature (
 
   //
   // Verify signature
-  // 
+  //
   if (RsaVerify (Pk, SigBe, CalcucatedHash, WorkBuf32) == 1 ) {
     puts ("Signature verified!\n");
     return 0;
@@ -612,28 +612,28 @@ VerifyApplePeImageSignature (
 }
 
 /**
-  Read Apple's EFI Fat binary and gather 
+  Read Apple's EFI Fat binary and gather
   position of each MZ image inside it and then
-  perform ImageVerification of each MZ image 
+  perform ImageVerification of each MZ image
 **/
 int
 VerifyAppleImageSignature (
   uint8_t  *Image,
   uint32_t ImageSize
-  ) 
+  )
 {
   EFIFatHeader *Hdr         = NULL;
   uint64_t     Index        = 0;
   uint64_t     SizeOfBinary = 0;
-  
+
   if (ImageSize < sizeof (EFIFatHeader)) {
     DEBUG_PRINT (("Malformed binary\n"));
     return -1;
-  } 
-  
+  }
+
   //
   // Get AppleEfiFatHeader
-  // 
+  //
   Hdr = (EFIFatHeader *) Image;
   //
   // Verify magic number
@@ -644,11 +644,11 @@ VerifyAppleImageSignature (
     return VerifyApplePeImageSignature (Image, ImageSize);
   }
   DEBUG_PRINT (("It is AppleEfiFatBinary\n"));
-  
-  SizeOfBinary += sizeof (EFIFatHeader) 
-                  + sizeof (EFIFatArchHeader) 
+
+  SizeOfBinary += sizeof (EFIFatHeader)
+                  + sizeof (EFIFatArchHeader)
                     * Hdr->NumArchs;
-  
+
   if (SizeOfBinary > ImageSize) {
     DEBUG_PRINT (("Malformed AppleEfiFat header\n"));
     return -1;
@@ -659,18 +659,18 @@ VerifyAppleImageSignature (
   //
   for (Index = 0; Index < Hdr->NumArchs; Index++) {
     //
-    // Only X86/X86_64 valid 
+    // Only X86/X86_64 valid
     //
-    if (Hdr->Archs[Index].CpuType == CPU_TYPE_X86 
+    if (Hdr->Archs[Index].CpuType == CPU_TYPE_X86
         || Hdr->Archs[Index].CpuType == CPU_TYPE_X86_64) {
       DEBUG_PRINT (("ApplePeImage at offset %u\n", Hdr->Archs[Index].Offset));
 
       //
       // Check offset boundary and its size
-      // 
-      if (Hdr->Archs[Index].Offset < SizeOfBinary 
-        || Hdr->Archs[Index].Offset >= ImageSize 
-        || ImageSize < ((uint64_t) Hdr->Archs[Index].Offset 
+      //
+      if (Hdr->Archs[Index].Offset < SizeOfBinary
+        || Hdr->Archs[Index].Offset >= ImageSize
+        || ImageSize < ((uint64_t) Hdr->Archs[Index].Offset
                         + Hdr->Archs[Index].Size)) {
         DEBUG_PRINT(("Wrong offset of Image or it's size\n"));
         return -1;
@@ -679,15 +679,15 @@ VerifyAppleImageSignature (
       //
       // Verify image with specified arch
       //
-      if (VerifyApplePeImageSignature (Image + Hdr->Archs[Index].Offset, 
+      if (VerifyApplePeImageSignature (Image + Hdr->Archs[Index].Offset,
                                        Hdr->Archs[Index].Size) != 0) {
         return -1;
       }
     }
     SizeOfBinary = (uint64_t) Hdr->Archs[Index].Offset + Hdr->Archs[Index].Size;
   }
-  
-  if (SizeOfBinary != ImageSize) { 
+
+  if (SizeOfBinary != ImageSize) {
     DEBUG_PRINT (("Malformed AppleEfiFatBinary\n"));
     return -1;
   }

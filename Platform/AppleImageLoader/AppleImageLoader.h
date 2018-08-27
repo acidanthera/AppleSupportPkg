@@ -42,15 +42,15 @@ typedef struct {
     //
     // Probably 0x07 (CPUYPE_X86) or 0x01000007 (CPUYPE_X86_64)
     //
-    UINT32 CpuType;    
+    UINT32 CpuType;
     //
     // Probably 3 (CPU_SUBTYPE_I386_ALL)
     //
-    UINT32 CpuSubtype; 
+    UINT32 CpuSubtype;
     //
     // Offset to beginning of architecture section
     //
-    UINT32 Offset;    
+    UINT32 Offset;
     //
     // Size of arch section
     //
@@ -65,11 +65,11 @@ typedef struct {
     //
     // Apple EFI fat binary magic number (0x0ef1fab9)
     //
-    UINT32 Magic;         
+    UINT32 Magic;
     //
     // Number of architectures
     //
-    UINT32 NumArchs;        
+    UINT32 NumArchs;
     //
     // Architecture headers
     //

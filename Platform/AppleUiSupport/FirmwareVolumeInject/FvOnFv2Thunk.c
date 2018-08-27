@@ -99,10 +99,10 @@ FvGetVolumeAttributes (
   @param  Attributes            Buffer which contains attributes
 
   @retval EFI_INVALID_PARAMETER A bit in Attributes was invalid
-  @retval EFI_SUCCESS           The requested firmware volume attributes were set 
+  @retval EFI_SUCCESS           The requested firmware volume attributes were set
                                 and the resulting EFI_FV_ATTRIBUTES is returned in
                                 Attributes.
-  @retval EFI_ACCESS_DENIED     The Device is locked and does not permit modification. 
+  @retval EFI_ACCESS_DENIED     The Device is locked and does not permit modification.
 
 **/
 EFI_STATUS
@@ -114,7 +114,7 @@ FvSetVolumeAttributes (
 {
   FIRMWARE_VOLUME_PRIVATE_DATA   *Private;
   EFI_FIRMWARE_VOLUME2_PROTOCOL  *FirmwareVolume2;
-  EFI_FV_ATTRIBUTES              Fv2Attributes; 
+  EFI_FV_ATTRIBUTES              Fv2Attributes;
   EFI_STATUS                     Status;
 
   Private = FIRMWARE_VOLUME_PRIVATE_DATA_FROM_THIS (This);
@@ -127,7 +127,7 @@ FvSetVolumeAttributes (
                             );
 
   *Attributes = Fv2AttributesToFvAttributes (Fv2Attributes);
-  
+
   return Status;
 }
 
@@ -194,7 +194,7 @@ FvReadFile (
   // For Framework FV attrbutes, only alignment fields are valid.
   //
   *FileAttributes = *FileAttributes & EFI_FV_FILE_ATTRIB_ALIGNMENT;
-  
+
   return Status;
 }
 
@@ -220,7 +220,7 @@ FvReadFile (
   @param  AuthenticationStatus  Indicates the authentication status of the data
 
   @retval EFI_SUCCESS                The call completed successfully.
-  @retval EFI_WARN_BUFFER_TOO_SMALL  The buffer is too small to contain the requested output. 
+  @retval EFI_WARN_BUFFER_TOO_SMALL  The buffer is too small to contain the requested output.
                                      The buffer is filled and the output is truncated.
   @retval EFI_OUT_OF_RESOURCES       An allocation failure occurred.
   @retval EFI_NOT_FOUND              Name was not found in the firmware volume.
@@ -229,7 +229,7 @@ FvReadFile (
 
 **/
 EFI_STATUS
-EFIAPI 
+EFIAPI
 FvReadSection (
   IN EFI_FIRMWARE_VOLUME_PROTOCOL   *This,
   IN EFI_GUID                       *NameGuid,
@@ -272,7 +272,7 @@ FvReadSection (
   @retval EFI_OUT_OF_RESOURCES  The firmware volume does not have enough free space to store file(s).
   @retval EFI_DEVICE_ERROR      A hardware error occurred when attempting to access the firmware volume.
   @retval EFI_WRITE_PROTECTED   The firmware volume is configured to disallow writes.
-  @retval EFI_NOT_FOUND         A delete was requested, but the requested file was not 
+  @retval EFI_NOT_FOUND         A delete was requested, but the requested file was not
                                 found in the firmware volume.
   @retval EFI_INVALID_PARAMETER A delete was requested with a multiple file write.
                                 An unsupported WritePolicy was requested.
@@ -281,7 +281,7 @@ FvReadSection (
 
 **/
 EFI_STATUS
-EFIAPI 
+EFIAPI
 FvWriteFile (
   IN EFI_FIRMWARE_VOLUME_PROTOCOL      *This,
   IN UINT32                            NumberOfFiles,
@@ -331,16 +331,16 @@ FvWriteFile (
   @param  Attributes            Attributes of the file found
   @param  Size                  Size in bytes of the file found
 
-  @retval EFI_SUCCESS           The output parameters are filled with data obtained from 
+  @retval EFI_SUCCESS           The output parameters are filled with data obtained from
                                 the first matching file that was found.
   @retval EFI_NOT_FOUND         No files of type FileType were found.
-  @retval EFI_DEVICE_ERROR      A hardware error occurred when attempting to access 
+  @retval EFI_DEVICE_ERROR      A hardware error occurred when attempting to access
                                 the firmware volume.
   @retval EFI_ACCESS_DENIED     The firmware volume is configured to disallow reads.
 
 **/
 EFI_STATUS
-EFIAPI 
+EFIAPI
 FvGetNextFile (
   IN EFI_FIRMWARE_VOLUME_PROTOCOL   *This,
   IN OUT VOID                       *Key,
@@ -370,7 +370,7 @@ FvGetNextFile (
   // For Framework FV attrbutes, only alignment fields are valid.
   //
   *Attributes = *Attributes & EFI_FV_FILE_ATTRIB_ALIGNMENT;
-  
+
   return Status;
 }
 
@@ -463,7 +463,9 @@ FvNotificationEvent (
                     &gEfiFirmwareVolume2ProtocolGuid,
                     (VOID **)&Private->FirmwareVolume2
                     );
-    ASSERT_EFI_ERROR (Status);
+    if (EFI_ERROR (Status)) {
+       DEBUG ((DEBUG_VERBOSE, "HandleProtocol FirmwareVolume2 failure: %r", Status));
+    }
 
     //
     // Fill in rest of private data structure
@@ -480,19 +482,21 @@ FvNotificationEvent (
                     &Private->FirmwareVolume,
                     NULL
                     );
-    ASSERT_EFI_ERROR (Status);
+    if (EFI_ERROR (Status)) {
+       DEBUG ((DEBUG_VERBOSE, "Install FirmwareVolume protocol failure: %r", Status));
+    }
   }
 }
 
 
 /**
   The user Entry Point for DXE driver. The user code starts with this function
-  as the real entry point for the image goes into a library that calls this 
+  as the real entry point for the image goes into a library that calls this
   function.
 
-  @param[in] ImageHandle    The firmware allocated handle for the EFI image.  
+  @param[in] ImageHandle    The firmware allocated handle for the EFI image.
   @param[in] SystemTable    A pointer to the EFI System Table.
-  
+
   @retval EFI_SUCCESS       The entry point is executed successfully.
   @retval other             Some error occurs when executing this entry point.
 

@@ -33,7 +33,7 @@ STATIC APPLE_EVENT_PROTOCOL mAppleEventProtocol = {
   NULL
 };
 
-/** 
+/**
   InitializeAppleEvent
 
   @param[in] ImageHandle  The firmware allocated handle for the EFI image.
@@ -55,7 +55,7 @@ InitializeAppleEvent (
 
   //
   // Check existence of AppleEventProtocol
-  //  
+  //
   Status = gBS->LocateProtocol (
     &gAppleEventProtocolGuid,
     NULL,
@@ -68,7 +68,7 @@ InitializeAppleEvent (
       &gAppleEventProtocolGuid,
       &mAppleEventProtocol,
       NULL
-      );    
+      );
   } else {
     Status = EFI_ALREADY_STARTED;
   }

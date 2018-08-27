@@ -1,11 +1,11 @@
 /* Copyright (c) 2010 The Chromium OS Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can 
+ * Use of this source code is governed by a BSD-style license that can
 be
  * found in the LICENSE file.
  */
-/* C port of DumpPublicKey.java from the Android Open source project 
+/* C port of DumpPublicKey.java from the Android Open source project
 with
- * support for additional RSA key sizes. 
+ * support for additional RSA key sizes.
 (platform/system/core,git/libmincrypt
  * /tools/DumpPublicKey.java). Uses the OpenSSL X509 and BIGNUM library.
  */
@@ -16,7 +16,7 @@ with
 #include "openssl_compat.h"
 
 /* Command line tool to extract RSA public keys from X.509 certificates
- * and output a pre-processed version of keys for use by RSA 
+ * and output a pre-processed version of keys for use by RSA
 verification
  * routines.
  */
@@ -29,7 +29,7 @@ int check(RSA* key) {
   if (public_exponent != 3 && public_exponent != 65537) {
     fprintf(stderr, "WARNING: Public exponent should be 3 or 65537 (but is %d).\n", public_exponent);
   }
-  if (modulus != 1024 && modulus != 2048 && modulus != 3072 && modulus 
+  if (modulus != 1024 && modulus != 2048 && modulus != 3072 && modulus
 != 4096
       && modulus != 8192) {
     fprintf(stderr, "ERROR: Unknown modulus length = %d.\n", modulus);
@@ -45,7 +45,7 @@ void output(RSA* key) {
   BIGNUM *N = NULL;
   BIGNUM *Big1 = NULL, *Big2 = NULL, *Big32 = NULL, *BigMinus1 = NULL;
   BIGNUM *B = NULL;
-  BIGNUM *N0inv= NULL, *R = NULL, *RR = NULL, *RRTemp = NULL, *NnumBits 
+  BIGNUM *N0inv= NULL, *R = NULL, *RR = NULL, *RRTemp = NULL, *NnumBits
 = NULL;
   BIGNUM *n = NULL, *rr = NULL;
   BN_CTX *bn_ctx = BN_CTX_new();
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
   RSA* pubkey = NULL;
   EVP_PKEY* key;
   char *progname;
-  if (argc != 3 || (strcmp(argv[1], "-cert") && strcmp(argv[1], 
+  if (argc != 3 || (strcmp(argv[1], "-cert") && strcmp(argv[1],
 "-pub"))) {
     progname = strrchr(argv[0], '/');
     if (progname)
