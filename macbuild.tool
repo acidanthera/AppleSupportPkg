@@ -35,15 +35,17 @@ package() {
   fi
 
   local ver=$(cat Platform/ApfsDriverLoader/Version.h | grep APFSDRIVERLOADER_VERSION | cut -f4 -d' ' | cut -f2 -d'"')
-  if [ "$(echo $ver | grep -E '^[0-9]+$')" = "" ]; then
+  if [ "$(echo $ver | grep -E '^[0-9.]+$')" = "" ]; then
     echo "Invalid version $ver"
   fi
 
   pushd "$1" || exit 1
   rm -rf tmp || exit 1
   mkdir -p tmp/Drivers || exit 1
-  #mkdir -p tmp/Tools || exit 1
+  mkdir -p tmp/Tools || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
+  cp AppleImageLoader.efi tmp/Drivers/ || exit 1
+  cp AppleUiSupport.efi tmp/Drivers/   || exit 1
   pushd tmp || exit 1
   zip -qry ../"AppleSupport-v${ver}-${2}.zip" * || exit 1
   popd || exit 1

@@ -92,7 +92,7 @@ GetApplePeImageSha256 (
   uint8_t                             *CalcucatedHash
   );
 
-int 
+int
 VerifyApplePeImageSignature (
   void     *PeImage,
   uint32_t ImageSize

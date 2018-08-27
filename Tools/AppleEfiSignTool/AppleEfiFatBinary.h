@@ -31,15 +31,15 @@ typedef struct {
     //
     // Probably 0x07 (CPU_TYPE_X86) or 0x01000007 (CPU_TYPE_X86_64)
     //
-    uint32_t CpuType;    
+    uint32_t CpuType;
     //
     // Probably 3 (CPU_SUBTYPE_I386_ALL)
     //
-    uint32_t CpuSubtype; 
+    uint32_t CpuSubtype;
     //
     // Offset to beginning of architecture section
     //
-    uint32_t Offset;    
+    uint32_t Offset;
     //
     // Size of arch section
     //
@@ -54,11 +54,11 @@ typedef struct {
     //
     // Apple EFI fat binary magic number (0x0ef1fab9)
     //
-    uint32_t Magic;         
+    uint32_t Magic;
     //
     // Number of architectures
     //
-    uint32_t NumArchs;        
+    uint32_t NumArchs;
     //
     // Architecture headers
     //
@@ -72,6 +72,6 @@ int
 VerifyAppleImageSignature (
   uint8_t  *Image,
   uint32_t ImageSize
-  ); 
+  );
 
 #endif //APPLE_EFI_FAT_BINARY_H

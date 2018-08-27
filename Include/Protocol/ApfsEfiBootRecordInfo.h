@@ -44,14 +44,14 @@ typedef struct  _APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO
     //
     // UUID of GPT container partition
     //
-    EFI_GUID                                    ContainerUuid; 
+    EFI_GUID                                    ContainerUuid;
 } APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO;
 
 //
 // ApfsJumpStart private data structure gathered from
 // reverse-engineered Apple's implementation
 //
-typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA 
+typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA
 {
     UINT32                                       Magic;
     EFI_HANDLE                                   ControllerHandle;

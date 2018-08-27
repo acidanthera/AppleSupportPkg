@@ -2,7 +2,7 @@
   Copyright (c) 2014 The Chromium OS Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
- 
+
   Implementation of RSA signature verification which uses a pre-processed key
   for computation.
 **/
@@ -10,10 +10,10 @@
 
 #define SHA256_DIGEST_SIZE 32
 
-UINT64 
+UINT64
 Mula32 (
-  UINT32 A, 
-  UINT32 B, 
+  UINT32 A,
+  UINT32 B,
   UINT32 C
   )
 {
@@ -25,11 +25,11 @@ Mula32 (
   return Ret;
 }
 
-UINT64 
+UINT64
 Mulaa32 (
-  UINT32 A, 
-  UINT32 B, 
-  UINT32 C, 
+  UINT32 A,
+  UINT32 B,
+  UINT32 C,
   UINT32 D
   )
 {
@@ -45,10 +45,10 @@ Mulaa32 (
 /**
   A[] -= Mod
 **/
-static 
-void 
-SubMod ( 
-  RsaPublicKey  *Key, 
+static
+void
+SubMod (
+  RsaPublicKey  *Key,
   UINT32      *A
   )
 {
@@ -64,9 +64,9 @@ SubMod (
 //
 // Return A[] >= Mod
 //
-static 
-int 
-GeMod ( 
+static
+int
+GeMod (
   RsaPublicKey  *Key,
   const UINT32      *A
   )
@@ -80,22 +80,22 @@ GeMod (
     if (A[Index] > Key->N[Index])
       return 1;
   }
-  return 1;  
+  return 1;
 }
 
 //
 // Montgomery c[] += a * b[] / R % mod
 //
-static 
-void 
-MontMulAdd ( 
+static
+void
+MontMulAdd (
   RsaPublicKey  *Key,
   UINT32      *C,
   UINT32      Aa,
   UINT32      *Bb
   )
 {
-  UINT64 A = 0; 
+  UINT64 A = 0;
   UINT32 D0 = 0;
   UINT64 B = 0;
   UINT32 Index = 0;
@@ -121,9 +121,9 @@ MontMulAdd (
 //
 // Montgomery c[] = a[] * b[] / R % mod
 //
-static 
-void 
-MontMul ( 
+static
+void
+MontMul (
   RsaPublicKey  *Key,
   UINT32      *C,
   UINT32      *A,
@@ -141,17 +141,17 @@ MontMul (
 /**
   In-place public exponentiation.
   Exponent depends on the configuration (65537 (default), or 3).
- 
+
   @param Key        Key to use in signing
   @param InOut      Input and output big-endian byte array
   @param Workbuf32  Work buffer; caller must verify this is
                     3 x RSANUMWORDS elements long.
  **/
-static 
-void 
-ModPow ( 
-  RsaPublicKey  *Key, 
-  UINT8       *InOut, 
+static
+void
+ModPow (
+  RsaPublicKey  *Key,
+  UINT8       *InOut,
   UINT32      *Workbuf32
   )
 {
@@ -169,7 +169,7 @@ ModPow (
   //
   // Re-use location
   //
-  Aaa = Aar;  
+  Aaa = Aar;
 
   //
   //Convert from big endian byte array to little endian word array
@@ -183,15 +183,15 @@ ModPow (
     A[Index] = Tmp;
   }
 
-  MontMul (Key, Ar, A, Key->Rr);  
+  MontMul (Key, Ar, A, Key->Rr);
   //
-  // Exponent 65537 
+  // Exponent 65537
   //
   for (Index = 0; Index < 16; Index += 2) {
-    MontMul (Key, Aar, Ar, Ar); 
+    MontMul (Key, Aar, Ar, Ar);
     MontMul (Key, Ar, Aar, Aar);
   }
-  MontMul (Key, Aaa, Ar, A);  
+  MontMul (Key, Aaa, Ar, A);
 
   if (GeMod (Key, Aaa)){
     SubMod (Key, Aaa);
@@ -202,7 +202,7 @@ ModPow (
   //
   for (Index = (int) RSANUMWORDS - 1; Index >= 0; --Index) {
     Tmp = Aaa[Index];
-  
+
     *InOut++ = (UINT8) (Tmp >> 24);
     *InOut++ = (UINT8) (Tmp >> 16);
     *InOut++ = (UINT8) (Tmp >>  8);
@@ -212,16 +212,16 @@ ModPow (
 
 /**
   PKCS#1 padding (from the RSA PKCS#1 v2.1 standard)
- 
+
   The DER-encoded padding is defined as follows :
   0x00 || 0x01 || PS || 0x00 || T
- 
+
   T: DER Encoded DigestInfo value which depends on the hash function used,
   for SHA-256:
   (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00 04 20 || H.
- 
+
   Length(T) = 51 octets for SHA-256
- 
+
   PS: octet string consisting of {Length(RSA Key) - Length(T) - 3} 0xFF
  **/
 static  UINT8 Sha256Tail[] = {
@@ -238,9 +238,9 @@ static  UINT8 Sha256Tail[] = {
  * @param sig  Signature to verify
  * @return 0 if the padding is correct.
  */
-static 
-int 
-CheckPadding ( 
+static
+int
+CheckPadding (
   UINT8  *Sig
   )
 {
@@ -269,7 +269,7 @@ CheckPadding (
 /**
   Verify a SHA256WithRSA PKCS#1 v1.5 signature against an expected
   SHA256 hash.
- 
+
   @param Key  RSA public key
   @param Signature   RSA signature
   @param Sha  SHA-256 digest of the content to verify
@@ -277,16 +277,16 @@ CheckPadding (
         3 x RSANUMWORDS elements long.
   @return 0 on failure, 1 on success.
  **/
-int 
-RsaVerify ( 
-  RsaPublicKey  *Key,  
+int
+RsaVerify (
+  RsaPublicKey  *Key,
   UINT8       *Signature,
-  UINT8       *Sha, 
+  UINT8       *Sha,
   UINT32      *Workbuf32
   )
 {
   UINT8 Buf[RSANUMBYTES];
-  
+
   //
   // Copy input to local workspace
   //
@@ -295,10 +295,10 @@ RsaVerify (
   //
   // In-place exponentiation
   //
-  ModPow (Key, Buf, Workbuf32); 
+  ModPow (Key, Buf, Workbuf32);
 
   //
-  // Check the PKCS#1 padding 
+  // Check the PKCS#1 padding
   //
   if (CheckPadding (Buf) != 0) {
     return 0;
@@ -314,5 +314,5 @@ RsaVerify (
   //
   // All checked out OK
   //
-  return 1;  
+  return 1;
 }

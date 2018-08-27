@@ -1,0 +1,92 @@
+## @file
+# AppleUiSupport
+#
+# Copyright (c) 2018, savvas.<BR>
+#
+# All rights reserved.
+#
+# This program and the accompanying materials
+# are licensed and made available under the terms and conditions of the BSD License
+# which accompanies this distribution.  The full text of the license may be found at
+# http://opensource.org/licenses/bsd-license.php
+#
+# THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+# WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+
+[Defines]
+  INF_VERSION                         = 0x00010005
+  BASE_NAME                           = AppleUiSupport
+  FILE_GUID                           = 4F735154-9E9D-4014-8168-369CFFE377A1
+  MODULE_TYPE                         = UEFI_DRIVER
+  ENTRY_POINT                         = AppleUiSupportEntrypoint
+  VERSION_STRING                      = 1.0.0
+  INF_VERSION                         = 0x00010005
+  EDK_RELEASE_VERSION                 = 0x00020000
+  EFI_SPECIFICATION_VERSION           = 0x00010000
+
+[Packages]
+  AppleSupportPkg/AppleSupportPkg.dec
+  MdePkg/MdePkg.dec
+  EfiPkg/EfiPkg.dec
+  EfiMiscPkg/EfiMiscPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  IntelFrameworkPkg/IntelFrameworkPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  UefiLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  DebugLib
+
+[Guids]
+  gAppleVendorVariableGuid            ## GUID CONSUMES
+  gAppleImageListGuid                 ## GUID CONSUMES
+  gAppleArrowCursorImageGuid          ## GUID CONSUMES
+  gAppleArrowCursor2xImageGuid        ## GUID CONSUMES
+  gEfiHashAlgorithmMD5Guid            ## GUID CONSUMES
+  gEfiHashAlgorithmSha1Guid           ## GUID CONSUMES
+  gEfiHashAlgorithmSha256Guid         ## GUID CONSUMES
+
+[Protocols]
+  gEfiFirmwareVolumeProtocolGuid      ## PROTOCOL PRODUCES
+  gEfiFirmwareVolume2ProtocolGuid     ## PROTOCOL PRODUCES
+  gAppleImageCodecProtocolGuid        ## PROTOCOL PRODUCES
+  gEfiUserInterfaceThemeProtocolGuid  ## PROTOCOL PRODUCES
+  gEfiUnicodeCollation2ProtocolGuid   ## PROTOCOL CONSUMES
+  gEfiHashServiceBindingProtocolGuid  ## PROTOCOL CONSUMES
+  gEfiHashProtocolGuid                ## PROTOCOL CONSUMES
+  gAppleEventProtocolGuid             ## PROTOCOL PRODUCES
+  gAppleKeyMapAggregatorProtocolGuid  ## PROTOCOL CONSUMES
+  gEfiConsoleControlProtocolGuid      ## PROTOCOL CONSUMES
+  gEfiSimplePointerProtocolGuid       ## PROTOCOL CONSUMES
+  gAppleKeyMapDatabaseProtocolGuid    ## PROTOCOL PRODUCES
+
+[Sources]
+  FirmwareVolumeInject/FirmwareVolumeInject.c
+  FirmwareVolumeInject/FirmwareVolumeInject.h
+  FirmwareVolumeInject/FvOnFv2Thunk.c
+  AppleEventDxe/AppleEvent.c
+  AppleKeyMapAggregator/AppleKeyMapAggregator.c
+  HashServices/HashServices.c
+  HashServices/HashServices.h
+  HashServices/md5.c
+  HashServices/md5.h
+  HashServices/sha1.c
+  HashServices/sha1.h
+  HashServices/sha256.h
+  HashServices/sha256.c
+  HashServices/HashServices.c
+  HashServices/HashServices.h
+  UnicodeCollation/UnicodeCollationEng.c
+  UnicodeCollation/UnicodeCollationEng.h
+  AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
+  AppleImageCodec/AppleImageCodec.c
+  AppleImageCodec/AppleImageCodec.h
+  AppleImageCodec/lodepng.c
+  AppleImageCodec/lodepng.h
+  AppleUiSupport.c
+  AppleUiSupport.h

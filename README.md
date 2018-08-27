@@ -6,21 +6,26 @@ AppleSupportPkg
 -----
 
 ## ApfsDriverLoader
-Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart driver
+Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart driver. It chain loads the apfs.efi driver that is already embedded in the APFS container from this container.
 
-- Loads apfs.efi from ApfsContainer located on block device.
+- Loads apfs.efi from APFS container located on the block device.
 - Apfs driver verbose logging suppressed.
-- Version system: connects each apfs.efi to the device from which it was retrieved
-- Supports AppleLoadImage protocol provides EfiBinary signature check
-- **WARNING**: Please load AppleImageLoader.efi right before ApfsDriverLoader, or just put it inside drivers64uefi folder of your Clover bootloader
+- Version system: connects each apfs.efi to the device from which it was retrieved.
+- It supports AppleLoadImage protocol, which provides EfiBinary signature check, what prevents possible implant injection.
 
 ## AppleImageLoader
-Secure Apple Efi Fat binary driver with implementation of AppleLoadImage protocol discoverd in ApfsJumpStart Apple driver and with signature check.
+Secure AppleEfiFat binary driver with implementation of AppleLoadImage protocol with EfiBinary signature verification.
 
-It provides safe Apple's EFI images loading into memory by verifiyng it's signature.
+It provides secure loading of Apple EFI binary files into memory by pre-authenticating its signature.
+
+## AppleUiSupport
+Driver which implements set of protocol for support EfiLoginUi which used for FileVault as login window. In short, it implements FileVault support and replaces AppleKeyMapAggregator.efi, AppleEvent.efi, AppleUiTheme.efi, FirmwareVolume.efi, AppleImageCodec.efi. Also, it contains hash service fixes and unicode collation for some boards. These fixes removed from AptioMemoryFix in R23.
+
+## AppleEfiSignTool
+Open source tool for verifying Apple EFI binaries. It supports ApplePE and AppleFat binaries.
 
 ## AppleDxeImageVerificationLib
-This library provides reverse-engineered Apple's crypto signature algorithms.
+This library provides Apple's crypto signature algorithm for EFI binaries.
 
 ## Credits
 - [cugu](https://github.com/cugu) for awesome research according APFS structure
