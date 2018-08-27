@@ -529,6 +529,7 @@ VerifyApplePeImageSignature (
   UINT32   ImageSize
   )
 {
+  Sha256Context                      Sha256Ctx;
   UINT8                              PkLe[256];
   UINT8                              PkBe[256];
   UINT8                              SigLe[256];
@@ -574,7 +575,6 @@ VerifyApplePeImageSignature (
   //
   // Calculate Sha256 of extracted public key
   //
-  Sha256Context Sha256Ctx;
   Sha256Init (&Sha256Ctx);
   Sha256Update (&Sha256Ctx, PkLe, sizeof (PkLe));
   Sha256Final (&Sha256Ctx, PkHash);
