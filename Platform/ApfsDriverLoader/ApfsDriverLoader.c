@@ -122,7 +122,7 @@ StartApfsDriver (
           return Status;
         }
       } else {
-        DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Signature broken!"));
+        DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!"));
         return Status;
       }
   }

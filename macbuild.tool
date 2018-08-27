@@ -34,8 +34,8 @@ package() {
     exit 1
   fi
 
-  local ver=$(cat Include/AppleSupportPkgVersion.h | grep APPLE_SUPPORT_VERSION | cut -f4 -d' ' | cut -f2 -d'"')
-  if [ "$(echo $ver | grep -E '^[0-9.]+$')" = "" ]; then
+  local ver=$(cat Include/AppleSupportPkgVersion.h | grep APPLE_SUPPORT_VERSION | cut -f4 -d' ' | cut -f2 -d'"' | grep -E '^[0-9.]+$')
+  if [ "$ver" = "" ]; then
     echo "Invalid version $ver"
   fi
 
