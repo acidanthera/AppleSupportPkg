@@ -68,6 +68,7 @@
 [Sources]
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
+  FirmwareVolumeInject/FvOnFv2Thunk.c
   AppleEventDxe/AppleEvent.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   HashServices/HashServices.c

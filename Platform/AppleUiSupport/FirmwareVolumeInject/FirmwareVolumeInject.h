@@ -273,4 +273,11 @@ STATIC UINT8 mAppleArrowCursor2xImage[] = {
     0xAE, 0x42, 0x60, 0x82 
 };
 
+EFI_STATUS
+EFIAPI
+InitializeFirmwareVolume2 (
+  IN EFI_HANDLE        ImageHandle,
+  IN EFI_SYSTEM_TABLE  *SystemTable
+  );
+
 #endif // FIRMWARE_VOLUME_INJECT_H

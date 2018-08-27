@@ -20,7 +20,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include <Library/BaseMemoryLib.h>
-#include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiLib.h>
@@ -34,27 +33,13 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 //
 // Original functions from FirmwareVolume protocol
 //
-STATIC FRAMEWORK_EFI_FV_GET_ATTRIBUTES  mGetVolumeAttributes      = NULL;
-STATIC FRAMEWORK_EFI_FV_SET_ATTRIBUTES  mSetVolumeAttributes      = NULL;
-STATIC FRAMEWORK_EFI_FV_READ_FILE       mReadFile                 = NULL;
-STATIC FRAMEWORK_EFI_FV_READ_SECTION    mReadSection              = NULL;
-STATIC FRAMEWORK_EFI_FV_WRITE_FILE      mWriteFile                = NULL;
-STATIC FRAMEWORK_EFI_FV_GET_NEXT_FILE   mGetNextFile              = NULL;
-STATIC EFI_FIRMWARE_VOLUME2_PROTOCOL    *mFirmwareVolume2Protocol = NULL;
+STATIC FRAMEWORK_EFI_FV_GET_ATTRIBUTES  mGetVolumeAttributes = NULL;
+STATIC FRAMEWORK_EFI_FV_SET_ATTRIBUTES  mSetVolumeAttributes = NULL;
+STATIC FRAMEWORK_EFI_FV_READ_FILE       mReadFile            = NULL;
+STATIC FRAMEWORK_EFI_FV_READ_SECTION    mReadSection         = NULL;
+STATIC FRAMEWORK_EFI_FV_WRITE_FILE      mWriteFile           = NULL;
+STATIC FRAMEWORK_EFI_FV_GET_NEXT_FILE   mGetNextFile         = NULL;
 
-STATIC
-FRAMEWORK_EFI_FV_ATTRIBUTES
-Fv2AttributesToFvAttributes (
-  IN  EFI_FV_ATTRIBUTES Fv2Attributes
-  )
-{
-  //
-  // Clear those filed that is not defined in Framework FV spec and Alignment conversion.
-  //
-  return (Fv2Attributes & 0x1ff) | ((UINTN) EFI_FV_ALIGNMENT_2 << RShiftU64((Fv2Attributes & EFI_FV2_ALIGNMENT), 16));
-}
-
-STATIC
 EFI_STATUS
 EFIAPI
 GetVolumeAttributesEx (
@@ -65,15 +50,7 @@ GetVolumeAttributesEx (
   EFI_STATUS  Status;
 
   if (mGetVolumeAttributes != NULL) {
-    Status = mGetVolumeAttributes (This, Attributes);
-  } else if (mFirmwareVolume2Protocol != NULL) {
-    Status = mFirmwareVolume2Protocol->GetVolumeAttributes (
-      mFirmwareVolume2Protocol,
-      Attributes
-      );
-    if (!EFI_ERROR (Status) && Attributes) {
-      *Attributes = Fv2AttributesToFvAttributes (*Attributes);
-    }
+    Status = mGetVolumeAttributes (This, Attributes);  
   } else {
     //
     // The firmware volume is configured to disallow reads.
@@ -85,7 +62,6 @@ GetVolumeAttributesEx (
   return Status;
 }
 
-STATIC
 EFI_STATUS
 EFIAPI
 SetVolumeAttributesEx (
@@ -93,24 +69,10 @@ SetVolumeAttributesEx (
   IN OUT FRAMEWORK_EFI_FV_ATTRIBUTES  *Attributes
   )
 {
-  EFI_STATUS         Status;
-  EFI_FV_ATTRIBUTES  Fv2Attributes = 0;
+  EFI_STATUS  Status;
 
   if (mSetVolumeAttributes != NULL) {
     Status = mSetVolumeAttributes (This, Attributes);  
-  } else if (mFirmwareVolume2Protocol != NULL) {
-    if (Attributes) {
-      Fv2Attributes = *Attributes & 0x1FFU;
-    }
-
-    Status = mFirmwareVolume2Protocol->SetVolumeAttributes (
-      mFirmwareVolume2Protocol,
-      Attributes
-      );
-
-    if (Attributes) {
-      *Attributes = Fv2AttributesToFvAttributes (Fv2Attributes);
-    }
   } else {
     //
     // The firmware volume is configured to disallow reads.
@@ -122,7 +84,6 @@ SetVolumeAttributesEx (
   return Status;
 }
 
-STATIC
 EFI_STATUS
 EFIAPI
 ReadFileEx (
@@ -147,23 +108,6 @@ ReadFileEx (
       FileAttributes,
       AuthenticationStatus
       );        
-  } else if (mFirmwareVolume2Protocol != NULL) {
-    Status = mFirmwareVolume2Protocol->ReadFile (
-      mFirmwareVolume2Protocol,
-      NameGuid,
-      Buffer,
-      BufferSize,
-      FoundType,
-      FileAttributes,
-      AuthenticationStatus
-      );
-
-    if (FileAttributes) {
-      //
-      // For Framework FV attrbutes, only alignment fields are valid.
-      //
-      *FileAttributes = *FileAttributes & EFI_FV_FILE_ATTRIB_ALIGNMENT;
-    }
   } else {
     //
     // The firmware volume is configured to disallow reads.
@@ -176,7 +120,6 @@ ReadFileEx (
   return Status;
 }
 
-STATIC
 EFI_STATUS
 EFIAPI
 ReadSectionEx (
@@ -235,16 +178,6 @@ ReadSectionEx (
       BufferSize,
       AuthenticationStatus
       );
-  } else if (mFirmwareVolume2Protocol != NULL) {
-    Status = mFirmwareVolume2Protocol->ReadSection (
-      mFirmwareVolume2Protocol,
-      NameGuid,
-      SectionType,
-      SectionInstance,
-      Buffer,
-      BufferSize,
-      AuthenticationStatus
-      );
   } else {
     //
     // The firmware volume is configured to disallow reads.
@@ -265,46 +198,16 @@ WriteFileEx (
   IN FRAMEWORK_EFI_FV_WRITE_FILE_DATA *FileData
   )
 {
-  EFI_STATUS              Status;
-  EFI_FV_WRITE_FILE_DATA  *PiFileData;
-  UINTN                   Index;
+  EFI_STATUS Status;
 
   if (mWriteFile != NULL) {
     Status = mWriteFile (This, NumberOfFiles, WritePolicy, FileData);
-  } else if (mFirmwareVolume2Protocol != NULL && FileData != NULL) {
-    PiFileData = AllocateCopyPool (sizeof (EFI_FV_WRITE_FILE_DATA), FileData);
-
-    if (PiFileData) {
-      //
-      // Framework Spec assume firmware files are Memory-Mapped.
-      //
-      for (Index = 0; Index < NumberOfFiles; Index++) {
-        PiFileData[Index].FileAttributes |= EFI_FV_FILE_ATTRIB_MEMORY_MAPPED;
-      }
-
-      Status = mFirmwareVolume2Protocol->WriteFile (
-        mFirmwareVolume2Protocol,
-        NumberOfFiles,
-        WritePolicy,
-        PiFileData
-        );
-
-      FreePool (PiFileData);
-    } else {
-      //
-      // Choose the most sensible error code. Do not use EFI_OUT_OF_RESOURCES,
-      // because we are not guaranteed to have no space on a target volume.
-      //
-      Status = EFI_DEVICE_ERROR;
-    }
-  } else if (FileData) {
-    //
-    // The firmware volume is configured to disallow writes.
-    // According UEFI PI Specification 1.6, page 101
-    //
-    Status = EFI_WRITE_PROTECTED;
   } else {
-    Status = EFI_INVALID_PARAMETER;
+      //
+      // The firmware volume is configured to disallow writes.
+      // According UEFI PI Specification 1.6, page 101
+      //    
+    Status = EFI_WRITE_PROTECTED;
   }
 
   return Status;
@@ -325,22 +228,6 @@ GetNextFileEx (
 
   if (mGetNextFile != NULL) {
     Status = mGetNextFile (This, Key, FileType, NameGuid, Attributes, Size);
-  } else if (mFirmwareVolume2Protocol != NULL) {
-    Status = mFirmwareVolume2Protocol->GetNextFile (
-      mFirmwareVolume2Protocol,
-      Key,
-      FileType,
-      NameGuid,
-      Attributes,
-      Size
-      );
-
-    if (Attributes) {
-      //
-      // For Framework FV attrbutes, only alignment fields are valid.
-      //
-      *Attributes = *Attributes & EFI_FV_FILE_ATTRIB_ALIGNMENT;
-    }
   } else {
     //
     // The firmware volume is configured to disallow reads.
@@ -352,9 +239,7 @@ GetNextFileEx (
   return Status;
 }
 
-STATIC
-EFI_FIRMWARE_VOLUME_PROTOCOL
-mFirmwareVolume = {
+EFI_FIRMWARE_VOLUME_PROTOCOL mFirmwareVolume = {
   GetVolumeAttributesEx,
   SetVolumeAttributesEx,
   ReadFileEx,
@@ -381,9 +266,10 @@ InitializeFirmwareVolumeInject (
   IN EFI_SYSTEM_TABLE *SystemTable
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FIRMWARE_VOLUME_PROTOCOL  *FirmwareVolumeInterface  = NULL;
-  EFI_HANDLE                    NewHandle                 = NULL;
+  EFI_STATUS                     Status;
+  EFI_FIRMWARE_VOLUME_PROTOCOL   *FirmwareVolumeInterface   = NULL;
+  EFI_FIRMWARE_VOLUME2_PROTOCOL  *FirmwareVolume2Interface  = NULL;
+  EFI_HANDLE                     NewHandle                  = NULL;
 
   Status = gBS->LocateProtocol (
     &gEfiFirmwareVolumeProtocolGuid,
@@ -397,17 +283,21 @@ InitializeFirmwareVolumeInject (
     // These boards do not have Firmware Volume protocol, yet their
     // dispatcher protocol, responsible for loading BIOS UI elements,
     // prefers Firmware Volume to Firmware Volume 2.
-    // For this reason we implement a subset of FvOnFv2Thunk when
-    // Firmware Volume 2 is already present.
+    // For this reason we make sure that all the other Firmware Volume 2
+    // volumes are backed with Firmware Volume implementations.
+    // We assume that by the time this code is executed, Firmware Volume 2
+    // protocols are available if exists. Otherwise do not bother installing
+    // hunks over nowhere.
     //
+
     Status = gBS->LocateProtocol (
       &gEfiFirmwareVolume2ProtocolGuid,
       NULL,
-      (VOID **) &mFirmwareVolume2Protocol
+      (VOID **) &FirmwareVolume2Interface
       );
 
-    if (EFI_ERROR (Status)) {
-      DEBUG ((EFI_D_ERROR, "Failed to locate firmware volume 2 - %r", Status));
+    if (!EFI_ERROR (Status)) {
+      InitializeFirmwareVolume2 (ImageHandle, SystemTable);
     }
 
     Status = gBS->InstallMultipleProtocolInterfaces (
@@ -416,7 +306,14 @@ InitializeFirmwareVolumeInject (
       &mFirmwareVolume,
       NULL
       );
+
   } else {
+    //
+    // If a protocol already exists, we just wrap the first discovered
+    // protocol to handle our special GUIDs. This works, as boot.efi
+    // makes sure to check all the available volumes.
+    //
+
     //
     // Remember pointers to original functions
     //
