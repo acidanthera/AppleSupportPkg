@@ -1,6 +1,6 @@
 /** @file
 
-Apfs specific GUIDs for UEFI Variable Storage.
+APFS Driver Loader - loads apfs.efi from EfiBootRecord block
 
 Copyright (c) 2017-2018, savvas
 
@@ -16,12 +16,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#ifndef APFS_CONTAINER_GUIDS_H_
-#define APFS_CONTAINER_GUIDS_H_
+#ifndef APPLE_SUPPORT_VERSION_H
+#define APPLE_SUPPORT_VERSION_H
 
-#define APFS_CONTAINER_PARTITION_TYPE_GUID \
-  { 0x7C3457EF, 0x0000, 0x11AA, {0xAA, 0x11, 0x00, 0x30, 0x65, 0x43, 0xEC, 0xAC } }
+#define APPLE_SUPPORT_VERSION  L"2.0.3"
 
-extern EFI_GUID gApfsContainerPartitionTypeGuid;
 
-#endif // APFS_CONTAINER_GUIDS_H_
+#endif // APPLE_SUPPORT_VERSION_H

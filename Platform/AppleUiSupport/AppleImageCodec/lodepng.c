@@ -38,9 +38,6 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 // Floating point operations are used here, this must be defined to prevent linker error
 CONST INT32 _fltused = 0;
 
-// External qsort implementation used
-extern void qsort(void *a, size_t n, size_t es, int (*cmp)(const void *, const void *));
-
 // Custom internal allocators for UEFI
 static void* lodepng_malloc(size_t size)
 {

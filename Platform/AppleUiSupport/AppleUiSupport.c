@@ -19,6 +19,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/DebugLib.h>
 #include "AppleUiSupport.h"
+#include <AppleSupportPkgVersion.h>
 
 //
 // Driver's entry point
@@ -31,6 +32,12 @@ AppleUiSupportEntrypoint (
 )
 {
   EFI_STATUS            Status;
+
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "Starting AppleUiSupport ver. %s\n", 
+    APPLE_SUPPORT_VERSION
+    ));
 
   Status = InitializeAppleImageCodec (ImageHandle, SystemTable);
   if (EFI_ERROR(Status)) {

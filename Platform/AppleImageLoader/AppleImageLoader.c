@@ -17,9 +17,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include "AppleImageLoader.h"
+#include <AppleSupportPkgVersion.h>
 
-STATIC EFI_HANDLE       Handle            = NULL;
-STATIC EFI_IMAGE_LOAD   OriginalLoadImage = NULL;
+STATIC EFI_IMAGE_LOAD  mOriginalLoadImage = NULL;
 
 EFI_STATUS
 ParseAppleEfiFatBinary (
@@ -188,7 +188,7 @@ LoadImageEx (
       return Status;
     }
 
-    Status = OriginalLoadImage (
+    Status = mOriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
@@ -305,7 +305,7 @@ AppleLoadImage (
       return Status;
     }
 
-    Status = OriginalLoadImage (
+    Status = mOriginalLoadImage (
       BootPolicy,
       ParentImageHandle,
       FilePath,
@@ -355,7 +355,14 @@ AppleImageLoaderEntryPoint (
   )
 {
   EFI_STATUS                    Status;
+  EFI_HANDLE                    NewHandle                = NULL;
   APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
+
+  DEBUG ((
+    DEBUG_VERBOSE, 
+    "Starting AppleImageLoader ver. %s\n", 
+    APPLE_SUPPORT_VERSION
+    ));  
 
   Status = gBS->LocateProtocol (
     &gAppleLoadImageProtocolGuid,
@@ -368,7 +375,7 @@ AppleImageLoaderEntryPoint (
     // Install AppleLoadImage protocol
     //
     Status = gBS->InstallMultipleProtocolInterfaces (
-      &Handle,
+      &NewHandle,
       &gAppleLoadImageProtocolGuid,
       &mAppleLoadImageProtocol,
       NULL
@@ -387,7 +394,7 @@ AppleImageLoaderEntryPoint (
   //
   // Override Edk2LoadImage protocol for AppleFatBinary support
   //
-  OriginalLoadImage = gBS->LoadImage;
+  mOriginalLoadImage = gBS->LoadImage;
   gBS->LoadImage = LoadImageEx;
   gBS->Hdr.CRC32 = 0;
   gBS->CalculateCrc32 (gBS, sizeof (EFI_BOOT_SERVICES), &gBS->Hdr.CRC32);

@@ -1,7 +1,7 @@
 /** @file
 
-Apple FileSystem BDS stage protocol to inform Apfs Loader 
-about Apfs boot not compatible.
+Apple FileSystem BDS stage protocol to inform Apfs Loader, that Apple Filesystem
+not supported
 
 Copyright (c) 2018, savvas
 
@@ -20,10 +20,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APPLE_FILESYSTEM_UNSUPPORTED_BDS_PROTOCOL_H_
 #define APPLE_FILESYSTEM_UNSUPPORTED_BDS_PROTOCOL_H_
 
-//
-// If this protocol present, then firmware doesn't compatible for Apfs boot,
-// so AppleApfsJumpStart won't load
-//
 #define APPLE_FILESYSTEM_UNSUPPORTED_BDS_PROTOCOL_GUID \
   { 0xA196A7CA, 0x14C6, 0x11E7, {0xB9, 0x06, 0xB8, 0xE8, 0x56, 0x2C, 0xBA, 0xFA } }
 

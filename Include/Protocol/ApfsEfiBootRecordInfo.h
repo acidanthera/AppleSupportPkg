@@ -48,8 +48,7 @@ typedef struct  _APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO
 } APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO;
 
 //
-// ApfsJumpStart private data structure gathered from
-// reverse-engineered Apple's implementation
+// Private data structure gathered from original Apple driver
 //
 typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA
 {

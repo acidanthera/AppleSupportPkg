@@ -18,7 +18,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include "ApfsDriverLoader.h"
-#include "Version.h"
+#include <AppleSupportPkgVersion.h>
 
 
 STATIC BOOLEAN  LegacyScan       = FALSE;
@@ -581,7 +581,6 @@ ApfsDriverLoaderStart (
   EFI_BLOCK_IO2_PROTOCOL                       *BlockIo2                    = NULL;
   EFI_DISK_IO_PROTOCOL                         *DiskIo                      = NULL;
   EFI_DISK_IO2_PROTOCOL                        *DiskIo2                     = NULL;
-  UINT32                                       BlockSize                    = 0;
   UINT32                                       ApfsBlockSize                = 0;
   UINT32                                       MediaId                      = 0;
   UINT8                                        *ApfsBlock                   = NULL;
@@ -668,10 +667,8 @@ ApfsDriverLoaderStart (
 
   if (BlockIo2 != NULL) {
     MediaId       = BlockIo2->Media->MediaId;
-    BlockSize     = BlockIo2->Media->BlockSize;
   } else {
     MediaId       = BlockIo->Media->MediaId;
-    BlockSize     = BlockIo->Media->BlockSize;
   }
 
   ApfsBlock = AllocateZeroPool (2048);
@@ -1071,7 +1068,7 @@ ApfsDriverLoaderInit (
   DEBUG ((
     DEBUG_VERBOSE, 
     "Starting ApfsDriverLoader ver. %s\n", 
-    APFSDRIVERLOADER_VERSION
+    APPLE_SUPPORT_VERSION
     ));
 
   //

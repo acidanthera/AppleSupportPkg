@@ -20,7 +20,7 @@
   FILE_GUID                              = 44769453-A392-4FC7-B6FF-F33889B7EE38
   MODULE_TYPE                            = UEFI_DRIVER
   ENTRY_POINT                            = AppleImageLoaderEntryPoint
-  VERSION_STRING                         = 1.5.0
+  VERSION_STRING                         = 2.0.3
   INF_VERSION                            = 0x00010005
   EDK_RELEASE_VERSION                    = 0x00020000
   EFI_SPECIFICATION_VERSION              = 0x00010000
