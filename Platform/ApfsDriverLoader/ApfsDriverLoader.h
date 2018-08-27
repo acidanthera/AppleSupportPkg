@@ -19,43 +19,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APFS_DRIVER_LOADER_H_
 #define APFS_DRIVER_LOADER_H_
 
-#include <Base.h>
-#include <Uefi.h>
-#include <Uefi/UefiGpt.h>
-#include <Library/DebugLib.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/DevicePathLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiLib.h>
-#include <Protocol/ComponentName.h>
-#include <Protocol/DriverBinding.h>
-#include <Protocol/DevicePathFromText.h>
-#include <Protocol/DevicePathToText.h>
-#include <Protocol/DebugSupport.h>
-#include <Protocol/BlockIo.h>
-#include <Protocol/BlockIo2.h>
-#include <Protocol/DiskIo.h>
-#include <Protocol/DiskIo2.h>
-#include <Protocol/LoadedImage.h>
-#include <Protocol/PartitionInfo.h>
-#include <Protocol/ApplePartitionInfo.h>
-#include <Protocol/ApfsEfiBootRecordInfo.h>
-#include <Protocol/AppleLoadImage.h>
-#include "NullTextOutputProtocol.h"
-
-//
-// Global Variables
-//
-extern EFI_DRIVER_BINDING_PROTOCOL   gApfsDriverLoaderDriverBinding;
-extern EFI_COMPONENT_NAME_PROTOCOL   gApfsDriverLoaderComponentName;
-extern EFI_COMPONENT_NAME2_PROTOCOL  gApfsDriverLoaderComponentName2;
-
 //
 // Container Superblock magic
 // 'NXSB'
@@ -330,48 +293,5 @@ typedef struct APFS_EFI_BOOT_RECORD_
     UINT64             BootRecordSize;
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
-
-extern EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL mNullTextOutputProtocol;
-
-//
-// Fletcher checksum Functions
-//
-
-extern
-UINT64
-ApfsBlockChecksumCalculate (
-  UINT32  *Data,
-  UINTN  DataSize
-  );
-
-extern
-BOOLEAN
-ApfsBlockChecksumVerify (
-  UINT8   *Data,
-  UINTN  DataSize
-  );
-
-//
-// EFI Component Name Functions
-//
-EFI_STATUS
-EFIAPI
-ApfsDriverLoaderComponentNameGetDriverName (
-  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
-  IN  CHAR8                        *Language,
-  OUT CHAR16                       **DriverName
-  );
-
-
-EFI_STATUS
-EFIAPI
-ApfsDriverLoaderComponentNameGetControllerName (
-  IN  EFI_COMPONENT_NAME_PROTOCOL  *This,
-  IN  EFI_HANDLE                   ControllerHandle,
-  IN  EFI_HANDLE                   ChildHandle        OPTIONAL,
-  IN  CHAR8                        *Language,
-  OUT CHAR16                       **ControllerName
-  );
-
 
 #endif // APFS_DRIVER_LOADER_H_

@@ -16,7 +16,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#include "ApfsDriverLoader.h"
+#include "EfiComponentName.h"
 
 //
 // EFI Component Name Protocol

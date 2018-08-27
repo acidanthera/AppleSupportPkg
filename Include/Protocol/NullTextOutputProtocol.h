@@ -139,4 +139,6 @@ mNullTextOutputProtocol = {
   &mNullTextOutputMode
 };
 
+extern EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL mNullTextOutputProtocol;
+
 #endif //NULL_TEXT_OUTPUT_PROTOCOL_H_

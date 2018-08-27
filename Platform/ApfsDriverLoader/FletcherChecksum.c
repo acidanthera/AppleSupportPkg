@@ -16,14 +16,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-//
-// Function to calculate APFS block checksum.
-// According to the apple docs the Fletcher’s checksum algorithm is used.
-// Apple uses a variant of the algorithm described in a paper by John Kodis.
-// The following algorithm shows this procedure.
-// The input is the block without the first 8 byte.
-//
-
 UINT64
 ApfsBlockChecksumCalculate (
   UINT32  *Data,

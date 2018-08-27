@@ -16,14 +16,33 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
-
-#include "ApfsDriverLoader.h"
 #include <AppleSupportPkgVersion.h>
-
+#include <Uefi/UefiGpt.h>
+#include <Library/DebugLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/DevicePathLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Protocol/BlockIo.h>
+#include <Protocol/DiskIo.h>
+#include <Protocol/BlockIo2.h>
+#include <Protocol/DiskIo2.h>
+#include <Protocol/LoadedImage.h>
+#include <Protocol/ComponentName.h>
+#include <Protocol/DriverBinding.h>
+#include <Protocol/PartitionInfo.h>
+#include <Protocol/AppleLoadImage.h>
+#include <Protocol/ApplePartitionInfo.h>
+#include <Protocol/ApfsEfiBootRecordInfo.h>
+#include <Protocol/NullTextOutputProtocol.h>
+#include "ApfsDriverLoader.h"
+#include "FletcherChecksum.h"
+#include "EfiComponentName.h"
 
 STATIC BOOLEAN  LegacyScan       = FALSE;
 STATIC UINT64   LegacyBaseOffset = 0;
-
 
 EFI_STATUS
 EFIAPI

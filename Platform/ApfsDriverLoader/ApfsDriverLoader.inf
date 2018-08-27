@@ -28,10 +28,10 @@
 [Sources]
   ApfsDriverLoader.c
   ApfsDriverLoader.h
-  Version.h
-  NullTextOutputProtocol.h
   FletcherChecksum.c
-  ComponentName.c
+  FletcherChecksum.h
+  EfiComponentName.c
+  EfiComponentName.h
 
 [Packages]
   AppleSupportPkg/AppleSupportPkg.dec
