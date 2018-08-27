@@ -25,6 +25,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/AppleDxeImageVerificationLib.h>
 #include <Protocol/BlockIo.h>
 #include <Protocol/DiskIo.h>
 #include <Protocol/BlockIo2.h>
@@ -101,17 +102,27 @@ StartApfsDriver (
         return Status;
       }    
   } else {
-    DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Loading image without signature check!"));
-    Status = gBS->LoadImage (
-      FALSE,
-      gImageHandle,
-      ParentDevicePath,
-      AppleFileSystemDriverBuffer, 
-      AppleFileSystemDriverSize,
-      &ImageHandle
-      );    
-      if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+    DEBUG ((DEBUG_WARN, "No AppleLoadImage protocol. Forcing signature verify"));
+    Status = VerifyApplePeImageSignature (
+      AppleFileSystemDriverBuffer,
+      AppleFileSystemDriverSize
+      );
+
+    if (!EFI_ERROR (Status)) {
+      Status = gBS->LoadImage (
+        FALSE,
+        gImageHandle,
+        ParentDevicePath,
+        AppleFileSystemDriverBuffer, 
+        AppleFileSystemDriverSize,
+        &ImageHandle
+        );    
+        if (EFI_ERROR (Status)) {
+          DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+          return Status;
+        }
+      } else {
+        DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Signature broken!"));
         return Status;
       }
   }
