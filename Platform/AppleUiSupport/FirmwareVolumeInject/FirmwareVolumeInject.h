@@ -82,7 +82,7 @@ STATIC IMAGE_ENTRY mAppleImageTable[] = {
     L"ContinueButtonSmall"
   },
   {
-    APPLE_EFI_BOOT_NAME_LABEL_IMAGE_GUID,
+    APPLE_BOOT_NAME_LABEL_IMAGE_GUID,
     L"EfiBootNameLabel"
   },
   {
@@ -98,7 +98,7 @@ STATIC IMAGE_ENTRY mAppleImageTable[] = {
     L"IconGenericCD"
   },
   {
-    APPLE_GENERIC_EXTERNAL_HARD_DRIVE_IMAGE_GUID,
+    APPLE_GENERIC_EXTERNAL_HD_IMAGE_GUID,
     L"IconGenericExternalHardDrive"
   },
   {
@@ -106,7 +106,7 @@ STATIC IMAGE_ENTRY mAppleImageTable[] = {
     L"IconInternalHD"
   },
   {
-    APPLE_NET_BOOT_IMAGE_GUID,
+    APPLE_NETBOOT_IMAGE_GUID,
     L"IconNetBoot"
   },
   {

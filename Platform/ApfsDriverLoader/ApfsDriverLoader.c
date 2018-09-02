@@ -69,11 +69,11 @@ StartApfsDriver (
   // Try to retrieve DevicePath
   //
   Status = gBS->HandleProtocol (
-    ControllerHandle, 
-    &gEfiDevicePathProtocolGuid, 
+    ControllerHandle,
+    &gEfiDevicePathProtocolGuid,
     (VOID **) &ParentDevicePath
     );
-  
+
   if (EFI_ERROR (Status)) {
       ParentDevicePath = NULL;
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
@@ -90,10 +90,10 @@ StartApfsDriver (
       FALSE,
       gImageHandle,
       ParentDevicePath,
-      AppleFileSystemDriverBuffer, 
+      AppleFileSystemDriverBuffer,
       AppleFileSystemDriverSize,
       &ImageHandle
-      );    
+      );
       if (EFI_ERROR (Status)) {
         DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
         return Status;
@@ -107,7 +107,7 @@ StartApfsDriver (
     ImageHandle,
     &gEfiLoadedImageProtocolGuid,
     (VOID *) &LoadedApfsDrvImage
-    ); 
+    );
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "Failed to Handle LoadedImage Protool with Status: %r\n", Status));
@@ -121,15 +121,15 @@ StartApfsDriver (
 
   if (NewSystemTable == NULL) {
       return EFI_OUT_OF_RESOURCES;
-  }  
+  }
 
   CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
   NewSystemTable->ConOut = &mNullTextOutputProtocol;
   NewSystemTable->Hdr.CRC32 = 0;
-  
+
   Status = gBS->CalculateCrc32 (
-    NewSystemTable, 
-    NewSystemTable->Hdr.HeaderSize, 
+    NewSystemTable,
+    NewSystemTable->Hdr.HeaderSize,
     &NewSystemTable->Hdr.CRC32
     );
 
@@ -141,8 +141,8 @@ StartApfsDriver (
   LoadedApfsDrvImage->SystemTable = NewSystemTable;
 
   Status = gBS->StartImage (
-    ImageHandle, 
-    NULL, 
+    ImageHandle,
+    NULL,
     NULL
     );
 
@@ -155,12 +155,12 @@ StartApfsDriver (
     gBS->UnloadImage (ImageHandle);
     return Status;
   }
-  
+
   //
   // Connect loaded apfs.efi to controller from which we retrieve it
   //
   gBS->ConnectController(ControllerHandle, NULL, NULL, TRUE);
- 
+
   return EFI_SUCCESS;
 }
 
@@ -197,13 +197,13 @@ ReadDisk (
     } else {
       Status = EFI_UNSUPPORTED;
     }
-  
+
 
   return Status;
 }
 
 //
-// Function to parse GPT entries in legacy 
+// Function to parse GPT entries in legacy
 //
 EFI_STATUS
 EFIAPI
@@ -221,7 +221,7 @@ LegacyApfsContainerScan (
   EFI_PARTITION_TABLE_HEADER  *GptHeader                   = NULL;
   UINT32                      MediaId                      = 0;
   UINT32                      BlockSize                    = 0;
-  EFI_BLOCK_IO_PROTOCOL       *BlockIo                     = NULL; 
+  EFI_BLOCK_IO_PROTOCOL       *BlockIo                     = NULL;
   EFI_BLOCK_IO2_PROTOCOL      *BlockIo2                    = NULL;
   EFI_DISK_IO_PROTOCOL        *DiskIo                      = NULL;
   EFI_DISK_IO2_PROTOCOL       *DiskIo2                     = NULL;
@@ -254,7 +254,7 @@ LegacyApfsContainerScan (
     if (EFI_ERROR (Status)) {
       return EFI_UNSUPPORTED;
     }
-  }  
+  }
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -290,7 +290,7 @@ LegacyApfsContainerScan (
     } else {
       return EFI_UNSUPPORTED;
     }
-  
+
 
   Block = AllocateZeroPool ((UINTN)BlockSize);
   if (Block == NULL) {
@@ -362,7 +362,7 @@ LegacyApfsContainerScan (
   for (Index = 0; Index < PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
     EFI_PARTITION_ENTRY *CurrentEntry = (EFI_PARTITION_ENTRY *) (Block + Index);
 
-    if (CompareMem(&CurrentEntry->PartitionTypeGUID, &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) == 0) {
+    if (CompareMem(&CurrentEntry->PartitionTypeGUID, &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) == 0) {
       ApfsGptEntry = CurrentEntry;
       break;
     }
@@ -375,13 +375,13 @@ LegacyApfsContainerScan (
   if (ApfsGptEntry == NULL)  {
     FreePool (Block);
     return EFI_UNSUPPORTED;
-  }  
+  }
   LegacyBaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
   FreePool(Block);
 
   return EFI_SUCCESS;
 
-}  
+}
 
 /**
 
@@ -423,7 +423,7 @@ ApfsDriverLoaderSupported (
     ControllerHandle,
     EFI_OPEN_PROTOCOL_TEST_PROTOCOL
     );
-   
+
    if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
    }
@@ -488,15 +488,15 @@ ApfsDriverLoaderSupported (
   //
   // We check EfiPartitionInfoProtocol and ApplePartitionInfoProtocol
   //
-  
+
   Status = gBS->OpenProtocol (
     ControllerHandle,
-    &gApfsContainerPartitionTypeGuid,
+    &gAppleApfsPartitionTypeGuid,
     (VOID **) &Edk2PartitionInfo,
     This->DriverBindingHandle,
     ControllerHandle,
     EFI_OPEN_PROTOCOL_GET_PROTOCOL
-    );  
+    );
 
   if (EFI_ERROR (Status)) {
     Status = gBS->OpenProtocol (
@@ -506,7 +506,7 @@ ApfsDriverLoaderSupported (
       This->DriverBindingHandle,
       ControllerHandle,
       EFI_OPEN_PROTOCOL_GET_PROTOCOL
-      );  
+      );
 
     if (EFI_ERROR (Status)) {
       Status = gBS->OpenProtocol (
@@ -516,7 +516,7 @@ ApfsDriverLoaderSupported (
         This->DriverBindingHandle,
         ControllerHandle,
         EFI_OPEN_PROTOCOL_GET_PROTOCOL
-        );  
+        );
 
       if (EFI_ERROR (Status)) {
         ApplePartitionInfo = NULL;
@@ -527,8 +527,8 @@ ApfsDriverLoaderSupported (
         //
         // Verify GPT entry GUID
         //
-        if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType), 
-                       &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+        if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType),
+                       &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
           return EFI_UNSUPPORTED;
         }
       }
@@ -540,13 +540,13 @@ ApfsDriverLoaderSupported (
       if (Edk2PartitionInfo->Type != PARTITION_TYPE_GPT) {
         return EFI_UNSUPPORTED;
       }
-      
+
       //
       // Verify GPT entry GUID
       //
-      if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &gApfsContainerPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+      if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
         return EFI_UNSUPPORTED;
-      } 
+      }
 
     }
   }
@@ -556,18 +556,18 @@ ApfsDriverLoaderSupported (
 
 /**
   Routine Description:
-  
+
     Start this driver on ControllerHandle by opening a Block IO and Disk IO
     protocol, reading ApfsContainer if present.
-  
+
   Arguments:
-  
+
     This                  - Protocol instance pointer.
     ControllerHandle      - Handle of device to bind driver to.
     RemainingDevicePath   - Not used.
-  
+
   Returns:
-  
+
     EFI_SUCCESS           - This driver is added to DeviceHandle.
     EFI_ALREADY_STARTED   - This driver is already running on DeviceHandle.
     EFI_OUT_OF_RESOURCES  - Can not allocate the memory.
@@ -601,7 +601,7 @@ ApfsDriverLoaderStart (
   APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA    *Private                     = NULL;
   APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
 
-  
+
   Status = gBS->OpenProtocol (
     ControllerHandle,
     &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
@@ -610,10 +610,10 @@ ApfsDriverLoaderStart (
     ControllerHandle,
     EFI_OPEN_PROTOCOL_TEST_PROTOCOL
     );
-   
+
    if (!EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
-   }  
+   }
 
   DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
 
@@ -644,7 +644,7 @@ ApfsDriverLoaderStart (
     if (EFI_ERROR (Status)) {
       return EFI_UNSUPPORTED;
     }
-  }  
+  }
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -698,7 +698,7 @@ ApfsDriverLoaderStart (
     FreePool (ApfsBlock);
     return EFI_DEVICE_ERROR;
   }
- 
+
   ContainerSuperBlock = (APFS_NXSB *)ApfsBlock;
 
   //
@@ -708,7 +708,7 @@ ApfsDriverLoaderStart (
       || ContainerSuperBlock->BlockHeader.NodeId != 1) {
     return EFI_UNSUPPORTED;
   }
-  
+
   //
   // Verify ContainerSuperblock magic.
   //
@@ -726,13 +726,13 @@ ApfsDriverLoaderStart (
   ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "Container Blocksize: %u bytes\n", 
+    DEBUG_VERBOSE,
+    "Container Blocksize: %u bytes\n",
     ApfsBlockSize
     ));
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "ContainerSuperblock checksum: %08llx \n", 
+    DEBUG_VERBOSE,
+    "ContainerSuperblock checksum: %08llx \n",
     ContainerSuperBlock->BlockHeader.Checksum
     ));
 
@@ -742,7 +742,7 @@ ApfsDriverLoaderStart (
   EfiBootRecordBlockPtr = ContainerSuperBlock->EfiBootRecordBlock;
 
   DEBUG ((
-    DEBUG_VERBOSE, 
+    DEBUG_VERBOSE,
     "EfiBootRecord located at: %llu block\n",
     EfiBootRecordBlockPtr
     ));
@@ -767,19 +767,19 @@ ApfsDriverLoaderStart (
     ApfsBlockSize,
     ApfsBlock
     );
-  
+
   if (EFI_ERROR (Status)) {
     FreePool (ApfsBlock);
     return EFI_DEVICE_ERROR;
   }
-  
+
   //
   // Verify ContainerSuperblock checksum.
   //
   if (!ApfsBlockChecksumVerify((UINT8 *)ApfsBlock, ApfsBlockSize)) {
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
-  } 
+  }
 
   //
   // Extract Container UUID
@@ -790,15 +790,15 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock...
   //
-  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize) 
-                              + LegacyBaseOffset; 
-  
+  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize)
+                              + LegacyBaseOffset;
+
   DEBUG ((
-    DEBUG_VERBOSE, 
+    DEBUG_VERBOSE,
     "EfiBootRecordBlock offset: %08llx \n",
      EfiBootRecordBlockOffset
      ));
-  
+
   //
   // Read EfiBootRecordBlock.
   //
@@ -823,7 +823,7 @@ ApfsDriverLoaderStart (
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
   }
-  
+
   EfiBootRecordBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
   if (EfiBootRecordBlock->MagicNumber != EfiBootRecordMagic) {
     FreePool(ApfsBlock);
@@ -831,33 +831,33 @@ ApfsDriverLoaderStart (
   }
 
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "EfiBootRecordBlock checksum: %08llx\n", 
+    DEBUG_VERBOSE,
+    "EfiBootRecordBlock checksum: %08llx\n",
     EfiBootRecordBlock->BlockHeader.Checksum
     ));
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "ApfsDriver located at: %llu block\n", 
+    DEBUG_VERBOSE,
+    "ApfsDriver located at: %llu block\n",
     EfiBootRecordBlock->BootRecordLBA
     ));
 
   ApfsDriverBootRecordOffset = MultU64x32 (
-                                EfiBootRecordBlock->BootRecordLBA, 
+                                EfiBootRecordBlock->BootRecordLBA,
                                 ApfsBlockSize
                                 )  + LegacyBaseOffset;
   AppleFileSystemDriverSize = MultU64x32 (
-                                EfiBootRecordBlock->BootRecordSize, 
+                                EfiBootRecordBlock->BootRecordSize,
                                 ApfsBlockSize
                                 );
 
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "ApfsDriver offset: %08llx \n", 
+    DEBUG_VERBOSE,
+    "ApfsDriver offset: %08llx \n",
     ApfsDriverBootRecordOffset
     ));
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "ApfsDriver size: %llu bytes\n", 
+    DEBUG_VERBOSE,
+    "ApfsDriver size: %llu bytes\n",
     AppleFileSystemDriverSize
     ));
 
@@ -881,7 +881,7 @@ ApfsDriverLoaderStart (
   if (EFI_ERROR (Status)) {
     return EFI_DEVICE_ERROR;
   }
-  
+
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
@@ -905,11 +905,11 @@ ApfsDriverLoaderStart (
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
-      DEBUG_WARN, 
-      "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n", 
+      DEBUG_WARN,
+      "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n",
       Status
       ));
-    if (AppleFileSystemDriverBuffer != NULL) { 
+    if (AppleFileSystemDriverBuffer != NULL) {
       FreePool (AppleFileSystemDriverBuffer);
     }
     if (Private != NULL) {
@@ -931,20 +931,20 @@ ApfsDriverLoaderStart (
       NULL
       );
 
-    if (AppleFileSystemDriverBuffer != NULL) { 
+    if (AppleFileSystemDriverBuffer != NULL) {
       FreePool (AppleFileSystemDriverBuffer);
     }
     if (Private != NULL) {
       FreePool(Private);
     }
-    
+
     return EFI_UNSUPPORTED;
   }
 
   //
   // Free memory and close DiskIo protocol
   //
-  if (AppleFileSystemDriverBuffer != NULL) { 
+  if (AppleFileSystemDriverBuffer != NULL) {
     FreePool (AppleFileSystemDriverBuffer);
   }
   if (Private != NULL) {
@@ -952,16 +952,16 @@ ApfsDriverLoaderStart (
   }
   if (DiskIo2 != NULL) {
     gBS->CloseProtocol(
-      ControllerHandle, 
-      &gEfiDiskIo2ProtocolGuid, 
-      This->DriverBindingHandle, 
+      ControllerHandle,
+      &gEfiDiskIo2ProtocolGuid,
+      This->DriverBindingHandle,
       ControllerHandle
       );
   } else {
     gBS->CloseProtocol(
-      ControllerHandle, 
-      &gEfiDiskIoProtocolGuid, 
-      This->DriverBindingHandle, 
+      ControllerHandle,
+      &gEfiDiskIoProtocolGuid,
+      This->DriverBindingHandle,
       ControllerHandle
       );
   }
@@ -996,7 +996,7 @@ ApfsDriverLoaderStop (
 {
   EFI_STATUS                                   Status;
   APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO *EfiBootRecordLocationInfo   = NULL;
-  
+
   Status = gBS->OpenProtocol(
     ControllerHandle,
     &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
@@ -1014,12 +1014,12 @@ ApfsDriverLoaderStop (
       ControllerHandle
       );
     Status = gBS->CloseProtocol(
-      ControllerHandle, 
-      &gEfiDiskIo2ProtocolGuid, 
-      This->DriverBindingHandle, 
+      ControllerHandle,
+      &gEfiDiskIo2ProtocolGuid,
+      This->DriverBindingHandle,
       ControllerHandle
       );
-  } else { 
+  } else {
     Status = gBS->UninstallMultipleProtocolInterfaces(
       EfiBootRecordLocationInfo->ControllerHandle,
       &gAppleFileSystemEfiBootRecordInfoProtocolGuid,
@@ -1070,10 +1070,10 @@ ApfsDriverLoaderInit (
 {
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface = NULL;
-  
+
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "Starting ApfsDriverLoader ver. %s\n", 
+    DEBUG_VERBOSE,
+    "Starting ApfsDriverLoader ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
 
@@ -1082,7 +1082,7 @@ ApfsDriverLoaderInit (
   // If not present use Legacy scan
   //
   Status = gBS->LocateProtocol(
-    &gApfsContainerPartitionTypeGuid,
+    &gAppleApfsPartitionTypeGuid,
     NULL,
     (VOID **) &PartitionInfoInterface
     );
@@ -1103,11 +1103,11 @@ ApfsDriverLoaderInit (
 
   if (EFI_ERROR(Status)) {
     DEBUG ((
-      DEBUG_VERBOSE, 
+      DEBUG_VERBOSE,
       "No partition info protocol, using Legacy scan\n"
       ));
     LegacyScan = TRUE;
-  } 
+  }
 
   //
   // Install Driver Binding Instance
@@ -1119,7 +1119,7 @@ ApfsDriverLoaderInit (
     ImageHandle,
     &gApfsDriverLoaderComponentName,
     &gApfsDriverLoaderComponentName2
-    );    
-  
+    );
+
   return Status;
 }
