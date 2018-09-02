@@ -2,6 +2,11 @@ AppleSupport Changelog
 ==================
 
 ## ApfsDriverLoader
+#### v2.0.3
+- Embedded signature verification into ApfsDriverLoader
+- Removed AppleLoadImage support from ApfsDriverLoader due to security reasons
+  * AppleLoadImage can be compromised, because our implementation isn't embedded into firmware, so it is possible, that attacker can simply bypass security checks by adding dummy implementation
+
 #### v2.0.2
 - Fixed potential memory leaks
 
@@ -45,6 +50,9 @@ AppleSupport Changelog
 - Initial release
 
 ## AppleUiSupport
+### v2.0.3
+- Added FvOnFv2Thunk into FirmwareVolume injector to create back-compatibility for broken UEFI implementation on some boards, for example MSI
+
 ### v1.0.0
 - Initial release
 
