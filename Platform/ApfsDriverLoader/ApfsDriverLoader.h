@@ -19,6 +19,42 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APFS_DRIVER_LOADER_H_
 #define APFS_DRIVER_LOADER_H_
 
+#define APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA_SIGNATURE  SIGNATURE_32 ('A', 'F', 'J', 'S')
+
+typedef struct _UNKNOWNFIELD
+{
+    UINT32                                       Unknown1;
+    EFI_HANDLE                                   Handle;
+    EFI_HANDLE                                   AgentHandle;
+    UINT8                                        Unknown2[88];
+    UINT64                                       Unknown3;
+} UNKNOWNFIELD;
+
+//
+// Private ApfsJumpStart structure
+//
+typedef struct _APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA
+{
+    UINT32                                       Magic;
+    EFI_HANDLE                                   ControllerHandle;
+    EFI_HANDLE                                   DriverBindingHandle;
+    APPLE_FILESYSTEM_EFIBOOTRECORD_LOCATION_INFO EfiBootRecordLocationInfo;
+    UINT8                                        Unknown1[24];
+    EFI_EVENT                                    NotifyEvent;
+    VOID                                         *ApfsDriverPtr;
+    UINT32                                       ApfsDriverSize;
+    UINT32                                       ContainerBlockSize;
+    UINT64                                       ContainerTotalBlocks;
+    UINT8                                        Unknown2[4];
+    UINT32                                       Unknown3;
+    EFI_BLOCK_IO_PROTOCOL                        *BlockIoInterface;
+    UNKNOWNFIELD                                 *Unknown4;
+    UINT64                                       UnknownAddress;
+} APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA;
+
+#define APPLE_FILESYSTEM_EFIBOOTRECORD_INFO_PRIVATE_DATA_FROM_THIS(a) \
+          CR(a, APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA, EfiBootRecordLocationInfo, APPLE_FILESYSTEM_DRIVER_INFO_PRIVATE_DATA_SIGNATURE)
+
 //
 // Container Superblock magic
 // 'NXSB'
