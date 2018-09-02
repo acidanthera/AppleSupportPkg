@@ -11,7 +11,7 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Loads apfs.efi from APFS container located on the block device.
 - Apfs driver verbose logging suppressed.
 - Version system: connects each apfs.efi to the device from which it was retrieved.
-- It supports AppleLoadImage protocol, which provides EfiBinary signature check, what prevents possible implant injection.
+- Embedded signature verification of chainloaded apfs.efi driver, what prevents possible implant injection.
 
 ## AppleImageLoader
 Secure AppleEfiFat binary driver with implementation of AppleLoadImage protocol with EfiBinary signature verification.
