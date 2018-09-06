@@ -132,8 +132,7 @@ DecodePngImage (
     );
 
   if (NewImage == NULL) {
-    FreePool (Data);
-    lodepng_state_cleanup (&State);
+    lodepng_free (Data);
     return NULL;
   }
 
@@ -148,8 +147,7 @@ DecodePngImage (
     }
   }
 
-  FreePool (Data);
-  lodepng_state_cleanup (&State);
+  lodepng_free (Data);
   return NewImage;
 }
 

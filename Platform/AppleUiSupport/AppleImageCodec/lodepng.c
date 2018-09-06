@@ -67,7 +67,7 @@ static size_t strlen (const char *s1) {
   _Static_assert(sizeof(size_t) >= 4, "Unsupported size_t");
 #endif
 
-static void* lodepng_malloc(size_t size) {
+void* lodepng_malloc(size_t size) {
   if (size > LODEPNG_MAX_ALLOC) {
     return NULL;
   }
@@ -75,6 +75,7 @@ static void* lodepng_malloc(size_t size) {
   void* ptr;
   EFI_STATUS Status = gBS->AllocatePool(EfiBootServicesData, size + sizeof(size_t), &ptr);
   if (EFI_ERROR(Status)) {
+    DEBUG((EFI_D_ERROR, "lodepng alloc failure - %r\n", Status));
     return NULL;
   }
 
@@ -82,13 +83,16 @@ static void* lodepng_malloc(size_t size) {
   return (uint8_t*)ptr + sizeof(size_t);
 }
 
-static void lodepng_free(void* ptr) {
+void lodepng_free(void* ptr) {
   if (ptr) {
-    gBS->FreePool((uint8_t*)ptr - sizeof(size_t));
+    EFI_STATUS Status = gBS->FreePool((uint8_t*)ptr - sizeof(size_t));
+    if (EFI_ERROR(Status)) {
+      DEBUG((EFI_D_ERROR, "lodepng dealloc failure - %r\n", Status));
+    }
   }
 }
 
-static void* lodepng_realloc(void* ptr, size_t new_size) {
+void* lodepng_realloc(void* ptr, size_t new_size) {
   if (!ptr) {
     // NULL pointer means just do malloc
     return lodepng_malloc(new_size);

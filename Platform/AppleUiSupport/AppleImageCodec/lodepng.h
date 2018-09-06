@@ -32,6 +32,7 @@ freely, subject to the following restrictions:
 
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/DebugLib.h>
 
 #define LODEPNG_NO_COMPILE_CPP
 #define LODEPNG_NO_COMPILE_ENCODER
@@ -51,6 +52,10 @@ typedef UINT8  uint8_t;
 typedef INT32  int32_t;
 typedef INT16  int16_t;
 typedef INT8   int8_t;
+
+void* lodepng_malloc(size_t size);
+void* lodepng_realloc(void* ptr, size_t new_size);
+void lodepng_free(void* ptr);
 
 #else
 #include <string.h> /*for size_t*/
