@@ -754,7 +754,7 @@ InternalSimplePointerPollNotifyFunction (
 
         mSimplePointerPollEvent = NULL;
       }
-    } else if (mMouseMoved == TRUE) {
+    } else if (mMouseMoved != 0) {
       mMouseMoved = FALSE;
 
       EventData.PointerEventType = APPLE_EVENT_TYPE_MOUSE_MOVED;
