@@ -1,3 +1,5 @@
 .DS_Store
 UDK
 Binaries
+Tools/EfiResTool/EfiResTool
+*.o

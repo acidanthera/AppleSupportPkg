@@ -83,6 +83,7 @@ DecodePngImage (
   EG_IMAGE          *NewImage    = NULL;
   EFI_UGA_PIXEL     *Pixel       = NULL;
   UINT8             *Data        = NULL;
+  UINT8             *DataPtr     = NULL;
   INTN              X            = 0;
   INTN              Y            = 0;
   UINT32            Width        = 0;
@@ -136,13 +137,14 @@ DecodePngImage (
     return NULL;
   }
 
+  DataPtr = Data;
   Pixel = (EFI_UGA_PIXEL*) NewImage->PixelData;
   for (Y = 0; Y < NewImage->Height; Y++) {
     for (X = 0; X < NewImage->Width; X++) {
-      Pixel->Red = *Data++;
-      Pixel->Green = *Data++;
-      Pixel->Blue = *Data++;
-      Pixel->Reserved = 0xFF - *Data++;
+      Pixel->Red = *DataPtr++;
+      Pixel->Green = *DataPtr++;
+      Pixel->Blue = *DataPtr++;
+      Pixel->Reserved = 0xFF - *DataPtr++;
       Pixel++;
     }
   }

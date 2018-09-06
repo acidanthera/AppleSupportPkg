@@ -318,14 +318,13 @@ int unpack_efires(const char* fname, const char* destination, unpack_flag flags,
         }
 
         int wrote = write(f, (void*) ((uintptr_t)file_map + off), len);
-        if (wrote != len) {
+        if ((uint32_t)wrote != len) {
             fprintf(stderr, "File 0x%04x: Expected to write %d bytes, wrote %d: %s\n", i, len, wrote, strerror(errno));
         }
 
         close(f);
     }
 
-    *filelist_iter = NULL;
     result = 0;
 
 out:;
