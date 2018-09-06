@@ -109,8 +109,7 @@ InternalGetAppleKeyStrokes (
           if (*KeyCodes == NULL) {
             *NumberOfKeyCodes = 0;
             Status        = EFI_OUT_OF_RESOURCES;
-            DEBUG ((EFI_D_ERROR, "InternalGetAppleKeyStrokes line 112\n"));
-            ASSERT_EFI_ERROR (Status);
+            DEBUG ((EFI_D_ERROR, "InternalGetAppleKeyStrokes alloc failure\n"));
           } else {
             Status = mKeyMapAggregator->GetKeyStrokes (
                                                mKeyMapAggregator,
@@ -145,7 +144,7 @@ InternalGetModifierStrokes (
   UINTN              NumberOfKeyCodes;
   APPLE_KEY_CODE     *KeyCodes;
 
-  DEBUG ((EFI_D_INFO, "InternalGetModifierStrokes\n"));
+  // DEBUG ((EFI_D_INFO, "InternalGetModifierStrokes\n"));
 
   Status = InternalGetAppleKeyStrokes (
              &Modifiers,
@@ -543,7 +542,7 @@ InternalAppleEventDataFromCurrentKeyStroke (
   EFI_CONSOLE_CONTROL_SCREEN_MODE Mode;
   UINTN                           Index;
 
-  DEBUG ((EFI_D_INFO, "InternalAppleEventDataFromCurrentKeyStroke\n"));
+  // DEBUG ((EFI_D_INFO, "InternalAppleEventDataFromCurrentKeyStroke\n"));
 
   ZeroMem (&InputKey, sizeof (InputKey));
 
@@ -621,7 +620,7 @@ InternalKeyStrokePollNotifyFunction (
   APPLE_MODIFIER_MAP Modifiers;
   APPLE_MODIFIER_MAP PartialModifers;
 
-  DEBUG ((EFI_D_INFO, "InternalKeyStrokePollNotifyFunction\n"));
+  // DEBUG ((EFI_D_INFO, "InternalKeyStrokePollNotifyFunction\n"));
 
   EventData.KeyData = NULL;
   Modifiers         = 0;
@@ -750,7 +749,7 @@ EventIsCapsLockOnImpl (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_INFO, "EventIsCapsLockOnImpl\n"));
+  // DEBUG ((EFI_D_INFO, "EventIsCapsLockOnImpl\n"));
 
   Status = EFI_INVALID_PARAMETER;
 

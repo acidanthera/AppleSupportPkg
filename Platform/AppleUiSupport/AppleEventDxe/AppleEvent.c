@@ -375,10 +375,11 @@ EventSetEventName (
     AllocationSize = AsciiStrSize (Name);
     EventName      = AllocateZeroPool (AllocationSize);
 
+    ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
+
     Status = EFI_OUT_OF_RESOURCES;
 
     if (EventName != NULL) {
-      ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
       AsciiStrCpyS (EventName, AllocationSize, Name);
       Status = EFI_SUCCESS;
     }
@@ -403,7 +404,7 @@ EventIsCapsLockOn (
   IN OUT BOOLEAN  *CLockOn
   )
 {
-  DEBUG ((EFI_D_INFO, "EventIsCapsLockOn\n"));
+  // DEBUG ((EFI_D_INFO, "EventIsCapsLockOn\n"));
 
   return EventIsCapsLockOnImpl (CLockOn);
 }

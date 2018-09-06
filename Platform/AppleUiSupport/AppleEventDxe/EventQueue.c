@@ -112,7 +112,6 @@ InternalQueueEventNotifyFunction (
 
       EventQueueEntry = RemoveEntryList (EventQueueEntry);
       FreePool ((VOID *)EventQueue->Information);
-      
       FreePool ((VOID *)EventQueue);
     }
 
@@ -185,8 +184,7 @@ EventCreateAppleEventQueueInfo (
         );
     }
   } else {
-    ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
-    return NULL;
+    DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo alloc failure\n"));
   }
 
   return QueueInfo;
@@ -216,9 +214,8 @@ EventAddEventToQueue (
 
       InsertTailList (&mQueue, &EventQueue->Link);
     } else {
-      ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
+      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue alloc failure\n"));
     }
-
 
     EfiReleaseLock (&mQueueLock);
     gBS->SignalEvent (mQueueEvent);
@@ -255,7 +252,7 @@ EventCreateEventQueue (
 
       Status = EFI_SUCCESS;
     } else {
-      ASSERT_EFI_ERROR (Status);      
+      DEBUG ((EFI_D_ERROR, "EventCreateEventQueue alloc failure\n"));
     }
   }
 
