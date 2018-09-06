@@ -36,25 +36,25 @@ CreateEfiGraphicsImage (
   BOOLEAN  HasAlpha
   )
 {
-    EG_IMAGE  *NewImage = NULL;
+  EG_IMAGE  *NewImage = NULL;
 
-    NewImage = (EG_IMAGE *) AllocateZeroPool (sizeof (EG_IMAGE));
-    if (NewImage == NULL) {
+  NewImage = (EG_IMAGE *) AllocateZeroPool (sizeof (EG_IMAGE));
+  if (NewImage == NULL) {
+    return NULL;
+  }
+
+  NewImage->PixelData = (EFI_UGA_PIXEL *) AllocateZeroPool (
+    (UINTN) (Width * Height * sizeof (EFI_UGA_PIXEL))
+    );
+  if (NewImage->PixelData == NULL) {
+      FreePool (NewImage);
       return NULL;
-    }
+  }
 
-    NewImage->PixelData = (EFI_UGA_PIXEL *) AllocateZeroPool (
-      (UINTN) (Width * Height * sizeof (EFI_UGA_PIXEL))
-      );
-    if (NewImage->PixelData == NULL) {
-        FreePool (NewImage);
-        return NULL;
-    }
-
-    NewImage->Width = Width;
-    NewImage->Height = Height;
-    NewImage->HasAlpha = HasAlpha;
-    return NewImage;
+  NewImage->Width = Width;
+  NewImage->Height = Height;
+  NewImage->HasAlpha = HasAlpha;
+  return NewImage;
 }
 
 STATIC
@@ -109,6 +109,7 @@ DecodePngImage (
     );
 
   if (Error) {
+    lodepng_state_cleanup (&State);
     return NULL;
   }
 
@@ -132,6 +133,7 @@ DecodePngImage (
 
   if (NewImage == NULL) {
     FreePool (Data);
+    lodepng_state_cleanup (&State);
     return NULL;
   }
 
@@ -147,6 +149,7 @@ DecodePngImage (
   }
 
   FreePool (Data);
+  lodepng_state_cleanup (&State);
   return NewImage;
 }
 
