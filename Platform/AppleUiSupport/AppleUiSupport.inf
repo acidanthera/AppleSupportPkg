@@ -41,6 +41,7 @@
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   DebugLib
+  AppleEventLib
 
 [Guids]
   gAppleVendorVariableGuid            ## GUID CONSUMES
@@ -63,6 +64,8 @@
   gAppleKeyMapAggregatorProtocolGuid  ## PROTOCOL CONSUMES
   gEfiConsoleControlProtocolGuid      ## PROTOCOL CONSUMES
   gEfiSimplePointerProtocolGuid       ## PROTOCOL CONSUMES
+  gEfiUgaDrawProtocolGuid             ## PROTOCOL CONSUMES
+  gEfiGraphicsOutputProtocolGuid      ## PROTOCOL CONSUMES
   gAppleKeyMapDatabaseProtocolGuid    ## PROTOCOL PRODUCES
 
 [Sources]
@@ -70,6 +73,10 @@
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c
   AppleEventDxe/AppleEvent.c
+  AppleEventDxe/EventQueue.c
+  AppleEventDxe/KeyHandler.c
+  AppleEventDxe/PointerHandler.c
+  AppleEventDxe/AppleKeyMap.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   HashServices/HashServices.c
   HashServices/HashServices.h
