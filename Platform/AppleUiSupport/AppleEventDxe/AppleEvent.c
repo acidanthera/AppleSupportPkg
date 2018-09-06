@@ -484,9 +484,9 @@ InitializeAppleEvent (
 
   DEBUG ((EFI_D_ERROR, "InitializeAppleEvent\n"));
 
-  EFI_LOADED_IMAGE_PROTOCOL *LoadedImage;
-
-  LoadedImage = NULL;
+  //
+  // Apple code supports unloading, ours does not.
+  //
   Status      = gBS->InstallProtocolInterface (
                        &ImageHandle,
                        &gAppleEventProtocolGuid,
@@ -494,26 +494,14 @@ InitializeAppleEvent (
                        (VOID *)&mAppleEventProtocol
                        );
 
-  // BUG: Use the EDK2 inf to handle unload.
-
   if (!EFI_ERROR (Status)) {
-    Status = gBS->HandleProtocol (
-                    ImageHandle,
-                    &gEfiLoadedImageProtocolGuid,
-                    (VOID **)&LoadedImage
-                    );
+    InternalCreateQueueEvent ();
 
-    if (!EFI_ERROR (Status)) {
-      LoadedImage->Unload = AppleEventUnload;
+    Status = EventCreateSimplePointerInstallNotifyEvent ();
+  }
 
-      InternalCreateQueueEvent ();
-
-      Status = EventCreateSimplePointerInstallNotifyEvent ();
-    }
-
-    if (EFI_ERROR (Status)) {
-      AppleEventUnload (ImageHandle);
-    }
+  if (EFI_ERROR (Status)) {
+    AppleEventUnload (ImageHandle);
   }
 
   return Status;

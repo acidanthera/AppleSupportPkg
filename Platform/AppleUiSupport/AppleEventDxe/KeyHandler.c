@@ -207,7 +207,7 @@ UINTN
 InternalGetAndRemoveReleasedKeys (
   IN  CONST UINTN           *NumberOfKeyCodes,
   IN  CONST APPLE_KEY_CODE  *KeyCodes,
-  OUT APPLE_KEY_CODE  **ReleasedKeys
+  OUT APPLE_KEY_CODE        **ReleasedKeys
   )
 {
   UINTN          NumberOfReleasedKeys;
@@ -320,7 +320,7 @@ InternalIsCLockOn (
     if (KeyInfo == NULL
       && KeyCodes[Index] == AppleHidUsbKbUsageKeyCLock
       && !mCLockChanged) {
-      CLockOn = (BOOLEAN) !mCLockOn;
+      CLockOn = (BOOLEAN) mCLockOn == FALSE;
       break;
     }
   }
