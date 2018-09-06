@@ -101,21 +101,17 @@ InternalQueueEventNotifyFunction (
     while (!IsNull (&mQueue, EventQueueEntry)) {
       EventQueue = APPLE_EVENT_QUEUE_FROM_LIST_ENTRY (EventQueueEntry);
 
-      InternalSingalEvents (EventQueue->Information);
+      InternalSignalEvents (EventQueue->Information);
 
       if (((EventQueue->Information->EventType & APPLE_ALL_KEYBOARD_EVENTS) != 0)
        && (EventQueue->Information->EventData.KeyData != NULL)) {
-        if ((VOID *)EventQueue->Information->EventData.KeyData != NULL) {
-          FreePool (
-            (VOID *)EventQueue->Information->EventData.KeyData
-            );
-        }
+        FreePool (
+          (VOID *)EventQueue->Information->EventData.KeyData
+          );
       }
 
       EventQueueEntry = RemoveEntryList (EventQueueEntry);
-      if ((VOID *)EventQueue->Information != NULL) {
-        FreePool ((VOID *)EventQueue->Information);  
-      }
+      FreePool ((VOID *)EventQueue->Information);
       
       FreePool ((VOID *)EventQueue);
     }
@@ -189,7 +185,6 @@ EventCreateAppleEventQueueInfo (
         );
     }
   } else {
-    DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo: line 192\n"));
     ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
     return NULL;
   }
@@ -221,7 +216,6 @@ EventAddEventToQueue (
 
       InsertTailList (&mQueue, &EventQueue->Link);
     } else {
-      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue: line 223\n"));
       ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
     }
 
@@ -261,7 +255,6 @@ EventCreateEventQueue (
 
       Status = EFI_SUCCESS;
     } else {
-      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue: line 264\n"));
       ASSERT_EFI_ERROR (Status);      
     }
   }

@@ -264,9 +264,8 @@ InternalRemoveUninstalledInstances (
               ++Index2;
             }
           }
-          if (OrgInstances != NULL) {
-            FreePool (OrgInstances);  
-          }
+
+          FreePool (OrgInstances);
 
           *InstancesPtr      = NewInstances;
           *NumberOfInstances = NumberOfMatches;

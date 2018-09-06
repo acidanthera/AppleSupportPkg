@@ -117,16 +117,16 @@ InternalFlagAllEventsReady (
   }
 }
 
-// InternalSingalEvents
+// InternalSignalEvents
 VOID
-InternalSingalEvents (
+InternalSignalEvents (
   IN APPLE_EVENT_INFORMATION  *Information
   )
 {
   LIST_ENTRY                 *EventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_INFO, "InternalSingalEvents\n"));
+  DEBUG ((EFI_D_INFO, "InternalSignalEvents\n"));
 
   EventHandleEntry = GetFirstNode (&mEventHandles);
 
@@ -178,9 +178,7 @@ InternalRemoveUnregisteredEvents (
         }
 
         RemoveEntryList (&EventHandle->Link);
-        if (EventHandle != NULL) {
-          FreePool ((VOID *)EventHandle);
-        }
+        FreePool ((VOID *)EventHandle);
       }
 
       EventHandleEntry = NextEventHandleEntry;
@@ -377,14 +375,13 @@ EventSetEventName (
     AllocationSize = AsciiStrSize (Name);
     EventName      = AllocateZeroPool (AllocationSize);
 
-    if (EventName == NULL) {
-      Status = EFI_OUT_OF_RESOURCES;
-      return Status;  
+    Status = EFI_OUT_OF_RESOURCES;
+
+    if (EventName != NULL) {
+      ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
+      AsciiStrCpyS (EventName, AllocationSize, Name);
+      Status = EFI_SUCCESS;
     }
-    
-    ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
-    AsciiStrCpyS (EventName, AllocationSize, Name);
-    Status = EFI_SUCCESS;
   }
 
   return Status;

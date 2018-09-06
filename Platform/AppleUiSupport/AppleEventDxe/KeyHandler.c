@@ -515,9 +515,10 @@ InternalGetCurrentKeyStroke (
         Status = EFI_SUCCESS;
       }
     } else {
+      //
+      // Report that no keys were pressed.
+      //
       *NumberOfKeyCodes = 0;
-      // CHECKME: 
-      // Success ?
       Status = EFI_SUCCESS;
     }
   }

@@ -128,9 +128,9 @@ InternalFlagAllEventsReady (
   VOID
   );
 
-// InternalSingalEvents
+// InternalSignalEvents
 VOID
-InternalSingalEvents (
+InternalSignalEvents (
   IN APPLE_EVENT_INFORMATION  *Information
   );
 
