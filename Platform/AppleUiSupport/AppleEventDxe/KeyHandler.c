@@ -205,8 +205,8 @@ InternalAppleKeyEventDataFromInputKey (
 STATIC
 UINTN
 InternalGetAndRemoveReleasedKeys (
-  IN  UINTN           *NumberOfKeyCodes,
-  IN  APPLE_KEY_CODE  *KeyCodes,
+  IN  CONST UINTN           *NumberOfKeyCodes,
+  IN  CONST APPLE_KEY_CODE  *KeyCodes,
   OUT APPLE_KEY_CODE  **ReleasedKeys
   )
 {
@@ -283,8 +283,8 @@ InternalGetAndRemoveReleasedKeys (
 STATIC
 BOOLEAN
 InternalIsCLockOn (
-  IN UINTN           *NumberOfKeyCodes,
-  IN APPLE_KEY_CODE  *KeyCodes
+  IN CONST UINTN           *NumberOfKeyCodes,
+  IN CONST APPLE_KEY_CODE  *KeyCodes
   )
 {
   BOOLEAN                CLockOn;
@@ -320,7 +320,7 @@ InternalIsCLockOn (
     if (KeyInfo == NULL
       && KeyCodes[Index] == AppleHidUsbKbUsageKeyCLock
       && !mCLockChanged) {
-      CLockOn = !mCLockOn;
+      CLockOn = (BOOLEAN) !mCLockOn;
       break;
     }
   }
