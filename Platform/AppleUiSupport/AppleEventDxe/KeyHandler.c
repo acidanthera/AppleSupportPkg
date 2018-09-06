@@ -102,13 +102,15 @@ InternalGetAppleKeyStrokes (
         if (*NumberOfKeyCodes == 0) {
           *KeyCodes = NULL;
         } else {
-          *KeyCodes = AllocatePool (
+          *KeyCodes = AllocateZeroPool (
                         *NumberOfKeyCodes * sizeof (**KeyCodes)
                         );
 
           if (*KeyCodes == NULL) {
             *NumberOfKeyCodes = 0;
             Status        = EFI_OUT_OF_RESOURCES;
+            DEBUG ((EFI_D_ERROR, "InternalGetAppleKeyStrokes line 112\n"));
+            ASSERT_EFI_ERROR (Status);
           } else {
             Status = mKeyMapAggregator->GetKeyStrokes (
                                                mKeyMapAggregator,
@@ -143,7 +145,7 @@ InternalGetModifierStrokes (
   UINTN              NumberOfKeyCodes;
   APPLE_KEY_CODE     *KeyCodes;
 
-  DEBUG ((EFI_D_ERROR, "InternalGetModifierStrokes\n"));
+  DEBUG ((EFI_D_INFO, "InternalGetModifierStrokes\n"));
 
   Status = InternalGetAppleKeyStrokes (
              &Modifiers,
@@ -263,7 +265,7 @@ InternalGetAndRemoveReleasedKeys (
 
   if (NumberOfReleasedKeys > 0) {
     ReleasedKeysSize = (sizeof (**ReleasedKeys) * NumberOfReleasedKeys);
-    *ReleasedKeys    = AllocatePool (ReleasedKeysSize);
+    *ReleasedKeys    = AllocateZeroPool (ReleasedKeysSize);
 
     if (*ReleasedKeys != NULL) {
       CopyMem (
@@ -514,6 +516,8 @@ InternalGetCurrentKeyStroke (
       }
     } else {
       *NumberOfKeyCodes = 0;
+      // CHECKME: 
+      // Success ?
       Status = EFI_SUCCESS;
     }
   }
@@ -538,7 +542,7 @@ InternalAppleEventDataFromCurrentKeyStroke (
   EFI_CONSOLE_CONTROL_SCREEN_MODE Mode;
   UINTN                           Index;
 
-  DEBUG ((EFI_D_ERROR, "InternalAppleEventDataFromCurrentKeyStroke\n"));
+  DEBUG ((EFI_D_INFO, "InternalAppleEventDataFromCurrentKeyStroke\n"));
 
   ZeroMem (&InputKey, sizeof (InputKey));
 
@@ -616,7 +620,7 @@ InternalKeyStrokePollNotifyFunction (
   APPLE_MODIFIER_MAP Modifiers;
   APPLE_MODIFIER_MAP PartialModifers;
 
-  DEBUG ((EFI_D_ERROR, "InternalKeyStrokePollNotifyFunction\n"));
+  DEBUG ((EFI_D_INFO, "InternalKeyStrokePollNotifyFunction\n"));
 
   EventData.KeyData = NULL;
   Modifiers         = 0;
@@ -667,7 +671,7 @@ InternalInitializeKeyHandler (
   VOID
   )
 {
-  DEBUG ((EFI_D_ERROR, "InternalInitializeKeyHandler\n"));
+  DEBUG ((EFI_D_INFO, "InternalInitializeKeyHandler\n"));
 
   if (!mInitialized) {
     mInitialized = TRUE;
@@ -688,7 +692,7 @@ EventCreateKeyStrokePollEvent (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "EventCreateKeyStrokePollEvent\n"));
+  DEBUG ((EFI_D_INFO, "EventCreateKeyStrokePollEvent\n"));
 
   Status = gBS->LocateProtocol (
                   &gAppleKeyMapAggregatorProtocolGuid,
@@ -720,7 +724,7 @@ EventCancelKeyStrokePollEvent (
   VOID
   )
 {
-  DEBUG ((EFI_D_ERROR, "EventCancelKeyStrokePollEvent\n"));
+  DEBUG ((EFI_D_INFO, "EventCancelKeyStrokePollEvent\n"));
 
   EventLibCancelEvent (mKeyStrokePollEvent);
 
@@ -745,7 +749,7 @@ EventIsCapsLockOnImpl (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "EventIsCapsLockOnImpl\n"));
+  DEBUG ((EFI_D_INFO, "EventIsCapsLockOnImpl\n"));
 
   Status = EFI_INVALID_PARAMETER;
 

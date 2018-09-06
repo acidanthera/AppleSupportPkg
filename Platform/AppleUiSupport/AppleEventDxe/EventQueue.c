@@ -64,7 +64,7 @@ InternalSignalAndCloseQueueEvent (
   VOID
   )
 {
-  DEBUG ((EFI_D_ERROR, "InternalSignalAndCloseQueueEvent\n"));
+  DEBUG ((EFI_D_INFO, "InternalSignalAndCloseQueueEvent\n"));
 
   gBS->SignalEvent (mQueueEvent);
 
@@ -86,14 +86,13 @@ InternalQueueEventNotifyFunction (
   LIST_ENTRY        *EventQueueEntry;
   APPLE_EVENT_QUEUE *EventQueue;
 
-  DEBUG ((EFI_D_ERROR, "InternalQueueEventNotifyFunction\n"));
+  DEBUG ((EFI_D_INFO, "InternalQueueEventNotifyFunction\n"));
 
   if (mQueueEventCreated) {
     do {
       Status = EfiAcquireLockOrFail (&mQueueLock);
 
-      // BUG: Should use EFI_ERROR().
-    } while (Status != EFI_SUCCESS);
+    } while (EFI_ERROR (Status));
 
     InternalFlagAllEventsReady ();
 
@@ -106,13 +105,18 @@ InternalQueueEventNotifyFunction (
 
       if (((EventQueue->Information->EventType & APPLE_ALL_KEYBOARD_EVENTS) != 0)
        && (EventQueue->Information->EventData.KeyData != NULL)) {
-        FreePool (
-          (VOID *)EventQueue->Information->EventData.KeyData
-          );
+        if ((VOID *)EventQueue->Information->EventData.KeyData != NULL) {
+          FreePool (
+            (VOID *)EventQueue->Information->EventData.KeyData
+            );
+        }
       }
 
       EventQueueEntry = RemoveEntryList (EventQueueEntry);
-      FreePool ((VOID *)EventQueue->Information);
+      if ((VOID *)EventQueue->Information != NULL) {
+        FreePool ((VOID *)EventQueue->Information);  
+      }
+      
       FreePool ((VOID *)EventQueue);
     }
 
@@ -129,7 +133,7 @@ InternalCreateQueueEvent (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "InternalCreateQueueEvent\n"));
+  DEBUG ((EFI_D_INFO, "InternalCreateQueueEvent\n"));
 
   EfiInitializeLock (&mQueueLock, TPL_NOTIFY);
 
@@ -159,7 +163,7 @@ EventCreateAppleEventQueueInfo (
   APPLE_EVENT_INFORMATION *QueueInfo;
   EFI_TIME                CreationTime;
 
-  DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo\n"));
+  DEBUG ((EFI_D_INFO, "EventCreateAppleEventQueueInfo\n"));
 
   QueueInfo = AllocateZeroPool (sizeof (*QueueInfo));
 
@@ -184,6 +188,10 @@ EventCreateAppleEventQueueInfo (
         sizeof (*PointerPosition)
         );
     }
+  } else {
+    DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo: line 192\n"));
+    ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
+    return NULL;
   }
 
   return QueueInfo;
@@ -198,21 +206,25 @@ EventAddEventToQueue (
   EFI_STATUS        Status;
   APPLE_EVENT_QUEUE *EventQueue;
 
-  DEBUG ((EFI_D_ERROR, "EventAddEventToQueue\n"));
+  DEBUG ((EFI_D_INFO, "EventAddEventToQueue\n"));
 
   if (mQueueEventCreated) {
     do {
       Status = EfiAcquireLockOrFail (&mQueueLock);
-    } while (Status != EFI_SUCCESS);
+    } while (EFI_ERROR (Status));
 
-    EventQueue = AllocatePool (sizeof (*EventQueue));
+    EventQueue = AllocateZeroPool (sizeof (*EventQueue));
 
     if (EventQueue != NULL) {
       EventQueue->Signature   = APPLE_EVENT_QUEUE_SIGNATURE;
       EventQueue->Information = Information;
 
       InsertTailList (&mQueue, &EventQueue->Link);
+    } else {
+      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue: line 223\n"));
+      ASSERT_EFI_ERROR (EFI_OUT_OF_RESOURCES);
     }
+
 
     EfiReleaseLock (&mQueueLock);
     gBS->SignalEvent (mQueueEvent);
@@ -230,7 +242,7 @@ EventCreateEventQueue (
   EFI_STATUS                    Status;
   APPLE_EVENT_INFORMATION       *Information;
 
-  DEBUG ((EFI_D_ERROR, "EventCreateEventQueue\n"));
+  DEBUG ((EFI_D_INFO, "EventCreateEventQueue\n"));
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -248,6 +260,9 @@ EventCreateEventQueue (
       EventAddEventToQueue (Information);
 
       Status = EFI_SUCCESS;
+    } else {
+      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue: line 264\n"));
+      ASSERT_EFI_ERROR (Status);      
     }
   }
 

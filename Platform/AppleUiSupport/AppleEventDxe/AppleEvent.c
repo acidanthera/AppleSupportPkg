@@ -68,7 +68,7 @@ EventSignalEvents (
   LIST_ENTRY                 *EventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "EventSignalEvents\n"));
+  DEBUG ((EFI_D_INFO, "EventSignalEvents\n"));
 
   EventHandleEntry = GetFirstNode (&mEventHandles);
 
@@ -100,7 +100,7 @@ InternalFlagAllEventsReady (
   LIST_ENTRY                 *EventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "InternalFlagAllEventsReady\n"));
+  DEBUG ((EFI_D_INFO, "InternalFlagAllEventsReady\n"));
 
   EventHandleEntry = GetFirstNode (&mEventHandles);
 
@@ -126,7 +126,7 @@ InternalSingalEvents (
   LIST_ENTRY                 *EventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "InternalSingalEvents\n"));
+  DEBUG ((EFI_D_INFO, "InternalSingalEvents\n"));
 
   EventHandleEntry = GetFirstNode (&mEventHandles);
 
@@ -160,7 +160,7 @@ InternalRemoveUnregisteredEvents (
   LIST_ENTRY                 *NextEventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "InternalRemoveUnregisteredEvents\n"));
+  DEBUG ((EFI_D_INFO, "InternalRemoveUnregisteredEvents\n"));
 
   EventHandleEntry = GetFirstNode (&mEventHandles);
 
@@ -178,7 +178,9 @@ InternalRemoveUnregisteredEvents (
         }
 
         RemoveEntryList (&EventHandle->Link);
-        FreePool ((VOID *)EventHandle);
+        if (EventHandle != NULL) {
+          FreePool ((VOID *)EventHandle);
+        }
       }
 
       EventHandleEntry = NextEventHandleEntry;
@@ -195,7 +197,7 @@ InternalCreatePollEvents (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "InternalCreatePollEvents\n"));
+  DEBUG ((EFI_D_INFO, "InternalCreatePollEvents\n"));
 
   Status = EventCreateSimplePointerPollEvent ();
 
@@ -216,7 +218,7 @@ InternalCancelPollEvents (
   VOID
   )
 {
-  DEBUG ((EFI_D_ERROR, "InternalCancelPollEvents\n"));
+  DEBUG ((EFI_D_INFO, "InternalCancelPollEvents\n"));
 
   EventCancelSimplePointerPollEvent ();
   EventCancelKeyStrokePollEvent ();
@@ -235,7 +237,7 @@ EventRegisterHandler (
   EFI_STATUS                 Status;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "EventRegisterHandler\n"));
+  DEBUG ((EFI_D_INFO, "EventRegisterHandler\n"));
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -294,7 +296,7 @@ EventUnregisterHandler (
   LIST_ENTRY                 *EventHandleEntry;
   APPLE_EVENT_HANDLE_PRIVATE *EventHandle;
 
-  DEBUG ((EFI_D_ERROR, "EventUnregisterHandler\n"));
+  DEBUG ((EFI_D_INFO, "EventUnregisterHandler\n"));
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -340,7 +342,7 @@ EventSetCursorPosition (
   IN DIMENSION  *Position
   )
 {
-  DEBUG ((EFI_D_ERROR, "EventSetCursorPosition\n"));
+  DEBUG ((EFI_D_INFO, "EventSetCursorPosition\n"));
 
   return EventSetCursorPositionImpl (Position);
 }
@@ -367,7 +369,7 @@ EventSetEventName (
   UINTN      AllocationSize;
   CHAR8      *EventName;
 
-  DEBUG ((EFI_D_ERROR, "EventSetEventName\n"));
+  DEBUG ((EFI_D_INFO, "EventSetEventName\n"));
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -375,15 +377,14 @@ EventSetEventName (
     AllocationSize = AsciiStrSize (Name);
     EventName      = AllocateZeroPool (AllocationSize);
 
-    ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
-
-    Status = EFI_OUT_OF_RESOURCES;
-
-    if (EventName != NULL) {
-      AsciiStrCpyS (EventName, AllocationSize, Name);
-
-      Status = EFI_SUCCESS;
+    if (EventName == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
+      return Status;  
     }
+    
+    ((APPLE_EVENT_HANDLE_PRIVATE *)Handle)->Name = EventName;
+    AsciiStrCpyS (EventName, AllocationSize, Name);
+    Status = EFI_SUCCESS;
   }
 
   return Status;
@@ -405,7 +406,7 @@ EventIsCapsLockOn (
   IN OUT BOOLEAN  *CLockOn
   )
 {
-  DEBUG ((EFI_D_ERROR, "EventIsCapsLockOn\n"));
+  DEBUG ((EFI_D_INFO, "EventIsCapsLockOn\n"));
 
   return EventIsCapsLockOnImpl (CLockOn);
 }
@@ -417,7 +418,7 @@ InternalUnregisterHandlers (
   VOID
   )
 {
-  DEBUG ((EFI_D_ERROR, "InternalUnregisterHandlers\n"));
+  DEBUG ((EFI_D_INFO, "InternalUnregisterHandlers\n"));
 
   EventSimplePointerDesctructor ();
 
@@ -447,7 +448,7 @@ AppleEventUnload (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "AppleEventUnload\n"));
+  DEBUG ((EFI_D_INFO, "AppleEventUnload\n"));
 
   EventCloseSimplePointerInstallNotifyEvent ();
 
@@ -482,7 +483,7 @@ InitializeAppleEvent (
 {
   EFI_STATUS                Status;
 
-  DEBUG ((EFI_D_ERROR, "InitializeAppleEvent\n"));
+  DEBUG ((EFI_D_INFO, "InitializeAppleEvent\n"));
 
   //
   // Apple code supports unloading, ours does not.
