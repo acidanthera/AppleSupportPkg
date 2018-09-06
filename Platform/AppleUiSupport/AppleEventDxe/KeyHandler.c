@@ -320,7 +320,7 @@ InternalIsCLockOn (
     if (KeyInfo == NULL
       && KeyCodes[Index] == AppleHidUsbKbUsageKeyCLock
       && !mCLockChanged) {
-      CLockOn = !mCLockOn;
+      CLockOn = (BOOLEAN) !mCLockOn;
       break;
     }
   }

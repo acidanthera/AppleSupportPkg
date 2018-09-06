@@ -476,11 +476,11 @@ InternalGetUiScaleData (
   DEBUG ((EFI_D_ERROR, "InternalGetUiScaleData\n"));
 
   AbsoluteValue = ABS(Movement);
-  Value         = HighBitSet64 (AbsoluteValue);
+  Value         = HighBitSet64 (UINT64) (AbsoluteValue);
   Factor        = 5;
 
   if (Value <= 3) {
-    Factor = (HighBitSet64 (AbsoluteValue) + 1);
+    Factor = (HighBitSet64 (UINT64) (AbsoluteValue) + 1);
   }
 
   return (INT64)(MultS64x64 (
