@@ -122,11 +122,14 @@ DecodePngImage (
   //
   HasAlphaType = lodepng_is_alpha_type (Color);
 
+  lodepng_state_cleanup(&State);
+
   NewImage = CreateEfiGraphicsImage (
     Width,
     Height,
     HasAlphaType
     );
+
   if (NewImage == NULL) {
     FreePool (Data);
     return NULL;
