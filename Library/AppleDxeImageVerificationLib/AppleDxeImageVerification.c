@@ -360,7 +360,7 @@ GetApplePeImageSha256 (
   UINT32                   CurPos             = 0;
   UINT64                   HashSize           = 0;
   UINT32                   Index              = 0;
-  UINT32                   SumOfBytesHashed   = 0;
+  UINT64                   SumOfBytesHashed   = 0;
   UINT64                   CodeCaveIndicator  = 0;
   UINT8                    *HashBase          = NULL;
   EFI_IMAGE_SECTION_HEADER *SectionHeader     = NULL;
@@ -415,7 +415,7 @@ GetApplePeImageSha256 (
   //
   // Sort sections
   //
-  SumOfBytesHashed = (UINT32) Context->SizeOfHeaders;
+  SumOfBytesHashed = Context->SizeOfHeaders;
 
   SectionHeader = (EFI_IMAGE_SECTION_HEADER *) AllocateZeroPool (
                     sizeof (EFI_IMAGE_SECTION_HEADER)

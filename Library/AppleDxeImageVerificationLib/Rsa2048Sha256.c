@@ -49,7 +49,7 @@ static
 void
 SubMod (
   RsaPublicKey  *Key,
-  UINT32      *A
+  UINT32        *A
   )
 {
   INT64  B     = 0;
@@ -68,7 +68,7 @@ static
 int
 GeMod (
   RsaPublicKey  *Key,
-  const UINT32      *A
+  const UINT32  *A
   )
 {
   UINT32 Index = 0;
@@ -90,9 +90,9 @@ static
 void
 MontMulAdd (
   RsaPublicKey  *Key,
-  UINT32      *C,
-  UINT32      Aa,
-  UINT32      *Bb
+  UINT32        *C,
+  UINT32        Aa,
+  UINT32        *Bb
   )
 {
   UINT64 A = 0;
@@ -125,15 +125,14 @@ static
 void
 MontMul (
   RsaPublicKey  *Key,
-  UINT32      *C,
-  UINT32      *A,
-  UINT32      *B
+  UINT32        *C,
+  UINT32        *A,
+  UINT32        *B
   )
 {
   UINT32 Index = 0;
 
-  for (Index = 0; Index < RSANUMWORDS; ++Index)
-    C[Index] = 0;
+  ZeroMem (C, RSANUMBYTES);
   for (Index = 0; Index < RSANUMWORDS; ++Index)
     MontMulAdd (Key, C, A[Index], B);
 }
@@ -151,8 +150,8 @@ static
 void
 ModPow (
   RsaPublicKey  *Key,
-  UINT8       *InOut,
-  UINT32      *Workbuf32
+  UINT8         *InOut,
+  UINT32        *Workbuf32
   )
 {
   UINT32 *A     = NULL;
@@ -174,7 +173,7 @@ ModPow (
   //
   //Convert from big endian byte array to little endian word array
   //
-  for (Index = 0; Index < (int)RSANUMWORDS; ++Index) {
+  for (Index = 0; Index < (INT32) RSANUMWORDS; ++Index) {
     Tmp =
       (InOut[((RSANUMWORDS - 1 - Index) * 4) + 0] << 24) |
       (InOut[((RSANUMWORDS - 1 - Index) * 4) + 1] << 16) |
@@ -200,7 +199,7 @@ ModPow (
   //
   // Convert to bigendian byte array
   //
-  for (Index = (int) RSANUMWORDS - 1; Index >= 0; --Index) {
+  for (Index = (INT32) RSANUMWORDS - 1; Index >= 0; --Index) {
     Tmp = Aaa[Index];
 
     *InOut++ = (UINT8) (Tmp >> 24);
@@ -245,7 +244,7 @@ CheckPadding (
   )
 {
   UINT8   *Ptr   = NULL;
-  int       Result = 0;
+  int     Result = 0;
   UINT32  Index  = 0;
 
   Ptr = Sig;
@@ -280,9 +279,9 @@ CheckPadding (
 int
 RsaVerify (
   RsaPublicKey  *Key,
-  UINT8       *Signature,
-  UINT8       *Sha,
-  UINT32      *Workbuf32
+  UINT8         *Signature,
+  UINT8         *Sha,
+  UINT32        *Workbuf32
   )
 {
   UINT8 Buf[RSANUMBYTES];

@@ -131,14 +131,10 @@ void Sha256Final (
     //
     if (Context->DataLen < 56) {
         Context->Data[Index++] = 0x80;
-        while (Index < 56) {
-            Context->Data[Index++] = 0x00;
-        }
+        ZeroMem (Context->Data + Index, 56-Index);
     } else {
         Context->Data[Index++] = 0x80;
-        while (Index < 64) {
-            Context->Data[Index++] = 0x00;
-        }
+        ZeroMem (Context->Data + Index, 64-Index);
         Sha256Transform (Context, Context->Data);
         ZeroMem (Context->Data, 56);
     }

@@ -58,7 +58,9 @@ StartApfsDriver (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage      = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable          = NULL;
 
-  if (AppleFileSystemDriverBuffer == NULL || AppleFileSystemDriverSize == 0) {
+  if (AppleFileSystemDriverBuffer == NULL
+    || AppleFileSystemDriverSize == 0
+    || AppleFileSystemDriverSize > (UINT32) 0xFFFFFFFFULL) {
     DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
     return EFI_UNSUPPORTED;
   }
@@ -82,7 +84,7 @@ StartApfsDriver (
   DEBUG ((DEBUG_WARN, "Verifying binary signature"));
   Status = VerifyApplePeImageSignature (
     AppleFileSystemDriverBuffer,
-    AppleFileSystemDriverSize
+    (UINT32) AppleFileSystemDriverSize
     );
 
   if (!EFI_ERROR (Status)) {

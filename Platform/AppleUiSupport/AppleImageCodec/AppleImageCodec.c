@@ -86,10 +86,10 @@ DecodePngImage (
   UINT8             *DataPtr     = NULL;
   INTN              X            = 0;
   INTN              Y            = 0;
-  UINT32            Width        = 0;
-  UINT32            Height       = 0;
-  UINT32            Error        = 0;
-  UINT32            HasAlphaType = 0;
+  unsigned          Width        = 0;
+  unsigned          Height       = 0;
+  unsigned          Error        = 0;
+  unsigned          HasAlphaType = 0;
   LodePNGColorMode  *Color       = NULL;
 
   //
@@ -129,7 +129,7 @@ DecodePngImage (
   NewImage = CreateEfiGraphicsImage (
     Width,
     Height,
-    HasAlphaType
+    (BOOLEAN) HasAlphaType
     );
 
   if (NewImage == NULL) {

@@ -151,7 +151,7 @@ LoadImageEx (
   //
   // Try to parse as AppleEfiFatBinary
   //
-  if (SourceBuffer != NULL && SourceSize != 0) {
+  if (SourceBuffer != NULL && SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
     Status = ParseAppleEfiFatBinary (
       SourceBuffer,
       SourceSize,
@@ -162,10 +162,15 @@ LoadImageEx (
     if (!EFI_ERROR (Status)) {
       SourceBuffer = ImageBuffer;
       SourceSize = ImageSize;
-      //
-      // Verify ApplePeImage signature
-      //
-      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+
+      if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
+        //
+        // Verify ApplePeImage signature
+        //
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32) SourceSize);
+      } else {
+        Status = EFI_INVALID_PARAMETER;
+      }
 
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
@@ -275,7 +280,12 @@ AppleLoadImage (
       SourceBuffer = ImageBuffer;
       SourceSize = ImageSize;
 
-      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32) SourceSize);
+      } else {
+        Status = EFI_INVALID_PARAMETER;
+      }
+
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
           FreePool (FileBuffer);
@@ -283,7 +293,12 @@ AppleLoadImage (
         return Status;
       }
     } else {
-      Status = VerifyApplePeImageSignature (SourceBuffer, SourceSize);
+      if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32) SourceSize);
+      } else {
+        Status = EFI_INVALID_PARAMETER;
+      }
+
       if (EFI_ERROR (Status)) {
         if (FileBuffer != NULL) {
           FreePool (FileBuffer);
