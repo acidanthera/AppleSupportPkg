@@ -72,11 +72,11 @@
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c
-  AppleEventDxe/AppleEvent.c
-  AppleEventDxe/EventQueue.c
-  AppleEventDxe/KeyHandler.c
-  AppleEventDxe/PointerHandler.c
-  AppleEventDxe/AppleKeyMap.c
+  AppleEvent/AppleEvent.c
+  AppleEvent/EventQueue.c
+  AppleEvent/KeyHandler.c
+  AppleEvent/PointerHandler.c
+  AppleEvent/AppleKeyMap.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   HashServices/HashServices.c
   HashServices/HashServices.h
