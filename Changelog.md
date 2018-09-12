@@ -1,14 +1,20 @@
 AppleSupport Changelog
-==================
+======================
 
-## ApfsDriverLoader
+#### v2.0.4
+- Implemented a complete port of AppleEvent (thx CupertinoNet for the base)
+- Reduced mouse polling timer to fix booting issues on some Dell laptops
+
 #### v2.0.3
 - Embedded signature verification into ApfsDriverLoader
 - Removed AppleLoadImage support from ApfsDriverLoader due to security reasons
   * AppleLoadImage can be compromised, because our implementation isn't embedded into firmware, so it is possible, that attacker can simply bypass security checks by adding dummy implementation
+- Added FvOnFv2Thunk into FirmwareVolume injector to create back-compatibility for broken UEFI implementation on some boards, for example MSI
 
 #### v2.0.2
 - Fixed potential memory leaks
+- Added support for AppleEfiFatBinary with signature verification (AppleImageLoader 1.5.0)
+- Extended AppleLoadImage protocol with signature verification of EFI binary (AppleImageLoader 1.5.0)
 
 #### v2.0.1 
 - Implemented support for AppleLoadImage protocol
@@ -39,23 +45,4 @@ AppleSupport Changelog
 - Fix byteorder in APFS Container GUID
 
 #### v1.0
-- Initial release
-
-## AppleImageLoader
-### v1.5.0
-- Added support for AppleEfiFatBinary with signature verification
-- Extended AppleLoadImage protocol with signature verification of EFI binary
-
-### v1.0.0
-- Initial release
-
-## AppleUiSupport
-### v2.0.3
-- Added FvOnFv2Thunk into FirmwareVolume injector to create back-compatibility for broken UEFI implementation on some boards, for example MSI
-
-### v1.0.0
-- Initial release
-
-## AppleEfiSignTool
-### v1.0
 - Initial release

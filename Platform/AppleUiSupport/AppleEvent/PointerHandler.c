@@ -751,27 +751,27 @@ InternalSimplePointerPollNotifyFunction (
 
     InternalHandleButtonInteraction (CommonStatus, &mLeftButtonInfo, Modifiers);
     InternalHandleButtonInteraction (CommonStatus, &mRightButtonInfo, Modifiers);
+  }
 
-    if (EFI_ERROR (CommonStatus)) {
-      if (CommonStatus == EFI_UNSUPPORTED) {
-        EventLibCancelEvent (mSimplePointerPollEvent);
+  if (EFI_ERROR (CommonStatus)) {
+    if (CommonStatus == EFI_UNSUPPORTED) {
+      EventLibCancelEvent (mSimplePointerPollEvent);
 
-        mSimplePointerPollEvent = NULL;
-      }
-    } else if (mMouseMoved != FALSE) {
-      mMouseMoved = FALSE;
+      mSimplePointerPollEvent = NULL;
+    }
+  } else if (mMouseMoved != FALSE) {
+    mMouseMoved = FALSE;
 
-      EventData.PointerEventType = APPLE_EVENT_TYPE_MOUSE_MOVED;
-      Information                = EventCreateAppleEventQueueInfo (
-                                     EventData,
-                                     APPLE_EVENT_TYPE_MOUSE_MOVED,
-                                     &mCursorPosition,
-                                     Modifiers
-                                     );
+    EventData.PointerEventType = APPLE_EVENT_TYPE_MOUSE_MOVED;
+    Information                = EventCreateAppleEventQueueInfo (
+                                   EventData,
+                                   APPLE_EVENT_TYPE_MOUSE_MOVED,
+                                   &mCursorPosition,
+                                   Modifiers
+                                   );
 
-      if (Information != NULL) {
-        EventAddEventToQueue (Information);
-      }
+    if (Information != NULL) {
+      EventAddEventToQueue (Information);
     }
   }
 }
