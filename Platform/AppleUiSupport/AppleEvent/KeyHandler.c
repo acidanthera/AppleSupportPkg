@@ -28,6 +28,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiLib.h>
 
 #include "AppleEventInternal.h"
 
@@ -35,7 +36,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define KEY_STROKE_DELAY  5
 
 // KEY_STROKE_POLL_FREQUENCY
-#define KEY_STROKE_POLL_FREQUENCY  100000
+#define KEY_STROKE_POLL_FREQUENCY  EFI_TIMER_PERIOD_MILLISECONDS (10)
 
 // KEY_STROKE_INFORMATION
 typedef struct {

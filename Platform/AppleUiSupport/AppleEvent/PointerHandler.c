@@ -30,6 +30,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
 #include "AppleEventInternal.h"
@@ -40,7 +41,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/BaseLib.h>
 
 // POINTER_POLL_FREQUENCY
-#define POINTER_POLL_FREQUENCY  20000
+// Apple has 2 ms here, but this causes a UI freeze on Dell XPS 13 9360
+#define POINTER_POLL_FREQUENCY  EFI_TIMER_PERIOD_MILLISECONDS (20)
 
 // MAXIMUM_DOUBLE_CLICK_SPEED
 /// (EFI_TIMER_PERIOD_MILLISECONDS (748) / POINTER_POLL_FREQUENCY)
