@@ -34,7 +34,7 @@ EventLibCreateTimerEvent (
   EFI_EVENT  Event;
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "EventLibCreateTimerEvent\n"));
+  // DEBUG ((EFI_D_ERROR, "EventLibCreateTimerEvent\n"));
 
   Event = NULL;
 
@@ -76,7 +76,7 @@ EventLibCreateNotifyTimerEvent (
   IN BOOLEAN           SignalPeriodic
   )
 {
-  DEBUG ((EFI_D_ERROR, "EventLibCreateNotifyTimerEvent\n"));
+  // DEBUG ((EFI_D_ERROR, "EventLibCreateNotifyTimerEvent\n"));
 
   return EventLibCreateTimerEvent (
            NotifyFunction,
@@ -95,7 +95,7 @@ EventLibCancelEvent (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_ERROR, "EventLibCancelEvent\n"));
+  // DEBUG ((EFI_D_ERROR, "EventLibCancelEvent\n"));
 
   Status = gBS->SetTimer (Event, TimerCancel, 0);
 
