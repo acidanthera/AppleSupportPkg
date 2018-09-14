@@ -64,7 +64,7 @@ InternalSignalAndCloseQueueEvent (
   VOID
   )
 {
-  DEBUG ((EFI_D_INFO, "InternalSignalAndCloseQueueEvent\n"));
+  // DEBUG ((EFI_D_INFO, "InternalSignalAndCloseQueueEvent\n"));
 
   gBS->SignalEvent (mQueueEvent);
 
@@ -86,7 +86,7 @@ InternalQueueEventNotifyFunction (
   LIST_ENTRY        *EventQueueEntry;
   APPLE_EVENT_QUEUE *EventQueue;
 
-  DEBUG ((EFI_D_INFO, "InternalQueueEventNotifyFunction\n"));
+  // DEBUG ((EFI_D_INFO, "InternalQueueEventNotifyFunction\n"));
 
   if (mQueueEventCreated) {
     do {
@@ -128,7 +128,7 @@ InternalCreateQueueEvent (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_INFO, "InternalCreateQueueEvent\n"));
+  // DEBUG ((EFI_D_INFO, "InternalCreateQueueEvent\n"));
 
   EfiInitializeLock (&mQueueLock, TPL_NOTIFY);
 
@@ -158,7 +158,7 @@ EventCreateAppleEventQueueInfo (
   APPLE_EVENT_INFORMATION *QueueInfo;
   EFI_TIME                CreationTime;
 
-  DEBUG ((EFI_D_INFO, "EventCreateAppleEventQueueInfo\n"));
+  // DEBUG ((EFI_D_INFO, "EventCreateAppleEventQueueInfo\n"));
 
   QueueInfo = AllocateZeroPool (sizeof (*QueueInfo));
 
@@ -184,7 +184,7 @@ EventCreateAppleEventQueueInfo (
         );
     }
   } else {
-    DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo alloc failure\n"));
+    // DEBUG ((EFI_D_ERROR, "EventCreateAppleEventQueueInfo alloc failure\n"));
   }
 
   return QueueInfo;
@@ -199,7 +199,7 @@ EventAddEventToQueue (
   EFI_STATUS        Status;
   APPLE_EVENT_QUEUE *EventQueue;
 
-  DEBUG ((EFI_D_INFO, "EventAddEventToQueue\n"));
+  // DEBUG ((EFI_D_INFO, "EventAddEventToQueue\n"));
 
   if (mQueueEventCreated) {
     do {
@@ -214,7 +214,7 @@ EventAddEventToQueue (
 
       InsertTailList (&mQueue, &EventQueue->Link);
     } else {
-      DEBUG ((EFI_D_ERROR, "EventAddEventToQueue alloc failure\n"));
+      // DEBUG ((EFI_D_ERROR, "EventAddEventToQueue alloc failure\n"));
     }
 
     EfiReleaseLock (&mQueueLock);
@@ -233,7 +233,7 @@ EventCreateEventQueue (
   EFI_STATUS                    Status;
   APPLE_EVENT_INFORMATION       *Information;
 
-  DEBUG ((EFI_D_INFO, "EventCreateEventQueue\n"));
+  // DEBUG ((EFI_D_INFO, "EventCreateEventQueue\n"));
 
   Status = EFI_INVALID_PARAMETER;
 
@@ -252,7 +252,7 @@ EventCreateEventQueue (
 
       Status = EFI_SUCCESS;
     } else {
-      DEBUG ((EFI_D_ERROR, "EventCreateEventQueue alloc failure\n"));
+      // DEBUG ((EFI_D_ERROR, "EventCreateEventQueue alloc failure\n"));
     }
   }
 

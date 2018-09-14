@@ -110,7 +110,7 @@ InternalGetAppleKeyStrokes (
           if (*KeyCodes == NULL) {
             *NumberOfKeyCodes = 0;
             Status        = EFI_OUT_OF_RESOURCES;
-            DEBUG ((EFI_D_ERROR, "InternalGetAppleKeyStrokes alloc failure\n"));
+            // DEBUG ((EFI_D_ERROR, "InternalGetAppleKeyStrokes alloc failure\n"));
           } else {
             Status = mKeyMapAggregator->GetKeyStrokes (
                                                mKeyMapAggregator,
@@ -186,10 +186,10 @@ InternalAppleKeyEventDataFromInputKey (
 
     if (KeyEventData != NULL) {
       KeyEventData->NumberOfKeyPairs = 1;
-      KeyEventData->KeyPair.InputKey = *InputKey;
+      KeyEventData->InputKey = *InputKey;
 
       CopyMem (
-        (VOID *)&KeyEventData->KeyPair.AppleKeyCode,
+        (VOID *)&KeyEventData->AppleKeyCode,
         (VOID *)AppleKeyCode,
         sizeof (*AppleKeyCode)
         );
@@ -672,7 +672,7 @@ InternalInitializeKeyHandler (
   VOID
   )
 {
-  DEBUG ((EFI_D_INFO, "InternalInitializeKeyHandler\n"));
+  // DEBUG ((EFI_D_INFO, "InternalInitializeKeyHandler\n"));
 
   if (!mInitialized) {
     mInitialized = TRUE;
@@ -693,7 +693,7 @@ EventCreateKeyStrokePollEvent (
 {
   EFI_STATUS Status;
 
-  DEBUG ((EFI_D_INFO, "EventCreateKeyStrokePollEvent\n"));
+  // DEBUG ((EFI_D_INFO, "EventCreateKeyStrokePollEvent\n"));
 
   Status = gBS->LocateProtocol (
                   &gAppleKeyMapAggregatorProtocolGuid,
@@ -725,7 +725,7 @@ EventCancelKeyStrokePollEvent (
   VOID
   )
 {
-  DEBUG ((EFI_D_INFO, "EventCancelKeyStrokePollEvent\n"));
+  // DEBUG ((EFI_D_INFO, "EventCancelKeyStrokePollEvent\n"));
 
   EventLibCancelEvent (mKeyStrokePollEvent);
 
