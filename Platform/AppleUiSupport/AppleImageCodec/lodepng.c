@@ -645,9 +645,7 @@ static void HuffmanTree_draw(HuffmanTree* tree)
 
 static void HuffmanTree_init(HuffmanTree* tree)
 {
-  tree->tree2d = 0;
-  tree->tree1d = 0;
-  tree->lengths = 0;
+  memset(tree, 0, sizeof(*tree));
 }
 
 static void HuffmanTree_cleanup(HuffmanTree* tree)
@@ -1247,8 +1245,8 @@ static unsigned inflateHuffmanBlock(ucvector* out, const unsigned char* in, size
                                     size_t* pos, size_t inlength, unsigned btype)
 {
   unsigned error = 0;
-  HuffmanTree tree_ll = {}; /*the huffman tree for literal and length codes*/
-  HuffmanTree tree_d = {}; /*the huffman tree for distance codes*/
+  HuffmanTree tree_ll; /*the huffman tree for literal and length codes*/
+  HuffmanTree tree_d; /*the huffman tree for distance codes*/
   size_t inbitlength = inlength * 8;
 
   HuffmanTree_init(&tree_ll);
