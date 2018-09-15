@@ -59,7 +59,7 @@ static size_t strlen(const char* s1) {
 }
 
 // LODEPNG_MAX_ALLOC + sizeof(size_t) must fit into size_t.
-#define LODEPNG_MAX_ALLOC ((size_t)64*1024*1024)
+#define LODEPNG_MAX_ALLOC ((size_t)256*1024*1024)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201100L
   _Static_assert(sizeof(size_t) >= 4, "Unsupported size_t");
 #endif
