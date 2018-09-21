@@ -97,6 +97,3 @@
   AppleImageCodec/lodepng.h
   AppleUiSupport.c
   AppleUiSupport.h
-
-[BuildOptions]
-  *_*_*_CC_FLAGS = -D LODEPNG_UEFI_MODE

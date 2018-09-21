@@ -32,7 +32,7 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 
 #include "lodepng.h"
 
-#ifdef LODEPNG_UEFI_MODE
+#ifdef EFIAPI
 
 // Floating point operations are used here, this must be defined to prevent linker error
 const int32_t _fltused = 0;

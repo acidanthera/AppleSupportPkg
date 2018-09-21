@@ -28,7 +28,7 @@ freely, subject to the following restrictions:
 #ifndef LODEPNG_H
 #define LODEPNG_H
 
-#ifdef LODEPNG_UEFI_MODE
+#ifdef EFIAPI
 
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
