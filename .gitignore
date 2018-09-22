@@ -2,4 +2,5 @@
 UDK
 Binaries
 Tools/EfiResTool/EfiResTool
+Tools/AppleEfiSignTool/AppleEfiSignTool
 *.o

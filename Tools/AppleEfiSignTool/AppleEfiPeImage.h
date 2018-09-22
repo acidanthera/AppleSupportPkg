@@ -59,6 +59,8 @@ typedef struct APPLE_SIGNATURE_DIRECTORY_ {
     uint8_t   Signature[256];
 }  APPLE_SIGNATURE_DIRECTORY;
 
+#define APPLE_SIGNATURE_SECENTRY_SIZE 8
+
 //
 // Function prototypes
 //
@@ -68,9 +70,9 @@ GetPeHeaderMagicValue (
   );
 
 int
-GetPeHeader (
+BuildPeContext (
   void                               *Image,
-  uint32_t                           ImageSize,
+  uint32_t                           *RealImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT *Context
   );
 
@@ -87,7 +89,6 @@ GetApplePeImageSignature (
 int
 GetApplePeImageSha256 (
   void                                *Image,
-  uint32_t                            ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   uint8_t                             *CalcucatedHash
   );

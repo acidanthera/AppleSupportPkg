@@ -63,9 +63,9 @@ GetPeHeaderMagicValue (
 }
 
 int
-GetPeHeader (
+BuildPeContext (
   void                                *Image,
-  uint32_t                            ImageSize,
+  uint32_t                            *RealImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   )
 {
@@ -77,6 +77,9 @@ GetPeHeader (
   EFI_IMAGE_SECTION_HEADER         *SectionCache        = NULL;
   uint32_t                         Index                = 0;
   uint32_t                         MaxHeaderSize        = 0;
+  uint32_t                         ImageSize            = 0;
+
+  ImageSize = *RealImageSize;
 
   //
   // Check context
@@ -94,6 +97,7 @@ GetPeHeader (
   } else {
     MaxHeaderSize = sizeof (EFI_IMAGE_OPTIONAL_HEADER_UNION);
   }
+
   if (ImageSize < MaxHeaderSize) {
     DEBUG_PRINT (("Invalid image\n"));
     return -1;
@@ -105,10 +109,12 @@ GetPeHeader (
   // Verify DosHdr magic
   //
   if (DosHdr->e_magic == EFI_IMAGE_DOS_SIGNATURE) {
-    if (DosHdr->e_lfanew > ImageSize) {
+    if (DosHdr->e_lfanew > ImageSize
+      || DosHdr->e_lfanew < sizeof (EFI_IMAGE_DOS_HEADER)) {
       DEBUG_PRINT (("Invalid PE offset\n"));
       return -1;
     }
+
     PeHdr = (EFI_IMAGE_OPTIONAL_HEADER_UNION *) ((uint8_t *) Image
                                                  + DosHdr->e_lfanew);
     if ((uint8_t *) Image + ImageSize -
@@ -116,6 +122,13 @@ GetPeHeader (
       DEBUG_PRINT (("Invalid PE location\n"));
       return -1;
     }
+
+    //
+    // DosHdr is not relevant for UEFI, and it is not hashed by Apple Signature.
+    // Zero it to avoid potential harm!
+    //
+    memset ((uint8_t *) Image + sizeof (EFI_IMAGE_DOS_HEADER), 0,
+      DosHdr->e_lfanew - sizeof (EFI_IMAGE_DOS_HEADER));
   } else {
     //
     // DosHdr truncated
@@ -313,6 +326,9 @@ GetPeHeader (
     return -1;
   }
 
+  //TODO: review the abobe checks, and truncate the image after
+  // Context->SecDir->VirtualAddress + APPLE_SIGNATURE_SECENTRY_SIZE.
+
   return 0;
 }
 
@@ -358,19 +374,21 @@ GetApplePeImageSignature (
 int
 GetApplePeImageSha256 (
   void                                *Image,
-  uint32_t                            ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   uint8_t                             *CalcucatedHash
   )
 {
-  uint32_t                 CurPos             = 0;
   uint64_t                 HashSize           = 0;
-  uint32_t                 Index              = 0;
-  uint32_t                 SumOfBytesHashed   = 0;
-  uint64_t                 CodeCaveIndicator  = 0;
   uint8_t                  *HashBase          = NULL;
-  EFI_IMAGE_SECTION_HEADER *SectionHeader     = NULL;
   Sha256Context            Sha256Ctx;
+
+  //
+  // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
+  //
+  if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
+    DEBUG_PRINT (("Invalid Apple signature size %u\n", (unsigned) Context->SecDir->Size));
+    return -1;
+  }
 
   //
   // Initialise a SHA hash context
@@ -380,150 +398,35 @@ GetApplePeImageSha256 (
   //
   // Hash DOS header and skip DOS stub
   //
-  Sha256Update (&Sha256Ctx, Image, sizeof (EFI_IMAGE_DOS_HEADER));
+  HashBase = (uint8_t *) Image;
+  HashSize = sizeof (EFI_IMAGE_DOS_HEADER);
+  Sha256Update (&Sha256Ctx, HashBase, HashSize);
 
-  /**
-    Measuring PE/COFF Image Header;
-    But CheckSum field and SECURITY data directory (certificate) are excluded.
-    Calculate the distance from the base of the image header to the image checksum address
-    Hash the image header from its base to beginning of the image checksum
-  **/
+  //
+  // CheckSum field and SECURITY data directory (certificate) are excluded.
+  // Calculate the distance from the base of the image header to the image checksum address
+  // Hash the image header from its base to beginning of the image checksum
+  //
   HashBase = (uint8_t *) Image + ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew;
   HashSize = (uint8_t *) Context->OptHdrChecksum - HashBase;
   Sha256Update (&Sha256Ctx, HashBase, HashSize);
 
   //
-  // Since there is no Cert Directory in optional header, hash everything
-  // from the end of the checksum to the end of image header.
+  // Hash everything from the end of the checksum to the start of the Cert Directory.
   //
-  if (Context->NumberOfRvaAndSizes <= EFI_IMAGE_DIRECTORY_ENTRY_SECURITY) {
-    HashBase = (uint8_t *) Image + HashSize;
-    HashSize = Context->SizeOfHeaders - HashSize
-               - ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew;
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-  } else {
-    //
-    // Hash everything from the end of the checksum to the start of the Cert Directory.
-    //
-    HashBase = (uint8_t *) Context->OptHdrChecksum + sizeof (uint32_t);
-    HashSize = (uint8_t *) Context->SecDir - HashBase;
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-
-    //
-    // Hash from the end of SecDirEntry to the end of ImageHeader
-    //
-    HashBase = (uint8_t *) Context->RelocDir;
-    HashSize = Context->SizeOfHeaders - (uint32_t) ((uint8_t *) (Context->RelocDir)
-               - (uint8_t *) Image);
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-  }
+  HashBase = (uint8_t *) Context->OptHdrChecksum + sizeof (uint32_t);
+  HashSize = (uint8_t *) Context->SecDir - HashBase;
+  Sha256Update (&Sha256Ctx, HashBase, HashSize);
 
   //
-  // Sort sections
+  // Hash the rest of the file till SecDir data
   //
-  SumOfBytesHashed = (uint32_t) Context->SizeOfHeaders;
-
-  SectionHeader = (EFI_IMAGE_SECTION_HEADER *) calloc (
-                    sizeof (EFI_IMAGE_SECTION_HEADER),
-                    Context->NumberOfSections
-                    );
-
-  if (SectionHeader == NULL) {
-    DEBUG_PRINT (("Unable to allocate section header\n"));
-    return -1;
-  }
-
-  //
-  // Sort the section headers
-  //
-  for (Index = 0; Index < Context->NumberOfSections; Index++) {
-    CurPos = Index;
-    while ((CurPos > 0) && (Context->FirstSection->PointerToRawData <
-           SectionHeader[CurPos - 1].PointerToRawData)) {
-      memcpy (&SectionHeader[CurPos],
-              &SectionHeader[CurPos - 1],
-              sizeof (EFI_IMAGE_SECTION_HEADER)
-             );
-      CurPos--;
-    }
-    memcpy (&SectionHeader[CurPos],
-            Context->FirstSection,
-            sizeof (EFI_IMAGE_SECTION_HEADER)
-            );
-    Context->FirstSection += 1;
-  }
-
-
-  //
-  // Hash the sections and codecaves
-  //
-  for (Index = 0; Index < Context->NumberOfSections; Index++) {
-    Context->FirstSection = &SectionHeader[Index];
-    if (Context->FirstSection->SizeOfRawData == 0) {
-      continue;
-    }
-    if (Context->FirstSection->PointerToRawData != CodeCaveIndicator && Index > 0) {
-      HashBase  = ImageAddress (Image, ImageSize, (uint32_t) CodeCaveIndicator);
-      HashSize  = Context->FirstSection->PointerToRawData - CodeCaveIndicator;
-      if (!HashBase) {
-        DEBUG_PRINT (("Malformed section header\n"));
-        if (SectionHeader) {
-          free(SectionHeader);
-        }
-        return -1;
-      }
-      Sha256Update (&Sha256Ctx, HashBase, HashSize);
-      SumOfBytesHashed += HashSize;
-    }
-
-    HashBase  = ImageAddress (Image,
-                              ImageSize,
-                              Context->FirstSection->PointerToRawData
-                              );
-    HashSize  = Context->FirstSection->SizeOfRawData;
-
-    if (!HashBase) {
-        DEBUG_PRINT (("Malformed section header\n"));
-        if (SectionHeader) {
-           free (SectionHeader);
-        }
-        return -1;
-    }
-
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-    CodeCaveIndicator = Context->FirstSection->PointerToRawData
-                        + Context->FirstSection->SizeOfRawData;
-    SumOfBytesHashed += Context->FirstSection->SizeOfRawData;
-  }
-
-  //
-  // Hash 8 byte AppleSecDir signature
-  //
-  if (ImageSize > SumOfBytesHashed) {
-    //
-    // Hash SecDir signature
-    //
-    HashSize = Context->SecDir->Size;
-    HashBase = (uint8_t *) Image + Context->SecDir->VirtualAddress-HashSize;
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-    SumOfBytesHashed += HashSize + 8;
-    //
-    // Add AppleSignatureDirectory size
-    //
-    SumOfBytesHashed += ((APPLE_SIGNATURE_DIRECTORY *)
-                         (HashBase + HashSize))->SignatureDirectorySize;
-  }
-
-  //
-  // Hash all remaining data
-  //
-  if (ImageSize > SumOfBytesHashed) {
-    HashBase = (uint8_t *) Image + SumOfBytesHashed;
-    HashSize = ImageSize - SumOfBytesHashed;
-    Sha256Update (&Sha256Ctx, HashBase, HashSize);
-  }
+  HashBase = (uint8_t *) Context->SecDir + sizeof (EFI_IMAGE_DATA_DIRECTORY);
+  HashSize = (uint8_t *) Image + Context->SecDir->VirtualAddress - HashBase;
+  Sha256Update (&Sha256Ctx, HashBase, HashSize);
 
   Sha256Final (&Sha256Ctx, CalcucatedHash);
+
   return 0;
 }
 
@@ -549,7 +452,7 @@ VerifyApplePeImageSignature (
     return -1;
   }
 
-  if (GetPeHeader (PeImage, ImageSize, Context) != 0) {
+  if (BuildPeContext (PeImage, &ImageSize, Context) != 0) {
     DEBUG_PRINT (("Malformed ApplePeImage\n"));
     free (Context);
     return -1;
@@ -567,7 +470,7 @@ VerifyApplePeImageSignature (
   //
   // Calcucate PeImage hash via AppleAuthenticode algorithm
   //
-  if (GetApplePeImageSha256 (PeImage, ImageSize, Context, CalcucatedHash) != 0) {
+  if (GetApplePeImageSha256 (PeImage, Context, CalcucatedHash) != 0) {
     DEBUG_PRINT (("Couldn't calcuate hash of PeImage\n"));
     free (Context);
     return -1;
