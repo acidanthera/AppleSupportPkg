@@ -67,7 +67,7 @@ GetApplePeImageSignature (
 EFI_STATUS
 GetApplePeImageSha256 (
   VOID                                *Image,
-  UINT32                              ImageSize,
+  UINT32                              *ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   UINT8                               *CalcucatedHash
   );
@@ -75,7 +75,7 @@ GetApplePeImageSha256 (
 EFI_STATUS
 VerifyApplePeImageSignature (
   VOID     *PeImage,
-  UINT32   ImageSize
+  UINT32   *ImageSize
   );
 
 #endif //APPLE_DXE_IMAGE_VERIFICATION_H

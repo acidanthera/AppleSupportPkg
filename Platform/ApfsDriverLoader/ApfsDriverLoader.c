@@ -80,12 +80,14 @@ StartApfsDriver (
       ParentDevicePath = NULL;
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
-
-  DEBUG ((DEBUG_WARN, "Verifying binary signature"));
+  
+  DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     AppleFileSystemDriverBuffer,
-    (UINT32) AppleFileSystemDriverSize
+    (UINT32 *) &AppleFileSystemDriverSize
     );
+
+  DEBUG ((DEBUG_WARN, "New ImageSize after verification: %lu\n", AppleFileSystemDriverSize));
 
   if (!EFI_ERROR (Status)) {
     Status = gBS->LoadImage (
@@ -101,7 +103,7 @@ StartApfsDriver (
         return Status;
       }
     } else {
-      DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!"));
+      DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!\n"));
       return Status;
     }
 
