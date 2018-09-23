@@ -442,10 +442,22 @@ VerifyApplePeImageSignature (
     return EFI_INVALID_PARAMETER;
   }
 
+  //
+  // Build PE context
+  //
   if (EFI_ERROR (BuildPeContext (PeImage, *ImageSize, Context))) {
     DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
     FreePool (Context);
     return EFI_INVALID_PARAMETER;
+  }
+
+  //
+  // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
+  //
+  if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
+    DEBUG ((DEBUG_WARN, "AppleSignature entry size mismatch\n"));
+    FreePool (Context);
+    return EFI_UNSUPPORTED;
   }
 
   //

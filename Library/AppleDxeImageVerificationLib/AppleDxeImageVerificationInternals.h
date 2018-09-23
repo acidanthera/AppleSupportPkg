@@ -36,6 +36,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "Rsa2048Sha256.h"
 #include <IndustryStandard/PeImage.h>
 
+#define APPLE_SIGNATURE_SECENTRY_SIZE 8
+
 //
 // The context structure used while PE/COFF image is being loaded and relocated.
 //
