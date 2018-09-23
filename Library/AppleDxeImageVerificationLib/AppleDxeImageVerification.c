@@ -42,7 +42,7 @@ GetPeHeaderMagicValue (
 }
 
 EFI_STATUS
-GetPeHeader (
+BuildPeContext (
   VOID                                *Image,
   UINT32                              ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
@@ -364,11 +364,13 @@ GetApplePeImageSha256 (
   //
   // Drop DOS STUB
   //
-  ZeroMem (
-      (UINT8 *) Image + sizeof (EFI_IMAGE_DOS_HEADER),
-      ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew - sizeof (EFI_IMAGE_DOS_HEADER)
-      );
-
+  if ((((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew 
+        - sizeof (EFI_IMAGE_DOS_HEADER)) != 0) {
+    ZeroMem (
+        (UINT8 *) Image + sizeof (EFI_IMAGE_DOS_HEADER),
+        ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew - sizeof (EFI_IMAGE_DOS_HEADER)
+        );
+  }
   /**
     Measuring PE/COFF Image Header;
     But CheckSum field and SECURITY data directory (certificate) are excluded.
@@ -440,7 +442,7 @@ VerifyApplePeImageSignature (
     return EFI_INVALID_PARAMETER;
   }
 
-  if (EFI_ERROR (GetPeHeader (PeImage, *ImageSize, Context))) {
+  if (EFI_ERROR (BuildPeContext (PeImage, *ImageSize, Context))) {
     DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
     FreePool (Context);
     return EFI_INVALID_PARAMETER;

@@ -48,7 +48,7 @@ GetPeHeaderMagicValue (
   );
 
 EFI_STATUS
-GetPeHeader (
+BuildPeContext (
   VOID                                *Image,
   UINT32                              ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
