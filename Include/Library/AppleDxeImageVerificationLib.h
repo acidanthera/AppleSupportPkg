@@ -54,6 +54,13 @@ BuildPeContext (
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   );
 
+VOID
+SanitizeApplePeImage (
+  VOID                                *Image,
+  UINT32                              *RealImageSize,
+  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
+  );
+
 EFI_STATUS
 GetApplePeImageSignature (
   VOID                               *Image,

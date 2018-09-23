@@ -337,20 +337,65 @@ GetApplePeImageSignature (
   return EFI_SUCCESS;
 }
 
+VOID
+SanitizeApplePeImage (
+  VOID                                *Image,
+  UINT32                              *RealImageSize,
+  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
+  )
+{
+  UINT32                   ImageSize            = *RealImageSize;
+  EFI_IMAGE_DOS_HEADER     *DosHdr              = Image;
+
+  //
+  // Check DOS header existence
+  //  
+
+  if (DosHdr->e_magic == EFI_IMAGE_DOS_SIGNATURE) {
+    //
+    // Drop DOS stub if it present
+    //
+    if ((((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew 
+          - sizeof (EFI_IMAGE_DOS_HEADER)) != 0) {
+      ZeroMem (
+          (UINT8 *) Image + sizeof (EFI_IMAGE_DOS_HEADER),
+          ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew - sizeof (EFI_IMAGE_DOS_HEADER)
+          );
+    }
+  }
+
+  //
+  // Calculate real image size
+  //
+  DEBUG ((DEBUG_WARN, "Real image size: %lu\n", *RealImageSize));
+
+  *RealImageSize = Context->SecDir->VirtualAddress
+                   + Context->SecDir->Size 
+                   + sizeof (APPLE_SIGNATURE_DIRECTORY);  
+  
+  if (*RealImageSize < ImageSize) {
+    DEBUG ((DEBUG_WARN, "Droping tail with size: %lu\n", ImageSize - *RealImageSize));
+    //
+    // Drop tail
+    //
+    ZeroMem (
+      (UINT8 *) Image + *RealImageSize,
+      ImageSize - *RealImageSize
+      );
+  }
+}
+
 EFI_STATUS
 GetApplePeImageSha256 (
   VOID                                *Image,
-  UINT32                              *RealImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   UINT8                               *CalcucatedHash
   )
 {
   UINT64                   HashSize           = 0;
-  UINT64                   SumOfBytesHashed   = 0;
   UINT8                    *HashBase          = NULL;
   Sha256Context            Sha256Ctx;
-  UINT32                   ImageSize = *RealImageSize;
-
+  
   //
   // Initialise a SHA hash context
   //
@@ -361,16 +406,6 @@ GetApplePeImageSha256 (
   //
   Sha256Update (&Sha256Ctx, Image, sizeof (EFI_IMAGE_DOS_HEADER));
 
-  //
-  // Drop DOS STUB
-  //
-  if ((((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew 
-        - sizeof (EFI_IMAGE_DOS_HEADER)) != 0) {
-    ZeroMem (
-        (UINT8 *) Image + sizeof (EFI_IMAGE_DOS_HEADER),
-        ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew - sizeof (EFI_IMAGE_DOS_HEADER)
-        );
-  }
   /**
     Measuring PE/COFF Image Header;
     But CheckSum field and SECURITY data directory (certificate) are excluded.
@@ -395,25 +430,6 @@ GetApplePeImageSha256 (
   HashBase = (UINT8 *) Context->RelocDir;
   HashSize = (UINT8 *) Image + Context->SecDir->VirtualAddress - HashBase;
   Sha256Update (&Sha256Ctx, HashBase, HashSize);
-  
-  SumOfBytesHashed = Context->SecDir->VirtualAddress;
-  
-  *RealImageSize = SumOfBytesHashed 
-                   + Context->SecDir->Size 
-                   + sizeof (APPLE_SIGNATURE_DIRECTORY);
-
-  DEBUG ((DEBUG_WARN, "Real image size: %lu\n", *RealImageSize));
-
-  if (*RealImageSize < ImageSize) {
-    DEBUG ((DEBUG_WARN, "Droping tail with size: %lu\n", ImageSize - *RealImageSize));
-    //
-    // Drop tail
-    //
-    ZeroMem (
-      (UINT8 *) Image + *RealImageSize,
-      ImageSize - *RealImageSize
-      );
-  }
 
   Sha256Final (&Sha256Ctx, CalcucatedHash);
   return EFI_SUCCESS;
@@ -452,6 +468,11 @@ VerifyApplePeImageSignature (
   }
 
   //
+  // Sanitzie ApplePeImage
+  //
+  SanitizeApplePeImage (PeImage, ImageSize, Context);
+
+  //
   // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
   //
   if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
@@ -472,7 +493,7 @@ VerifyApplePeImageSignature (
   //
   // Calcucate PeImage hash via AppleAuthenticode algorithm
   //
-  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, ImageSize, Context, CalcucatedHash))) {
+  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, Context, CalcucatedHash))) {
     DEBUG ((DEBUG_WARN, "Couldn't calcuate hash of PeImage\n"));
     FreePool (Context);
     return EFI_INVALID_PARAMETER;

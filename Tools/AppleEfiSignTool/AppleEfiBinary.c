@@ -26,20 +26,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 # define DEBUG_PRINT(x) do {} while (0)
 #endif
 
-void *
-ImageAddress (
-  void     *Image,
-  uint32_t Size,
-  uint32_t Address
-  )
-{
-  if (Address > Size) {
-    return NULL;
-  }
-
-  return (uint8_t *)Image + Address;
-}
-
 uint16_t
 GetPeHeaderMagicValue (
   EFI_IMAGE_OPTIONAL_HEADER_UNION  *Hdr
