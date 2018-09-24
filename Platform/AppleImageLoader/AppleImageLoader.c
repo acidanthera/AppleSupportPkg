@@ -30,7 +30,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/LoadedImage.h>
 #include <Protocol/AppleLoadImage.h>
 #include "AppleImageLoader.h"
-#include "Core/Image.h"
+#include "Core/CoreMain.h"
 #include <AppleSupportPkgVersion.h>
 
 STATIC EFI_IMAGE_LOAD  mOriginalLoadImage = NULL;

@@ -33,9 +33,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/TcgService.h>
 #include <Guid/FirmwareFileSystem2.h>
 #include <Guid/FirmwareFileSystem3.h>
-#include "PropertiesPrivate.h"
 #include "ImagePrivate.h"
-#include "Image.h"
+
+#include "CoreMain.h"
 
 typedef struct {
   UINT16  MachineType;
@@ -135,39 +135,6 @@ CoreReadImageFile (
 
   CopyMem (Buffer, (CHAR8 *)FHand->Source + Offset, *ReadSize);
   return EFI_SUCCESS;
-}
-
-//
-// The original implementation had memory footprint profiling via EDK2…PROTOCOL, 
-// which we do not need and removed to reduce complexity
-//
-EFI_STATUS
-UnregisterMemoryProfileImage (
-  IN LOADED_IMAGE_PRIVATE_DATA      *DriverEntry
-  )
-{
-  return EFI_SUCCESS;
-}
-
-//
-// FIXME: Implement MemoryProtection
-//
-VOID
-UnprotectUefiImage (
-  IN EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage,
-  IN EFI_DEVICE_PATH_PROTOCOL    *LoadedImageDevicePath
-  )
-{
-  return ;
-}
-
-VOID
-ProtectUefiImage (
-  IN EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage,
-  IN EFI_DEVICE_PATH_PROTOCOL    *LoadedImageDevicePath
-  )
-{
-  return ;
 }
 
 VOID
@@ -365,6 +332,10 @@ CoreLoadPeImage (
   UINTN                     Size;
   EFI_RUNTIME_ARCH_PROTOCOL *gRuntime = NULL;
 
+  //
+  // CHECKME: 
+  // Old platforms doesn't have gRuntime
+  //
   Status = gBS->LocateProtocol (
     &gEfiRuntimeArchProtocolGuid,
     NULL,
@@ -573,6 +544,11 @@ CoreLoadPeImage (
       Image->RuntimeData->ImageSize      = (UINT64) (Image->Info.ImageSize);
       Image->RuntimeData->RelocationData = Image->ImageContext.FixupData;
       Image->RuntimeData->Handle         = Image->Handle;
+      
+      //
+      // CHECKME: 
+      // Old platforms doesn't have gRuntime
+      //
       InsertTailList (&gRuntime->ImageHead, &Image->RuntimeData->Link);
       
       //
@@ -986,7 +962,7 @@ CoreLoadImage (
   EFI_STATUS    Status;
   EFI_HANDLE    Handle;
 
-  // FIXME
+  // CHECKME
   //PERF_LOAD_IMAGE_BEGIN (NULL);
 
   Status = CoreLoadImageCommon (
@@ -1010,7 +986,7 @@ CoreLoadImage (
     Handle = *ImageHandle;
   }
 
-  // FIXME
+  // CHEKME
   //PERF_LOAD_IMAGE_END (Handle);
 
   return Status;

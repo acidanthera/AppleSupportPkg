@@ -55,8 +55,10 @@
 
 [Sources]
   AppleImageLoader.c
-  Core/Image.c
-  Core/Image.h
+  Core/CoreMain.h
+  Core/Image/Image.c
+  Core/Misc/MemoryProtection.c
+  Core/Mem/MemoryProfileRecord.c
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdImageProtectionPolicy                   ## CONSUMES
