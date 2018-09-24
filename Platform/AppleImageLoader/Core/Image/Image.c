@@ -38,10 +38,22 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "CoreMain.h"
 
 //
-// Disable performance lib for load image
+// Disable performance lib
 //
 #define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { } while (0)
 #define PERF_LOAD_IMAGE_END(ModuleHandle) do { } while (0)
+#define PERF_START_IMAGE_BEGIN(ModuleHandle) do { } while (0)
+#define PERF_START_IMAGE_END(ModuleHandle) do { } while (0)
+
+//
+// Module Globals
+//
+LOADED_IMAGE_PRIVATE_DATA  *mCurrentImage = NULL;
+
+///
+/// gEfiCurrentTpl - Current Task priority level
+///
+EFI_TPL  gEfiCurrentTpl = TPL_APPLICATION;
 
 //
 // Map CoreDxe function into platform ones
@@ -225,6 +237,32 @@ CoreInstallProtocolInterface (
     InterfaceType,
     Interface
     );
+}
+
+STATIC
+EFI_STATUS
+CoreExit (
+  IN EFI_HANDLE                   ImageHandle,
+  IN EFI_STATUS                   ExitStatus,
+  IN UINTN                        ExitDataSize,
+  IN CHAR16                       *ExitData OPTIONAL
+  )
+{
+  return gBS->Exit (
+    ImageHandle,
+    ExitStatus,
+    ExitDataSize,
+    ExitData
+    );
+}
+
+STATIC
+VOID
+CoreRestoreTpl (
+  IN EFI_TPL      OldTpl
+  )
+{
+  return gBS->RestoreTPL (OldTpl);
 }
 
 typedef struct {
@@ -862,8 +900,8 @@ CoreLoadImageCommon (
 
   SecurityStatus = EFI_SUCCESS;
 
-  // FIXME:
-  //ASSERT (gEfiCurrentTpl < TPL_NOTIFY);
+  // CHECKME:
+  ASSERT (gEfiCurrentTpl < TPL_NOTIFY);
   ParentImage = NULL;
 
   //
@@ -1155,7 +1193,6 @@ CoreLoadImage (
   EFI_STATUS    Status;
   EFI_HANDLE    Handle;
 
-  // CHECKME
   PERF_LOAD_IMAGE_BEGIN (NULL);
 
   Status = CoreLoadImageCommon (
@@ -1179,8 +1216,215 @@ CoreLoadImage (
     Handle = *ImageHandle;
   }
 
-  // CHEKME
   PERF_LOAD_IMAGE_END (Handle);
 
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI
+CoreStartImage (
+  IN EFI_HANDLE  ImageHandle,
+  OUT UINTN      *ExitDataSize,
+  OUT CHAR16     **ExitData  OPTIONAL
+  )
+{
+  EFI_STATUS                    Status;
+  LOADED_IMAGE_PRIVATE_DATA     *Image;
+  LOADED_IMAGE_PRIVATE_DATA     *LastImage;
+  UINTN                         HandleCount;
+  EFI_HANDLE                    *HandleBuffer;
+  UINTN                         Index;
+  UINTN                         SetJumpFlag;
+  EFI_HANDLE                    Handle;
+
+  Handle = ImageHandle;
+
+  Image = CoreLoadedImageInfo (ImageHandle);
+  if (Image == NULL  ||  Image->Started) {
+    return EFI_INVALID_PARAMETER;
+  }
+  if (EFI_ERROR (Image->LoadImageStatus)) {
+    return Image->LoadImageStatus;
+  }
+
+  //
+  // The image to be started must have the machine type supported by DxeCore.
+  //
+  if (!EFI_IMAGE_MACHINE_TYPE_SUPPORTED (Image->Machine)) {
+    //
+    // Do not ASSERT here, because image might be loaded via EFI_IMAGE_MACHINE_CROSS_TYPE_SUPPORTED
+    // But it can not be started.
+    //
+    DEBUG ((EFI_D_ERROR, "Image type %s can't be started ", GetMachineTypeName(Image->Machine)));
+    DEBUG ((EFI_D_ERROR, "on %s UEFI system.\n", GetMachineTypeName(mDxeCoreImageMachineType)));
+    return EFI_UNSUPPORTED;
+  }
+
+  PERF_START_IMAGE_BEGIN (Handle);
+
+
+  //
+  // Push the current start image context, and
+  // link the current image to the head.   This is the
+  // only image that can call Exit()
+  //
+
+  //
+  // Dirty connect all handles instead of maintaining database
+  // Original code assign HandleDatabaseKey to  CoreGetHandleDatabaseKey ()
+  //
+  LastImage         = mCurrentImage;
+  mCurrentImage     = Image;
+  // CHECKME:
+  Image->Tpl        = gEfiCurrentTpl;
+
+  //
+  // Set long jump for Exit() support
+  // JumpContext must be aligned on a CPU specific boundary.
+  // Overallocate the buffer and force the required alignment
+  //
+  Image->JumpBuffer = AllocatePool (sizeof (BASE_LIBRARY_JUMP_BUFFER) + BASE_LIBRARY_JUMP_BUFFER_ALIGNMENT);
+  if (Image->JumpBuffer == NULL) {
+    //
+    // Image may be unloaded after return with failure,
+    // then ImageHandle may be invalid, so use NULL handle to record perf log.
+    //
+    PERF_START_IMAGE_END (NULL);
+
+    //
+    // Pop the current start image context
+    //
+    mCurrentImage = LastImage;
+
+    return EFI_OUT_OF_RESOURCES;
+  }
+  Image->JumpContext = ALIGN_POINTER (Image->JumpBuffer, BASE_LIBRARY_JUMP_BUFFER_ALIGNMENT);
+
+  SetJumpFlag = SetJump (Image->JumpContext);
+  //
+  // The initial call to SetJump() must always return 0.
+  // Subsequent calls to LongJump() cause a non-zero value to be returned by SetJump().
+  //
+  if (SetJumpFlag == 0) {
+    RegisterMemoryProfileImage (Image, (Image->ImageContext.ImageType == EFI_IMAGE_SUBSYSTEM_EFI_APPLICATION ? EFI_FV_FILETYPE_APPLICATION : EFI_FV_FILETYPE_DRIVER));
+    //
+    // Call the image's entry point
+    //
+    Image->Started = TRUE;
+    Image->Status = Image->EntryPoint (ImageHandle, Image->Info.SystemTable);
+
+    //
+    // Add some debug information if the image returned with error.
+    // This make the user aware and check if the driver image have already released
+    // all the resource in this situation.
+    //
+    DEBUG_CODE_BEGIN ();
+      if (EFI_ERROR (Image->Status)) {
+        DEBUG ((DEBUG_ERROR, "Error: Image at %11p start failed: %r\n", Image->Info.ImageBase, Image->Status));
+      }
+    DEBUG_CODE_END ();
+
+    //
+    // If the image returns, exit it through Exit()
+    //
+    CoreExit (ImageHandle, Image->Status, 0, NULL);
+  }
+
+  //
+  // Image has completed.  Verify the tpl is the same
+  //
+  // CHECKME:
+  ASSERT (Image->Tpl == gEfiCurrentTpl);
+  CoreRestoreTpl (Image->Tpl);
+
+  CoreFreePool (Image->JumpBuffer);
+
+  //
+  // Pop the current start image context
+  //
+  mCurrentImage = LastImage;
+
+  //
+  // UEFI Specification - StartImage() - EFI 1.10 Extension
+  // To maintain compatibility with UEFI drivers that are written to the EFI
+  // 1.02 Specification, StartImage() must monitor the handle database before
+  // and after each image is started. If any handles are created or modified
+  // when an image is started, then EFI_BOOT_SERVICES.ConnectController() must
+  // be called with the Recursive parameter set to TRUE for each of the newly
+  // created or modified handles before StartImage() returns.
+  //
+  if (Image->Type != EFI_IMAGE_SUBSYSTEM_EFI_APPLICATION) {
+    //
+    // Dirty connect all handles instead of maintaining database
+    // Original function passes HandleDatabaseKey to CoreConnectHandlesByKey
+    //
+    Status = CoreLocateHandleBuffer (
+           AllHandles,
+           NULL,
+           NULL,
+           &HandleCount,
+           &HandleBuffer
+           );
+    if (!EFI_ERROR (Status)) {
+      for (Index = 0; Index < HandleCount; Index++) {
+        gBS->ConnectController (HandleBuffer[Index], NULL, NULL, TRUE);
+      }
+
+      if (HandleBuffer != NULL) {
+        CoreFreePool (HandleBuffer);
+      }
+    }
+  }
+
+  //
+  // Handle the image's returned ExitData
+  //
+  DEBUG_CODE_BEGIN ();
+    if (Image->ExitDataSize != 0 || Image->ExitData != NULL) {
+
+      DEBUG ((DEBUG_LOAD, "StartImage: ExitDataSize %d, ExitData %p", (UINT32)Image->ExitDataSize, Image->ExitData));
+      if (Image->ExitData != NULL) {
+        DEBUG ((DEBUG_LOAD, " (%hs)", Image->ExitData));
+      }
+      DEBUG ((DEBUG_LOAD, "\n"));
+    }
+  DEBUG_CODE_END ();
+
+  //
+  //  Return the exit data to the caller
+  //
+  if (ExitData != NULL && ExitDataSize != NULL) {
+    *ExitDataSize = Image->ExitDataSize;
+    *ExitData     = Image->ExitData;
+  } else {
+    //
+    // Caller doesn't want the exit data, free it
+    //
+    CoreFreePool (Image->ExitData);
+    Image->ExitData = NULL;
+  }
+
+  //
+  // Save the Status because Image will get destroyed if it is unloaded.
+  //
+  Status = Image->Status;
+
+  //
+  // If the image returned an error, or if the image is an application
+  // unload it
+  //
+  if (EFI_ERROR (Image->Status) || Image->Type == EFI_IMAGE_SUBSYSTEM_EFI_APPLICATION) {
+    CoreUnloadAndCloseImage (Image, TRUE);
+    //
+    // ImageHandle may be invalid after the image is unloaded, so use NULL handle to record perf log.
+    //
+    Handle = NULL;
+  }
+
+  //
+  // Done
+  //
+  PERF_START_IMAGE_END (Handle);
   return Status;
 }

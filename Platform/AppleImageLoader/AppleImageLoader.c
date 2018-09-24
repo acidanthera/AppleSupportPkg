@@ -425,6 +425,7 @@ AppleImageLoaderEntryPoint (
   //
   mOriginalLoadImage = gBS->LoadImage;
   gBS->LoadImage = CoreLoadImage;
+  gBS->StartImage = CoreStartImage;
   gBS->Hdr.CRC32 = 0;
   gBS->CalculateCrc32 (gBS, sizeof (EFI_BOOT_SERVICES), &gBS->Hdr.CRC32);
 

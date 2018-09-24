@@ -22,3 +22,12 @@ UnregisterMemoryProfileImage (
 {
   return EFI_SUCCESS;
 }
+
+EFI_STATUS
+RegisterMemoryProfileImage (
+  IN LOADED_IMAGE_PRIVATE_DATA  *DriverEntry,
+  IN EFI_FV_FILETYPE            FileType
+  )
+{
+  return EFI_SUCCESS;
+}

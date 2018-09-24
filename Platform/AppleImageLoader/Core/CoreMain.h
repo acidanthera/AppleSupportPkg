@@ -47,6 +47,12 @@ UnregisterMemoryProfileImage (
   IN LOADED_IMAGE_PRIVATE_DATA      *DriverEntry
   );
 
+EFI_STATUS
+RegisterMemoryProfileImage (
+  IN LOADED_IMAGE_PRIVATE_DATA  *DriverEntry,
+  IN EFI_FV_FILETYPE            FileType
+  );
+
 VOID
 UnprotectUefiImage (
   IN EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage,
@@ -82,6 +88,14 @@ CoreLoadImage (
   IN VOID                       *SourceBuffer   OPTIONAL,
   IN UINTN                      SourceSize,
   OUT EFI_HANDLE                *ImageHandle
+  );
+
+EFI_STATUS
+EFIAPI
+CoreStartImage (
+  IN EFI_HANDLE  ImageHandle,
+  OUT UINTN      *ExitDataSize,
+  OUT CHAR16     **ExitData  OPTIONAL
   );
 
 #endif
