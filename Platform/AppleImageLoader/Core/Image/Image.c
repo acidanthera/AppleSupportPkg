@@ -50,11 +50,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 //
 LOADED_IMAGE_PRIVATE_DATA  *mCurrentImage = NULL;
 
-///
-/// gEfiCurrentTpl - Current Task priority level
-///
-EFI_TPL  gEfiCurrentTpl = TPL_APPLICATION;
-
 //
 // Map CoreDxe function into platform ones
 //
@@ -263,6 +258,15 @@ CoreRestoreTpl (
   )
 {
   return gBS->RestoreTPL (OldTpl);
+}
+
+STATIC
+EFI_TPL
+CoreRaiseTPL (
+  IN EFI_TPL      NewTpl
+  )
+{
+  return gBS->RaiseTPL (NewTpl);
 }
 
 typedef struct {
@@ -897,10 +901,19 @@ CoreLoadImageCommon (
   UINTN                      FilePathSize;
   BOOLEAN                    ImageIsFromFv;
   BOOLEAN                    ImageIsFromLoadFile;
+  EFI_TPL                    gEfiCurrentTpl;
 
   SecurityStatus = EFI_SUCCESS;
 
-  // CHECKME:
+  //
+  // Get current Tpl
+  //
+  gEfiCurrentTpl = CoreRaiseTPL (TPL_APPLICATION);
+  //
+  // Restore back
+  //
+  CoreRaiseTPL (gEfiCurrentTpl);
+
   ASSERT (gEfiCurrentTpl < TPL_NOTIFY);
   ParentImage = NULL;
 
@@ -1237,6 +1250,7 @@ CoreStartImage (
   UINTN                         Index;
   UINTN                         SetJumpFlag;
   EFI_HANDLE                    Handle;
+  EFI_TPL                       gEfiCurrentTpl;
 
   Handle = ImageHandle;
 
@@ -1274,9 +1288,18 @@ CoreStartImage (
   // Dirty connect all handles instead of maintaining database
   // Original code assign HandleDatabaseKey to  CoreGetHandleDatabaseKey ()
   //
+
+  //
+  // Get current Tpl
+  //
+  gEfiCurrentTpl = CoreRaiseTPL (TPL_APPLICATION);
+  //
+  // Restore back
+  //
+  CoreRaiseTPL (gEfiCurrentTpl);
+
   LastImage         = mCurrentImage;
   mCurrentImage     = Image;
-  // CHECKME:
   Image->Tpl        = gEfiCurrentTpl;
 
   //
@@ -1334,7 +1357,7 @@ CoreStartImage (
   //
   // Image has completed.  Verify the tpl is the same
   //
-  // CHECKME:
+  
   ASSERT (Image->Tpl == gEfiCurrentTpl);
   CoreRestoreTpl (Image->Tpl);
 
