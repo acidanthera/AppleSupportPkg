@@ -254,6 +254,9 @@ CoreUnloadAndCloseImage (
       }
     }
 
+    //
+    // CHECKME: Are we fill DebugImageInfo?
+    //
     //CoreRemoveDebugImageInfoEntry (Image->Handle);
 
     Status = gBS->UninstallProtocolInterface (
@@ -284,6 +287,10 @@ CoreUnloadAndCloseImage (
       // Remove the Image from the Runtime Image list as we are about to Free it!
       //
       RemoveEntryList (&Image->RuntimeData->Link);
+      
+      //
+      // CHECKME: ImageRecord used on UEFI 2.5 specification
+      // 
       //RemoveImageRecord (Image->RuntimeData);
     }
     FreePool (Image->RuntimeData);
@@ -567,6 +574,10 @@ CoreLoadPeImage (
       Image->RuntimeData->RelocationData = Image->ImageContext.FixupData;
       Image->RuntimeData->Handle         = Image->Handle;
       InsertTailList (&gRuntime->ImageHead, &Image->RuntimeData->Link);
+      
+      //
+      // CHECKME: ImageRecord used on UEFI 2.5 specification
+      //
       //InsertImageRecord (Image->RuntimeData);
     }
   }
