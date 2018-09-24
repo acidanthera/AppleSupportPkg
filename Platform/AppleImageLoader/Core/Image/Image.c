@@ -1,67 +1,46 @@
 /** @file
   Core image handling services to load and unload PeImage.
-  
-Copyright (c) 2006 - 2015, Intel Corporation. All rights reserved.<BR>
+
+Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
 This program and the accompanying materials
 are licensed and made available under the terms and conditions of the BSD License
 which accompanies this distribution.  The full text of the license may be found at
 http://opensource.org/licenses/bsd-license.php
+
 THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
 **/
 
-#include <Base.h>
-#include <Uefi.h>
-#include <PiDxe.h>
-#include <Library/PcdLib.h>
-#include <Library/UefiLib.h>
-#include <Library/DebugLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/PeCoffLib.h>
-#include <Library/PeCoffGetEntryPointLib.h>
-#include <Library/PeCoffExtraActionLib.h>
-#include <Library/DxeServicesLib.h>
-#include <Library/DevicePathLib.h>
-#include <Protocol/LoadedImage.h>
-#include <Protocol/LoadPe32Image.h>
-#include <Protocol/FirmwareVolumeBlock.h>
-#include <Protocol/Ebc.h>
-#include <Protocol/Runtime.h>
-#include <Protocol/HiiPackageList.h>
-#include <Protocol/TcgService.h>
-#include <Guid/FirmwareFileSystem2.h>
-#include <Guid/FirmwareFileSystem3.h>
-#include "ImagePrivate.h"
+//
+// This file is derived from MdeModulePkg/Core/Dxe/Image/Image.c and should be synced manually.
+// The main difference is to allow image loading from a custom driver, bypassing any builtin
+// loader and its secure boot if any. This is necessary to load Apple-signed images when
+// Secure Boot is enabled.
+//
+// Every difference is marked with "AIL:" prefix and a comment, explaining the cause for a change.
+// Last synced with edk2 master d1102db.
+// https://github.com/tianocore/edk2/blob/d1102db/MdeModulePkg/Core/Dxe/Image/Image.c
+//
 
+//
+// AIL: Header inclusion is different
+//
 #include "CoreMain.h"
+#include "Image.h"
 
 //
-// Disable performance lib
-//
-#define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { } while (0)
-#define PERF_LOAD_IMAGE_END(ModuleHandle) do { } while (0)
-#define PERF_START_IMAGE_BEGIN(ModuleHandle) do { } while (0)
-#define PERF_START_IMAGE_END(ModuleHandle) do { } while (0)
-
-//
-// Module Globals
-//
-LOADED_IMAGE_PRIVATE_DATA  *mCurrentImage = NULL;
-
-//
-// Map CoreDxe function into platform ones
+// AIL: Map CoreDxe function into platform ones
 //
 STATIC
 EFI_STATUS
 CoreLocateHandleBuffer (
   IN  EFI_LOCATE_SEARCH_TYPE   SearchType,
-    IN  EFI_GUID                 *Protocol OPTIONAL,
-    IN  VOID                     *SearchKey OPTIONAL,
-    IN  OUT UINTN                *NoHandles,
-    OUT EFI_HANDLE               **Buffer
-    ) 
+  IN  EFI_GUID                 *Protocol OPTIONAL,
+  IN  VOID                     *SearchKey OPTIONAL,
+  IN  OUT UINTN                *NoHandles,
+  OUT EFI_HANDLE               **Buffer
+  ) 
 {
   return gBS->LocateHandleBuffer (
                SearchType,
@@ -142,7 +121,7 @@ CoreFreePool (
   IN VOID                         *Buffer
   ) 
 {
-  return FreePool (Buffer);
+  FreePool (Buffer);
 }
 
 STATIC
@@ -234,23 +213,6 @@ CoreInstallProtocolInterface (
     );
 }
 
-/*STATIC
-EFI_STATUS
-CoreExit (
-  IN EFI_HANDLE                   ImageHandle,
-  IN EFI_STATUS                   ExitStatus,
-  IN UINTN                        ExitDataSize,
-  IN CHAR16                       *ExitData OPTIONAL
-  )
-{
-  return gBS->Exit (
-    ImageHandle,
-    ExitStatus,
-    ExitDataSize,
-    ExitData
-    );
-}*/
-
 STATIC
 VOID
 CoreRestoreTpl (
@@ -269,11 +231,199 @@ CoreRaiseTpl (
   return gBS->RaiseTPL (NewTpl);
 }
 
+//
+// AIL: Custom functions replacing CoreDxe code, which provide different
+// implemenation, behave differently, or are hacks in some way.
+//
+
+STATIC
+EFI_RUNTIME_ARCH_PROTOCOL *
+CoreGetRuntimeArchProtcol (
+  VOID
+  )
+{
+  EFI_STATUS    Status;
+
+  //
+  // This is a global variable gRuntime in CoreDxe, but it is not
+  // supported in old firmwares, so we safely wrap it here.
+  //
+  STATIC EFI_RUNTIME_ARCH_PROTOCOL *Runtime = NULL;
+
+  if (Runtime == NULL) {
+    Status = CoreLocateProtocol (
+      &gEfiRuntimeArchProtocolGuid,
+      NULL,
+      (VOID **) &Runtime
+    );
+
+    if (EFI_ERROR (Status)) {
+      DEBUG((DEBUG_WARN, "Runtime protocol not found"));
+    }
+  }
+
+  return Runtime;
+}
+
+STATIC
+VOID
+CoreNewDebugImageInfoEntry (
+  IN  UINT32                      ImageInfoType,
+  IN  EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage,
+  IN  EFI_HANDLE                  ImageHandle
+  )
+{
+  //
+  // Our images do not have debug info, so we do not care to use it.
+  //
+  (VOID) ImageInfoType;
+  (VOID) LoadedImage;
+  (VOID) ImageHandle;
+}
+
+STATIC
+VOID
+CoreRemoveDebugImageInfoEntry (
+  EFI_HANDLE ImageHandle
+  )
+{
+  //
+  // Our images do not have debug info, so we do not care to use it.
+  //
+  (VOID) ImageHandle;
+}
+
+STATIC
+EFI_TPL
+CoreGetCurrentTpl (
+  VOID
+  )
+{
+  EFI_TPL  CurrentTpl;
+
+  //
+  // Obtain current TPL by raise and restore operation.
+  //
+  CurrentTpl = CoreRaiseTpl (TPL_APPLICATION);
+  CoreRestoreTpl (CurrentTpl);
+
+  return CurrentTpl;
+}
+
+STATIC
+UINT64
+CoreGetHandleDatabaseKey (
+  VOID
+  )
+{
+  //
+  // Return some invalid value to indicate it is ours!
+  //
+  return (UINT64) -1;
+}
+
+VOID
+CoreConnectHandlesByKey (
+  UINT64  Key
+  )
+{
+  EFI_STATUS  Status;
+  UINTN       HandleCount;
+  EFI_HANDLE  *HandleBuffer;
+  UINTN       Index;
+
+  //
+  // Dirty connect all handles instead of maintaining database, there
+  // is no big in need for us in doing better.
+  //
+
+  if (Key != (UINT64) -1) {
+    //
+    // The key passed must be returned by CoreGetHandleDatabaseKey.
+    //
+    return;
+  }
+
+  Status = CoreLocateHandleBuffer (
+            AllHandles,
+            NULL,
+            NULL,
+            &HandleCount,
+            &HandleBuffer
+            );
+  if (!EFI_ERROR (Status)) {
+    for (Index = 0; Index < HandleCount; Index++) {
+      gBS->ConnectController (HandleBuffer[Index], NULL, NULL, TRUE);
+    }
+
+    if (HandleBuffer != NULL) {
+      CoreFreePool (HandleBuffer);
+    }
+  }
+}
+
+STATIC
+EFI_STATUS
+UnregisterMemoryProfileImage (
+  IN LOADED_IMAGE_PRIVATE_DATA      *DriverEntry
+  )
+{
+  //
+  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL, 
+  // which we do not need. Removed to reduce complexity.
+  //
+  (VOID) DriverEntry;
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+RegisterMemoryProfileImage (
+  IN LOADED_IMAGE_PRIVATE_DATA  *DriverEntry,
+  IN EFI_FV_FILETYPE            FileType
+  )
+{
+  //
+  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL, 
+  // which we do not need. Removed to reduce complexity.
+  //
+  (VOID) DriverEntry;
+  (VOID) FileType;
+  return EFI_SUCCESS;
+}
+
+
+//
+// AIL: Disable performance lib.
+//
+#define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { } while (0)
+#define PERF_LOAD_IMAGE_END(ModuleHandle) do { } while (0)
+#define PERF_START_IMAGE_BEGIN(ModuleHandle) do { } while (0)
+#define PERF_START_IMAGE_END(ModuleHandle) do { } while (0)
+
+//
+// AIL: Currently we do not protect EFI_SYSTEM_TABLE, like DxeCore does.
+//
+#define gDxeCoreST gST
+
+//
+// Module Globals
+//
+LOADED_IMAGE_PRIVATE_DATA  *mCurrentImage = NULL;
+
+//
+// AIL: mLoadPe32PrivateData, mCorePrivateImage, mDxeCodeMemoryRangeUsageBitMap
+// are of no use for us, and thus removed.
+//
+
 typedef struct {
   UINT16  MachineType;
   CHAR16  *MachineTypeName;
 } MACHINE_TYPE_INFO;
 
+//
+// EBC machine is not listed in this table, because EBC is in the default supported scopes of other machine type.
+//
 GLOBAL_REMOVE_IF_UNREFERENCED MACHINE_TYPE_INFO  mMachineTypeInfo[] = {
   {EFI_IMAGE_MACHINE_IA32,           L"IA32"},
   {EFI_IMAGE_MACHINE_IA64,           L"IA64"},
@@ -286,7 +436,9 @@ UINT16 mDxeCoreImageMachineType = 0;
 
 /**
  Return machine type name.
+
  @param MachineType The machine type
+
  @return machine type name
 **/
 CHAR16 *
@@ -305,31 +457,25 @@ GetMachineTypeName (
   return L"<Unknown>";
 }
 
-VOID *
-EFIAPI
-InvalidateInstructionCacheRange (
-  IN      VOID                      *Address,
-  IN      UINTN                     Length
-  )
-{
-  if (Length == 0) {
-    return Address;
-  }
 
-  ASSERT ((Length - 1) <= (MAX_ADDRESS - (UINTN)Address));
-  return Address;
-}
+//
+// AIL: We install our functions at gBS outside of this file, so CoreInitializeImageServices
+// is not present.
+//
 
 /**
   Read image file (specified by UserHandle) into user specified buffer with specified offset
   and length.
+
   @param  UserHandle             Image file handle
   @param  Offset                 Offset to the source file
   @param  ReadSize               For input, pointer of size to read; For output,
                                  pointer of size actually read.
   @param  Buffer                 Buffer to write into
+
   @retval EFI_SUCCESS            Successfully read the specified part of file
                                  into buffer.
+
 **/
 EFI_STATUS
 EFIAPI
@@ -369,185 +515,33 @@ CoreReadImageFile (
   return EFI_SUCCESS;
 }
 
-VOID
-CoreUnloadAndCloseImage (
-  IN LOADED_IMAGE_PRIVATE_DATA  *Image,
-  IN BOOLEAN                    FreePage
-  )
-{
-  EFI_STATUS                          Status;
-  UINTN                               HandleCount;
-  EFI_HANDLE                          *HandleBuffer;
-  UINTN                               HandleIndex;
-  EFI_GUID                            **ProtocolGuidArray;
-  UINTN                               ArrayCount;
-  UINTN                               ProtocolIndex;
-  EFI_OPEN_PROTOCOL_INFORMATION_ENTRY *OpenInfo;
-  UINTN                               OpenInfoCount;
-  UINTN                               OpenInfoIndex;
 
-  HandleBuffer = NULL;
-  ProtocolGuidArray = NULL;
-
-  if (Image->Started) {
-    UnregisterMemoryProfileImage (Image);
-  } 
-
-  UnprotectUefiImage (&Image->Info, Image->LoadedImageDevicePath);
-
-  //
-  // Unload image, free Image->ImageContext->ModHandle
-  //
-  PeCoffLoaderUnloadImage (&Image->ImageContext);
-
-  //
-  // Free our references to the image handle
-  //
-  if (Image->Handle != NULL) {
-
-    Status = CoreLocateHandleBuffer (
-               AllHandles,
-               NULL,
-               NULL,
-               &HandleCount,
-               &HandleBuffer
-               );
-    if (!EFI_ERROR (Status)) {
-      for (HandleIndex = 0; HandleIndex < HandleCount; HandleIndex++) {
-        Status = CoreProtocolsPerHandle (
-                   HandleBuffer[HandleIndex],
-                   &ProtocolGuidArray,
-                   &ArrayCount
-                   );
-        if (!EFI_ERROR (Status)) {
-          for (ProtocolIndex = 0; ProtocolIndex < ArrayCount; ProtocolIndex++) {
-            Status = CoreOpenProtocolInformation (
-                       HandleBuffer[HandleIndex],
-                       ProtocolGuidArray[ProtocolIndex],
-                       &OpenInfo,
-                       &OpenInfoCount
-                       );
-            if (!EFI_ERROR (Status)) {
-              for (OpenInfoIndex = 0; OpenInfoIndex < OpenInfoCount; OpenInfoIndex++) {
-                if (OpenInfo[OpenInfoIndex].AgentHandle == Image->Handle) {
-                  Status = CoreCloseProtocol (
-                             HandleBuffer[HandleIndex],
-                             ProtocolGuidArray[ProtocolIndex],
-                             Image->Handle,
-                             OpenInfo[OpenInfoIndex].ControllerHandle
-                             );
-                }
-              }
-              if (OpenInfo != NULL) {
-                FreePool(OpenInfo);
-              }
-            }
-          }
-          if (ProtocolGuidArray != NULL) {
-            FreePool(ProtocolGuidArray);
-          }
-        }
-      }
-      if (HandleBuffer != NULL) {
-        FreePool (HandleBuffer);
-      }
-    }
-
-    //
-    // Here we remove debug image info entry
-    //
-
-    Status = CoreUninstallProtocolInterface (
-               Image->Handle,
-               &gEfiLoadedImageDevicePathProtocolGuid,
-               Image->LoadedImageDevicePath
-               );
-
-    Status = CoreUninstallProtocolInterface (
-               Image->Handle,
-               &gEfiLoadedImageProtocolGuid,
-               &Image->Info
-               );
-
-    if (Image->ImageContext.HiiResourceData != 0) {
-      Status = CoreUninstallProtocolInterface (
-                 Image->Handle,
-                 &gEfiHiiPackageListProtocolGuid,
-                 (VOID *) (UINTN) Image->ImageContext.HiiResourceData
-                 );
-    }
-
-  }
-
-  if (Image->RuntimeData != NULL) {
-    if (Image->RuntimeData->Link.ForwardLink != NULL) {
-      //
-      // Remove the Image from the Runtime Image list as we are about to Free it!
-      //
-      RemoveEntryList (&Image->RuntimeData->Link);
-      
-      //
-      // CHECKME: ImageRecord used on UEFI 2.5 specification
-      // 
-      //RemoveImageRecord (Image->RuntimeData);
-    }
-    CoreFreePool (Image->RuntimeData);
-  }
-
-  //
-  // Free the Image from memory
-  //
-  if ((Image->ImageBasePage != 0) && FreePage) {
-    CoreFreePages (Image->ImageBasePage, Image->NumberOfPages);
-  }
-
-  //
-  // Done with the Image structure
-  //
-  if (Image->Info.FilePath != NULL) {
-    CoreFreePool (Image->Info.FilePath);
-  }
-
-  if (Image->LoadedImageDevicePath != NULL) {
-    CoreFreePool (Image->LoadedImageDevicePath);
-  }
-
-  if (Image->FixupData != NULL) {
-    CoreFreePool (Image->FixupData);
-  }
-
-  CoreFreePool (Image);
-}
+//
+// AIL: We do not support fixed address loading, so CheckAndMarkFixLoadingMemoryUsageBitMap
+// is not present and removed.
+//
 
 /**
-  Get the image's private data from its handle.
-  @param  ImageHandle             The image handle
-  @return Return the image private data associated with ImageHandle.
+  Loads, relocates, and invokes a PE/COFF image
+
+  @param  BootPolicy              If TRUE, indicates that the request originates
+                                  from the boot manager, and that the boot
+                                  manager is attempting to load FilePath as a
+                                  boot selection.
+  @param  Pe32Handle              The handle of PE32 image
+  @param  Image                   PE image to be loaded
+  @param  DstBuffer               The buffer to store the image
+  @param  EntryPoint              A pointer to the entry point
+  @param  Attribute               The bit mask of attributes to set for the load
+                                  PE image
+
+  @retval EFI_SUCCESS             The file was loaded, relocated, and invoked
+  @retval EFI_OUT_OF_RESOURCES    There was not enough memory to load and
+                                  relocate the PE/COFF file
+  @retval EFI_INVALID_PARAMETER   Invalid parameter
+  @retval EFI_BUFFER_TOO_SMALL    Buffer for image is too small
+
 **/
-LOADED_IMAGE_PRIVATE_DATA *
-CoreLoadedImageInfo (
-  IN EFI_HANDLE  ImageHandle
-  )
-{
-  EFI_STATUS                 Status;
-  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
-  LOADED_IMAGE_PRIVATE_DATA  *Image;
-
-  Status = CoreHandleProtocol (
-             ImageHandle,
-             &gEfiLoadedImageProtocolGuid,
-             (VOID **)&LoadedImage
-             );
-  if (!EFI_ERROR (Status)) {
-    Image = LOADED_IMAGE_PRIVATE_DATA_FROM_THIS (LoadedImage);
-  } else {
-    DEBUG ((DEBUG_LOAD, "CoreLoadedImageInfo: Not an ImageHandle %p\n", ImageHandle));
-    Image = NULL;
-  }
-
-  return Image;
-}
-
 EFI_STATUS
 CoreLoadPeImage (
   IN BOOLEAN                     BootPolicy,
@@ -561,27 +555,11 @@ CoreLoadPeImage (
   EFI_STATUS                Status;
   BOOLEAN                   DstBufAlocated;
   UINTN                     Size;
-  EFI_RUNTIME_ARCH_PROTOCOL *gRuntime = NULL;
-
-  //
-  // CHECKME: 
-  // Old platforms doesn't have gRuntime
-  //
-  Status = CoreLocateProtocol (
-    &gEfiRuntimeArchProtocolGuid,
-    NULL,
-    (VOID **) &gRuntime
-  );
-
-  if (EFI_ERROR (Status)) {
-    DEBUG((DEBUG_WARN, "Runtime protocol not found"));
-    return EFI_UNSUPPORTED;
-  }
 
   ZeroMem (&Image->ImageContext, sizeof (Image->ImageContext));
 
   Image->ImageContext.Handle    = Pe32Handle;
-  Image->ImageContext.ImageRead = (PE_COFF_LOADER_READ_FILE) CoreReadImageFile;
+  Image->ImageContext.ImageRead = (PE_COFF_LOADER_READ_FILE)CoreReadImageFile;
 
   //
   // Get information about the image being loaded
@@ -651,23 +629,27 @@ CoreLoadPeImage (
     //
     Status = EFI_OUT_OF_RESOURCES;
 
-    if (Image->ImageContext.ImageAddress >= 0x100000 || Image->ImageContext.RelocationsStripped) {
-      Status = CoreAllocatePages (
-                 AllocateAddress,
-                 (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
-                 Image->NumberOfPages,
-                 &Image->ImageContext.ImageAddress
-                 );
+    //
+    // AIL: There is no need for us to support fixed address loading, so it is removed from here.
+    //
+    {
+      if (Image->ImageContext.ImageAddress >= 0x100000 || Image->ImageContext.RelocationsStripped) {
+        Status = CoreAllocatePages (
+                   AllocateAddress,
+                   (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
+                   Image->NumberOfPages,
+                   &Image->ImageContext.ImageAddress
+                   );
+      }
+      if (EFI_ERROR (Status) && !Image->ImageContext.RelocationsStripped) {
+        Status = CoreAllocatePages (
+                   AllocateAnyPages,
+                   (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
+                   Image->NumberOfPages,
+                   &Image->ImageContext.ImageAddress
+                   );
+      }
     }
-    if (EFI_ERROR (Status) && !Image->ImageContext.RelocationsStripped) {
-      Status = CoreAllocatePages (
-                 AllocateAnyPages,
-                 (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
-                 Image->NumberOfPages,
-                 &Image->ImageContext.ImageAddress
-                 );
-    }
-    
     if (EFI_ERROR (Status)) {
       return Status;
     }
@@ -753,6 +735,16 @@ CoreLoadPeImage (
   // value for the entry point.
   //
   Image->EntryPoint   = (EFI_IMAGE_ENTRY_POINT)(UINTN)Image->ImageContext.EntryPoint;
+  if (Image->ImageContext.Machine == EFI_IMAGE_MACHINE_EBC) {
+    //
+    // AIL: We do not need to support EBC images, force error and exit!
+    //
+    Status = EFI_NOT_FOUND;
+    if (EFI_ERROR(Status) || Image->Ebc == NULL) {
+      DEBUG ((DEBUG_LOAD | DEBUG_ERROR, "CoreLoadPeImage: There is no EBC interpreter for an EBC image.\n"));
+      goto Done;
+    }
+  }
 
   //
   // Fill in the image information for the Loaded Image Protocol
@@ -763,7 +755,11 @@ CoreLoadPeImage (
   Image->Info.ImageCodeType = (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType);
   Image->Info.ImageDataType = (EFI_MEMORY_TYPE) (Image->ImageContext.ImageDataMemoryType);
   if ((Attribute & EFI_LOAD_PE_IMAGE_ATTRIBUTE_RUNTIME_REGISTRATION) != 0) {
-    if (Image->ImageContext.ImageType == EFI_IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER) {
+    //
+    // AIL: Old platforms do not have runtime arch protocol, skip insertion if unsupported.
+    //
+    if (Image->ImageContext.ImageType == EFI_IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER
+      && CoreGetRuntimeArchProtcol () != NULL) {
       //
       // Make a list off all the RT images so we can let the RT AP know about them.
       //
@@ -777,15 +773,14 @@ CoreLoadPeImage (
       Image->RuntimeData->Handle         = Image->Handle;
       
       //
-      // CHECKME: 
-      // Old platforms doesn't have gRuntime
+      // AIL: We access runtime arch protocol via a function call, as it may not be present.
       //
-      InsertTailList (&gRuntime->ImageHead, &Image->RuntimeData->Link);
+      InsertTailList (&CoreGetRuntimeArchProtcol ()->ImageHead, &Image->RuntimeData->Link);
       
       //
-      // CHECKME: ImageRecord used on UEFI 2.5 specification
+      // AIL: ImageRecord is used by UEFI 2.5 specification, but we do not care for our needs.
+      // The original implementation called InsertImageRecord here.
       //
-      //InsertImageRecord (Image->RuntimeData);
     }
   }
 
@@ -873,157 +868,248 @@ Done:
   return Status;
 }
 
-/**
-  Terminates the currently loaded EFI image and returns control to boot services.
-  @param  ImageHandle             Handle that identifies the image. This
-                                  parameter is passed to the image on entry.
-  @param  Status                  The image's exit code.
-  @param  ExitDataSize            The size, in bytes, of ExitData. Ignored if
-                                  ExitStatus is EFI_SUCCESS.
-  @param  ExitData                Pointer to a data buffer that includes a
-                                  Null-terminated Unicode string, optionally
-                                  followed by additional binary data. The string
-                                  is a description that the caller may use to
-                                  further indicate the reason for the image's
-                                  exit.
-  @retval EFI_INVALID_PARAMETER   Image handle is NULL or it is not current
-                                  image.
-  @retval EFI_SUCCESS             Successfully terminates the currently loaded
-                                  EFI image.
-  @retval EFI_ACCESS_DENIED       Should never reach there.
-  @retval EFI_OUT_OF_RESOURCES    Could not allocate pool
-**/
-EFI_STATUS
-EFIAPI
-CoreExit (
-  IN EFI_HANDLE  ImageHandle,
-  IN EFI_STATUS  Status,
-  IN UINTN       ExitDataSize,
-  IN CHAR16      *ExitData  OPTIONAL
-  )
-{
-  LOADED_IMAGE_PRIVATE_DATA  *Image;
-  EFI_TPL                    OldTpl;
 
-  //
-  // Prevent possible reentrance to this function
-  // for the same ImageHandle
-  //
-  OldTpl = CoreRaiseTpl (TPL_NOTIFY);
-
-  Image = CoreLoadedImageInfo (ImageHandle);
-  if (Image == NULL) {
-    Status = EFI_INVALID_PARAMETER;
-    goto Done;
-  }
-
-  if (!Image->Started) {
-    //
-    // The image has not been started so just free its resources
-    //
-    CoreUnloadAndCloseImage (Image, TRUE);
-    Status = EFI_SUCCESS;
-    goto Done;
-  }
-
-  //
-  // Image has been started, verify this image can exit
-  //
-  if (Image != mCurrentImage) {
-    DEBUG ((DEBUG_LOAD|DEBUG_ERROR, "Exit: Image is not exitable image\n"));
-    Status = EFI_INVALID_PARAMETER;
-    goto Done;
-  }
-
-  //
-  // Set status
-  //
-  Image->Status = Status;
-
-  //
-  // If there's ExitData info, move it
-  //
-  if (ExitData != NULL) {
-    Image->ExitDataSize = ExitDataSize;
-    Image->ExitData = AllocatePool (Image->ExitDataSize);
-    if (Image->ExitData == NULL) {
-      Status = EFI_OUT_OF_RESOURCES;
-      goto Done;
-    }
-    CopyMem (Image->ExitData, ExitData, Image->ExitDataSize);
-  }
-
-  CoreRestoreTpl (OldTpl);
-  //
-  // return to StartImage
-  //
-  LongJump (Image->JumpContext, (UINTN)-1);
-
-  //
-  // If we return from LongJump, then it is an error
-  //
-  ASSERT (FALSE);
-  Status = EFI_ACCESS_DENIED;
-Done:
-  CoreRestoreTpl (OldTpl);
-  return Status;
-}
 
 /**
-  Unloads an image.
-  @param  ImageHandle             Handle that identifies the image to be
-                                  unloaded.
-  @retval EFI_SUCCESS             The image has been unloaded.
-  @retval EFI_UNSUPPORTED         The image has been started, and does not support
-                                  unload.
-  @retval EFI_INVALID_PARAMPETER  ImageHandle is not a valid image handle.
+  Get the image's private data from its handle.
+
+  @param  ImageHandle             The image handle
+
+  @return Return the image private data associated with ImageHandle.
+
 **/
-EFI_STATUS
-EFIAPI
-CoreUnloadImage (
+LOADED_IMAGE_PRIVATE_DATA *
+CoreLoadedImageInfo (
   IN EFI_HANDLE  ImageHandle
   )
 {
   EFI_STATUS                 Status;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
   LOADED_IMAGE_PRIVATE_DATA  *Image;
 
-  Image = CoreLoadedImageInfo (ImageHandle);
-  if (Image == NULL ) {
-    //
-    // The image handle is not valid
-    //
-    Status = EFI_INVALID_PARAMETER;
-    goto Done;
-  }
-
-  if (Image->Started) {
-    //
-    // The image has been started, request it to unload.
-    //
-    Status = EFI_UNSUPPORTED;
-    if (Image->Info.Unload != NULL) {
-      Status = Image->Info.Unload (ImageHandle);
-    }
-
-  } else {
-    //
-    // This Image hasn't been started, thus it can be unloaded
-    //
-    Status = EFI_SUCCESS;
-  }
-
-
+  Status = CoreHandleProtocol (
+             ImageHandle,
+             &gEfiLoadedImageProtocolGuid,
+             (VOID **)&LoadedImage
+             );
   if (!EFI_ERROR (Status)) {
-    //
-    // if the Image was not started or Unloaded O.K. then clean up
-    //
-    CoreUnloadAndCloseImage (Image, TRUE);
+    Image = LOADED_IMAGE_PRIVATE_DATA_FROM_THIS (LoadedImage);
+  } else {
+    DEBUG ((DEBUG_LOAD, "CoreLoadedImageInfo: Not an ImageHandle %p\n", ImageHandle));
+    Image = NULL;
   }
 
-Done:
-  return Status;
+  return Image;
 }
 
+
+/**
+  Unloads EFI image from memory.
+
+  @param  Image                   EFI image
+  @param  FreePage                Free allocated pages
+
+**/
+VOID
+CoreUnloadAndCloseImage (
+  IN LOADED_IMAGE_PRIVATE_DATA  *Image,
+  IN BOOLEAN                    FreePage
+  )
+{
+  EFI_STATUS                          Status;
+  UINTN                               HandleCount;
+  EFI_HANDLE                          *HandleBuffer;
+  UINTN                               HandleIndex;
+  EFI_GUID                            **ProtocolGuidArray;
+  UINTN                               ArrayCount;
+  UINTN                               ProtocolIndex;
+  EFI_OPEN_PROTOCOL_INFORMATION_ENTRY *OpenInfo;
+  UINTN                               OpenInfoCount;
+  UINTN                               OpenInfoIndex;
+
+  HandleBuffer = NULL;
+  ProtocolGuidArray = NULL;
+
+  if (Image->Started) {
+    UnregisterMemoryProfileImage (Image);
+  }
+
+  UnprotectUefiImage (&Image->Info, Image->LoadedImageDevicePath);
+
+  if (Image->Ebc != NULL) {
+    //
+    // If EBC protocol exists we must perform cleanups for this image.
+    //
+    Image->Ebc->UnloadImage (Image->Ebc, Image->Handle);
+  }
+
+  //
+  // Unload image, free Image->ImageContext->ModHandle
+  //
+  PeCoffLoaderUnloadImage (&Image->ImageContext);
+
+  //
+  // Free our references to the image handle
+  //
+  if (Image->Handle != NULL) {
+
+    Status = CoreLocateHandleBuffer (
+               AllHandles,
+               NULL,
+               NULL,
+               &HandleCount,
+               &HandleBuffer
+               );
+    if (!EFI_ERROR (Status)) {
+      for (HandleIndex = 0; HandleIndex < HandleCount; HandleIndex++) {
+        Status = CoreProtocolsPerHandle (
+                   HandleBuffer[HandleIndex],
+                   &ProtocolGuidArray,
+                   &ArrayCount
+                   );
+        if (!EFI_ERROR (Status)) {
+          for (ProtocolIndex = 0; ProtocolIndex < ArrayCount; ProtocolIndex++) {
+            Status = CoreOpenProtocolInformation (
+                       HandleBuffer[HandleIndex],
+                       ProtocolGuidArray[ProtocolIndex],
+                       &OpenInfo,
+                       &OpenInfoCount
+                       );
+            if (!EFI_ERROR (Status)) {
+              for (OpenInfoIndex = 0; OpenInfoIndex < OpenInfoCount; OpenInfoIndex++) {
+                if (OpenInfo[OpenInfoIndex].AgentHandle == Image->Handle) {
+                  Status = CoreCloseProtocol (
+                             HandleBuffer[HandleIndex],
+                             ProtocolGuidArray[ProtocolIndex],
+                             Image->Handle,
+                             OpenInfo[OpenInfoIndex].ControllerHandle
+                             );
+                }
+              }
+              if (OpenInfo != NULL) {
+                CoreFreePool(OpenInfo);
+              }
+            }
+          }
+          if (ProtocolGuidArray != NULL) {
+            CoreFreePool(ProtocolGuidArray);
+          }
+        }
+      }
+      if (HandleBuffer != NULL) {
+        CoreFreePool (HandleBuffer);
+      }
+    }
+
+    CoreRemoveDebugImageInfoEntry (Image->Handle);
+
+    Status = CoreUninstallProtocolInterface (
+               Image->Handle,
+               &gEfiLoadedImageDevicePathProtocolGuid,
+               Image->LoadedImageDevicePath
+               );
+
+    Status = CoreUninstallProtocolInterface (
+               Image->Handle,
+               &gEfiLoadedImageProtocolGuid,
+               &Image->Info
+               );
+
+    if (Image->ImageContext.HiiResourceData != 0) {
+      Status = CoreUninstallProtocolInterface (
+                 Image->Handle,
+                 &gEfiHiiPackageListProtocolGuid,
+                 (VOID *) (UINTN) Image->ImageContext.HiiResourceData
+                 );
+    }
+
+  }
+
+  if (Image->RuntimeData != NULL) {
+    if (Image->RuntimeData->Link.ForwardLink != NULL) {
+      //
+      // Remove the Image from the Runtime Image list as we are about to Free it!
+      //
+      RemoveEntryList (&Image->RuntimeData->Link);
+
+      //
+      // AIL: ImageRecord is used by UEFI 2.5 specification, but we do not care for our needs.
+      // The original implementation called RemoveImageRecord here.
+      //
+    }
+    CoreFreePool (Image->RuntimeData);
+  }
+
+  //
+  // Free the Image from memory
+  //
+  if ((Image->ImageBasePage != 0) && FreePage) {
+    CoreFreePages (Image->ImageBasePage, Image->NumberOfPages);
+  }
+
+  //
+  // Done with the Image structure
+  //
+  if (Image->Info.FilePath != NULL) {
+    CoreFreePool (Image->Info.FilePath);
+  }
+
+  if (Image->LoadedImageDevicePath != NULL) {
+    CoreFreePool (Image->LoadedImageDevicePath);
+  }
+
+  if (Image->FixupData != NULL) {
+    CoreFreePool (Image->FixupData);
+  }
+
+  CoreFreePool (Image);
+}
+
+
+/**
+  Loads an EFI image into memory and returns a handle to the image.
+
+  @param  BootPolicy              If TRUE, indicates that the request originates
+                                  from the boot manager, and that the boot
+                                  manager is attempting to load FilePath as a
+                                  boot selection.
+  @param  ParentImageHandle       The caller's image handle.
+  @param  FilePath                The specific file path from which the image is
+                                  loaded.
+  @param  SourceBuffer            If not NULL, a pointer to the memory location
+                                  containing a copy of the image to be loaded.
+  @param  SourceSize              The size in bytes of SourceBuffer.
+  @param  DstBuffer               The buffer to store the image
+  @param  NumberOfPages           If not NULL, it inputs a pointer to the page
+                                  number of DstBuffer and outputs a pointer to
+                                  the page number of the image. If this number is
+                                  not enough,  return EFI_BUFFER_TOO_SMALL and
+                                  this parameter contains the required number.
+  @param  ImageHandle             Pointer to the returned image handle that is
+                                  created when the image is successfully loaded.
+  @param  EntryPoint              A pointer to the entry point
+  @param  Attribute               The bit mask of attributes to set for the load
+                                  PE image
+
+  @retval EFI_SUCCESS             The image was loaded into memory.
+  @retval EFI_NOT_FOUND           The FilePath was not found.
+  @retval EFI_INVALID_PARAMETER   One of the parameters has an invalid value.
+  @retval EFI_BUFFER_TOO_SMALL    The buffer is too small
+  @retval EFI_UNSUPPORTED         The image type is not supported, or the device
+                                  path cannot be parsed to locate the proper
+                                  protocol for loading the file.
+  @retval EFI_OUT_OF_RESOURCES    Image was not loaded due to insufficient
+                                  resources.
+  @retval EFI_LOAD_ERROR          Image was not loaded because the image format was corrupt or not
+                                  understood.
+  @retval EFI_DEVICE_ERROR        Image was not loaded because the device returned a read error.
+  @retval EFI_ACCESS_DENIED       Image was not loaded because the platform policy prohibits the
+                                  image from being loaded. NULL is returned in *ImageHandle.
+  @retval EFI_SECURITY_VIOLATION  Image was loaded and an ImageHandle was created with a
+                                  valid EFI_LOADED_IMAGE_PROTOCOL. However, the current
+                                  platform policy specifies that the image should not be started.
+
+**/
 EFI_STATUS
 CoreLoadImageCommon (
   IN  BOOLEAN                          BootPolicy,
@@ -1057,13 +1143,10 @@ CoreLoadImageCommon (
   SecurityStatus = EFI_SUCCESS;
 
   //
-  // Get current Tpl
+  // AIL: gEfiCurrentTpl is a global in the original implementation,
+  // we implement it via a function.
   //
-  gEfiCurrentTpl = CoreRaiseTpl (TPL_APPLICATION);
-  //
-  // Restore back
-  //
-  CoreRaiseTpl (gEfiCurrentTpl);
+  gEfiCurrentTpl = CoreGetCurrentTpl ();
 
   ASSERT (gEfiCurrentTpl < TPL_NOTIFY);
   ParentImage = NULL;
@@ -1098,11 +1181,7 @@ CoreLoadImageCommon (
   if (SourceBuffer != NULL) {
     FHand.Source     = SourceBuffer;
     FHand.SourceSize = SourceSize;
-    Status = CoreLocateDevicePath (
-      &gEfiDevicePathProtocolGuid,
-      &HandleFilePath,
-      &DeviceHandle
-      );
+    Status = CoreLocateDevicePath (&gEfiDevicePathProtocolGuid, &HandleFilePath, &DeviceHandle);
     if (EFI_ERROR (Status)) {
       DeviceHandle = NULL;
     }
@@ -1171,8 +1250,8 @@ CoreLoadImageCommon (
 
 
   //
-  // The original implementation performed authenticode validation here, which we removed,
-  // as we only verify Apple Signature
+  // AIL: The original implementation performed authenticode validation here, which we removed,
+  // as we only verify Apple Signature and do it prior to any image loading.
   //
 
   //
@@ -1194,7 +1273,7 @@ CoreLoadImageCommon (
   //
   // Allocate a new image structure
   //
-  Image = AllocateZeroPool (sizeof (LOADED_IMAGE_PRIVATE_DATA));
+  Image = AllocateZeroPool (sizeof(LOADED_IMAGE_PRIVATE_DATA));
   if (Image == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
     goto Done;
@@ -1215,11 +1294,12 @@ CoreLoadImageCommon (
   // Initialize the fields for an internal driver
   //
   Image->Signature         = LOADED_IMAGE_PRIVATE_DATA_SIGNATURE;
-  Image->Info.SystemTable  = gST;
+  Image->Info.SystemTable  = gDxeCoreST;
   Image->Info.DeviceHandle = DeviceHandle;
   Image->Info.Revision     = EFI_LOADED_IMAGE_PROTOCOL_REVISION;
   Image->Info.FilePath     = DuplicateDevicePath (FilePath);
   Image->Info.ParentHandle = ParentImageHandle;
+
 
   if (NumberOfPages != NULL) {
     Image->NumberOfPages = *NumberOfPages ;
@@ -1228,8 +1308,9 @@ CoreLoadImageCommon (
   }
 
   //
-  // WARN: The original implementation calls private CoreInstallProtocolInterfaceNotify, 
-  // which does not invoke notification event.
+  // AIL: The original implementation calls private CoreInstallProtocolInterfaceNotify, 
+  // which does not invoke notification event on EFI_LOADED_IMAGE_PROTOCOL installation.
+  // We workaround this by installing EFI_LOADED_IMAGE_PROTOCOL till later.
   //
 
   //
@@ -1250,13 +1331,16 @@ CoreLoadImageCommon (
   }
 
   //
-  // Here we add debug image info entry
+  // Register the image in the Debug Image Info Table if the attribute is set
   //
+  if ((Attribute & EFI_LOAD_PE_IMAGE_ATTRIBUTE_DEBUG_IMAGE_INFO_TABLE_REGISTRATION) != 0) {
+    CoreNewDebugImageInfoEntry (EFI_DEBUG_IMAGE_INFO_TYPE_NORMAL, &Image->Info, Image->Handle);
+  }
 
   //
-  // WARN: Original function reinstalls loaded image protocol to fire notifications
+  // AIL: Install loaded image protocol here and fire the delayed notifications.
+  // The original implementation reinstalls the protocol here to do the same thing.
   //
-  //Install loaded image protocol
   Status = CoreInstallProtocolInterface (
              &Image->Handle,
              &gEfiLoadedImageProtocolGuid,
@@ -1343,6 +1427,43 @@ Done:
   return Status;
 }
 
+
+
+
+/**
+  Loads an EFI image into memory and returns a handle to the image.
+
+  @param  BootPolicy              If TRUE, indicates that the request originates
+                                  from the boot manager, and that the boot
+                                  manager is attempting to load FilePath as a
+                                  boot selection.
+  @param  ParentImageHandle       The caller's image handle.
+  @param  FilePath                The specific file path from which the image is
+                                  loaded.
+  @param  SourceBuffer            If not NULL, a pointer to the memory location
+                                  containing a copy of the image to be loaded.
+  @param  SourceSize              The size in bytes of SourceBuffer.
+  @param  ImageHandle             Pointer to the returned image handle that is
+                                  created when the image is successfully loaded.
+
+  @retval EFI_SUCCESS             The image was loaded into memory.
+  @retval EFI_NOT_FOUND           The FilePath was not found.
+  @retval EFI_INVALID_PARAMETER   One of the parameters has an invalid value.
+  @retval EFI_UNSUPPORTED         The image type is not supported, or the device
+                                  path cannot be parsed to locate the proper
+                                  protocol for loading the file.
+  @retval EFI_OUT_OF_RESOURCES    Image was not loaded due to insufficient
+                                  resources.
+  @retval EFI_LOAD_ERROR          Image was not loaded because the image format was corrupt or not
+                                  understood.
+  @retval EFI_DEVICE_ERROR        Image was not loaded because the device returned a read error.
+  @retval EFI_ACCESS_DENIED       Image was not loaded because the platform policy prohibits the
+                                  image from being loaded. NULL is returned in *ImageHandle.
+  @retval EFI_SECURITY_VIOLATION  Image was loaded and an ImageHandle was created with a
+                                  valid EFI_LOADED_IMAGE_PROTOCOL. However, the current
+                                  platform policy specifies that the image should not be started.
+
+**/
 EFI_STATUS
 EFIAPI
 CoreLoadImage (
@@ -1385,6 +1506,29 @@ CoreLoadImage (
   return Status;
 }
 
+//
+// AIL: We do not need to support CoreLoadImageEx for our overrides.
+//
+
+/**
+  Transfer control to a loaded image's entry point.
+
+  @param  ImageHandle             Handle of image to be started.
+  @param  ExitDataSize            Pointer of the size to ExitData
+  @param  ExitData                Pointer to a pointer to a data buffer that
+                                  includes a Null-terminated string,
+                                  optionally followed by additional binary data.
+                                  The string is a description that the caller may
+                                  use to further indicate the reason for the
+                                  image's exit.
+
+  @retval EFI_INVALID_PARAMETER   Invalid parameter
+  @retval EFI_OUT_OF_RESOURCES    No enough buffer to allocate
+  @retval EFI_SECURITY_VIOLATION  The current platform policy specifies that the image should not be started.
+  @retval EFI_SUCCESS             Successfully transfer control to the image's
+                                  entry point.
+
+**/
 EFI_STATUS
 EFIAPI
 CoreStartImage (
@@ -1396,9 +1540,7 @@ CoreStartImage (
   EFI_STATUS                    Status;
   LOADED_IMAGE_PRIVATE_DATA     *Image;
   LOADED_IMAGE_PRIVATE_DATA     *LastImage;
-  UINTN                         HandleCount;
-  EFI_HANDLE                    *HandleBuffer;
-  UINTN                         Index;
+  UINT64                        HandleDatabaseKey;
   UINTN                         SetJumpFlag;
   EFI_HANDLE                    Handle;
   EFI_TPL                       gEfiCurrentTpl;
@@ -1428,27 +1570,19 @@ CoreStartImage (
 
   PERF_START_IMAGE_BEGIN (Handle);
 
+  //
+  // AIL: gEfiCurrentTpl is a global in the original implementation,
+  // we implement it via a function.
+  //
+  gEfiCurrentTpl = CoreGetCurrentTpl ();
+
 
   //
   // Push the current start image context, and
   // link the current image to the head.   This is the
   // only image that can call Exit()
   //
-
-  //
-  // Dirty connect all handles instead of maintaining database
-  // Original code assign HandleDatabaseKey to  CoreGetHandleDatabaseKey ()
-  //
-
-  //
-  // Get current Tpl
-  //
-  gEfiCurrentTpl = CoreRaiseTpl (TPL_APPLICATION);
-  //
-  // Restore back
-  //
-  CoreRaiseTpl (gEfiCurrentTpl);
-
+  HandleDatabaseKey = CoreGetHandleDatabaseKey ();
   LastImage         = mCurrentImage;
   mCurrentImage     = Image;
   Image->Tpl        = gEfiCurrentTpl;
@@ -1508,7 +1642,6 @@ CoreStartImage (
   //
   // Image has completed.  Verify the tpl is the same
   //
-  
   ASSERT (Image->Tpl == gEfiCurrentTpl);
   CoreRestoreTpl (Image->Tpl);
 
@@ -1529,26 +1662,7 @@ CoreStartImage (
   // created or modified handles before StartImage() returns.
   //
   if (Image->Type != EFI_IMAGE_SUBSYSTEM_EFI_APPLICATION) {
-    //
-    // Dirty connect all handles instead of maintaining database
-    // Original function passes HandleDatabaseKey to CoreConnectHandlesByKey
-    //
-    Status = CoreLocateHandleBuffer (
-           AllHandles,
-           NULL,
-           NULL,
-           &HandleCount,
-           &HandleBuffer
-           );
-    if (!EFI_ERROR (Status)) {
-      for (Index = 0; Index < HandleCount; Index++) {
-        gBS->ConnectController (HandleBuffer[Index], NULL, NULL, TRUE);
-      }
-
-      if (HandleBuffer != NULL) {
-        CoreFreePool (HandleBuffer);
-      }
-    }
+    CoreConnectHandlesByKey (HandleDatabaseKey);
   }
 
   //
@@ -1602,3 +1716,167 @@ CoreStartImage (
   PERF_START_IMAGE_END (Handle);
   return Status;
 }
+
+/**
+  Terminates the currently loaded EFI image and returns control to boot services.
+
+  @param  ImageHandle             Handle that identifies the image. This
+                                  parameter is passed to the image on entry.
+  @param  Status                  The image's exit code.
+  @param  ExitDataSize            The size, in bytes, of ExitData. Ignored if
+                                  ExitStatus is EFI_SUCCESS.
+  @param  ExitData                Pointer to a data buffer that includes a
+                                  Null-terminated Unicode string, optionally
+                                  followed by additional binary data. The string
+                                  is a description that the caller may use to
+                                  further indicate the reason for the image's
+                                  exit.
+
+  @retval EFI_INVALID_PARAMETER   Image handle is NULL or it is not current
+                                  image.
+  @retval EFI_SUCCESS             Successfully terminates the currently loaded
+                                  EFI image.
+  @retval EFI_ACCESS_DENIED       Should never reach there.
+  @retval EFI_OUT_OF_RESOURCES    Could not allocate pool
+
+**/
+EFI_STATUS
+EFIAPI
+CoreExit (
+  IN EFI_HANDLE  ImageHandle,
+  IN EFI_STATUS  Status,
+  IN UINTN       ExitDataSize,
+  IN CHAR16      *ExitData  OPTIONAL
+  )
+{
+  LOADED_IMAGE_PRIVATE_DATA  *Image;
+  EFI_TPL                    OldTpl;
+
+  //
+  // Prevent possible reentrance to this function
+  // for the same ImageHandle
+  //
+  OldTpl = CoreRaiseTpl (TPL_NOTIFY);
+
+  Image = CoreLoadedImageInfo (ImageHandle);
+  if (Image == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  if (!Image->Started) {
+    //
+    // The image has not been started so just free its resources
+    //
+    CoreUnloadAndCloseImage (Image, TRUE);
+    Status = EFI_SUCCESS;
+    goto Done;
+  }
+
+  //
+  // Image has been started, verify this image can exit
+  //
+  if (Image != mCurrentImage) {
+    DEBUG ((DEBUG_LOAD|DEBUG_ERROR, "Exit: Image is not exitable image\n"));
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  //
+  // Set status
+  //
+  Image->Status = Status;
+
+  //
+  // If there's ExitData info, move it
+  //
+  if (ExitData != NULL) {
+    Image->ExitDataSize = ExitDataSize;
+    Image->ExitData = AllocatePool (Image->ExitDataSize);
+    if (Image->ExitData == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
+      goto Done;
+    }
+    CopyMem (Image->ExitData, ExitData, Image->ExitDataSize);
+  }
+
+  CoreRestoreTpl (OldTpl);
+  //
+  // return to StartImage
+  //
+  LongJump (Image->JumpContext, (UINTN)-1);
+
+  //
+  // If we return from LongJump, then it is an error
+  //
+  ASSERT (FALSE);
+  Status = EFI_ACCESS_DENIED;
+Done:
+  CoreRestoreTpl (OldTpl);
+  return Status;
+}
+
+
+
+
+/**
+  Unloads an image.
+
+  @param  ImageHandle             Handle that identifies the image to be
+                                  unloaded.
+
+  @retval EFI_SUCCESS             The image has been unloaded.
+  @retval EFI_UNSUPPORTED         The image has been started, and does not support
+                                  unload.
+  @retval EFI_INVALID_PARAMPETER  ImageHandle is not a valid image handle.
+
+**/
+EFI_STATUS
+EFIAPI
+CoreUnloadImage (
+  IN EFI_HANDLE  ImageHandle
+  )
+{
+  EFI_STATUS                 Status;
+  LOADED_IMAGE_PRIVATE_DATA  *Image;
+
+  Image = CoreLoadedImageInfo (ImageHandle);
+  if (Image == NULL ) {
+    //
+    // The image handle is not valid
+    //
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  if (Image->Started) {
+    //
+    // The image has been started, request it to unload.
+    //
+    Status = EFI_UNSUPPORTED;
+    if (Image->Info.Unload != NULL) {
+      Status = Image->Info.Unload (ImageHandle);
+    }
+
+  } else {
+    //
+    // This Image hasn't been started, thus it can be unloaded
+    //
+    Status = EFI_SUCCESS;
+  }
+
+
+  if (!EFI_ERROR (Status)) {
+    //
+    // if the Image was not started or Unloaded O.K. then clean up
+    //
+    CoreUnloadAndCloseImage (Image, TRUE);
+  }
+
+Done:
+  return Status;
+}
+
+//
+// AIL: We do not need to support CoreUnloadImageEx for our overrides.
+//

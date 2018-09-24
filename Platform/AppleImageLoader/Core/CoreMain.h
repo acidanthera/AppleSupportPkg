@@ -13,45 +13,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef _CORE_MAIN_H_
 #define _CORE_MAIN_H_
 
-#include <PiDxe.h>
-
-#include <Base.h>
-#include <Uefi.h>
-#include <PiDxe.h>
-#include <Library/PcdLib.h>
-#include <Library/UefiLib.h>
-#include <Library/DebugLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/PeCoffLib.h>
-#include <Library/PeCoffGetEntryPointLib.h>
-#include <Library/PeCoffExtraActionLib.h>
-#include <Library/DxeServicesLib.h>
-#include <Library/DevicePathLib.h>
 #include <Protocol/LoadedImage.h>
-#include <Protocol/LoadPe32Image.h>
-#include <Protocol/FirmwareVolumeBlock.h>
-#include <Protocol/Ebc.h>
-#include <Protocol/Runtime.h>
-#include <Protocol/HiiPackageList.h>
-#include <Protocol/TcgService.h>
-#include <Guid/FirmwareFileSystem2.h>
-#include <Guid/FirmwareFileSystem3.h>
-
-#include "Image/ImagePrivate.h"
-#include "Misc/PropertiesTablePrivate.h"
-
-EFI_STATUS
-UnregisterMemoryProfileImage (
-  IN LOADED_IMAGE_PRIVATE_DATA      *DriverEntry
-  );
-
-EFI_STATUS
-RegisterMemoryProfileImage (
-  IN LOADED_IMAGE_PRIVATE_DATA  *DriverEntry,
-  IN EFI_FV_FILETYPE            FileType
-  );
+#include <Protocol/DevicePath.h>
 
 VOID
 UnprotectUefiImage (
@@ -66,36 +29,31 @@ ProtectUefiImage (
   );
 
 EFI_STATUS
-CoreLoadImageCommon (
-  IN  BOOLEAN                          BootPolicy,
-  IN  EFI_HANDLE                       ParentImageHandle,
-  IN  EFI_DEVICE_PATH_PROTOCOL         *FilePath,
-  IN  VOID                             *SourceBuffer       OPTIONAL,
-  IN  UINTN                            SourceSize,
-  IN  EFI_PHYSICAL_ADDRESS             DstBuffer           OPTIONAL,
-  IN OUT UINTN                         *NumberOfPages      OPTIONAL,
-  OUT EFI_HANDLE                       *ImageHandle,
-  OUT EFI_PHYSICAL_ADDRESS             *EntryPoint         OPTIONAL,
-  IN  UINT32                           Attribute
-  );
-
-EFI_STATUS
 EFIAPI
 CoreLoadImage (
-  IN BOOLEAN                    BootPolicy,
-  IN EFI_HANDLE                 ParentImageHandle,
-  IN EFI_DEVICE_PATH_PROTOCOL   *FilePath,
-  IN VOID                       *SourceBuffer   OPTIONAL,
-  IN UINTN                      SourceSize,
-  OUT EFI_HANDLE                *ImageHandle
+  IN  BOOLEAN                    BootPolicy,
+  IN  EFI_HANDLE                 ParentImageHandle,
+  IN  EFI_DEVICE_PATH_PROTOCOL   *FilePath,
+  IN  VOID                       *SourceBuffer   OPTIONAL,
+  IN  UINTN                      SourceSize,
+  OUT EFI_HANDLE                 *ImageHandle
   );
 
 EFI_STATUS
 EFIAPI
 CoreStartImage (
+  IN  EFI_HANDLE  ImageHandle,
+  OUT UINTN       *ExitDataSize,
+  OUT CHAR16      **ExitData   OPTIONAL
+  );
+
+EFI_STATUS
+EFIAPI
+CoreExit (
   IN EFI_HANDLE  ImageHandle,
-  OUT UINTN      *ExitDataSize,
-  OUT CHAR16     **ExitData  OPTIONAL
+  IN EFI_STATUS  Status,
+  IN UINTN       ExitDataSize,
+  IN CHAR16      *ExitData   OPTIONAL
   );
 
 #endif
