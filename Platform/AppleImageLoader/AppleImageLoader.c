@@ -424,7 +424,7 @@ AppleImageLoaderEntryPoint (
   // Override Edk2LoadImage protocol for AppleFatBinary support
   //
   mOriginalLoadImage = gBS->LoadImage;
-  gBS->LoadImage = LoadImageEx;
+  gBS->LoadImage = CoreLoadImage;
   gBS->Hdr.CRC32 = 0;
   gBS->CalculateCrc32 (gBS, sizeof (EFI_BOOT_SERVICES), &gBS->Hdr.CRC32);
 

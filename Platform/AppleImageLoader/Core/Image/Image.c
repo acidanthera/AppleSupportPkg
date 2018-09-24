@@ -37,6 +37,196 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 #include "CoreMain.h"
 
+//
+// Disable performance lib for load image
+//
+#define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { } while (0)
+#define PERF_LOAD_IMAGE_END(ModuleHandle) do { } while (0)
+
+//
+// Map CoreDxe function into platform ones
+//
+STATIC
+EFI_STATUS
+CoreLocateHandleBuffer (
+  IN  EFI_LOCATE_SEARCH_TYPE   SearchType,
+    IN  EFI_GUID                 *Protocol OPTIONAL,
+    IN  VOID                     *SearchKey OPTIONAL,
+    IN  OUT UINTN                *NoHandles,
+    OUT EFI_HANDLE               **Buffer
+    ) 
+{
+  return gBS->LocateHandleBuffer (
+               SearchType,
+               Protocol,
+               SearchKey,
+               NoHandles,
+               Buffer
+               );
+}
+
+STATIC
+EFI_STATUS
+CoreProtocolsPerHandle (
+    IN EFI_HANDLE               Handle,
+    OUT EFI_GUID                ***ProtocolBuffer,
+    OUT UINTN                   *ProtocolBufferCount
+    )
+{
+  return gBS->ProtocolsPerHandle (
+    Handle,
+    ProtocolBuffer,
+    ProtocolBufferCount
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreOpenProtocolInformation (
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  OUT EFI_OPEN_PROTOCOL_INFORMATION_ENTRY **EntryBuffer,
+  OUT UINTN                   *EntryCount
+  )
+{
+  return gBS->OpenProtocolInformation (
+    Handle,
+    Protocol,
+    EntryBuffer,
+    EntryCount
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreCloseProtocol (
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  IN EFI_HANDLE               AgentHandle,
+  IN EFI_HANDLE               ControllerHandle  
+  )
+{
+  return gBS->CloseProtocol (
+    Handle,
+    Protocol,
+    AgentHandle,
+    ControllerHandle
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreUninstallProtocolInterface (
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  IN VOID                     *Interface
+  )
+{
+  return gBS->UninstallProtocolInterface (
+    Handle,
+    Protocol,
+    Interface
+    );
+}
+
+STATIC
+VOID
+CoreFreePool (
+  IN VOID                         *Buffer
+  ) 
+{
+  return FreePool (Buffer);
+}
+
+STATIC
+EFI_STATUS
+CoreFreePages (
+  IN EFI_PHYSICAL_ADDRESS         Memory,
+  IN UINTN                        NoPages
+  )
+{
+  return gBS->FreePages (Memory, NoPages);
+}
+
+STATIC
+EFI_STATUS
+CoreAllocatePages (
+  IN EFI_ALLOCATE_TYPE            Type,
+  IN EFI_MEMORY_TYPE              MemoryType,
+  IN UINTN                        NoPages,
+  OUT EFI_PHYSICAL_ADDRESS        *Memory
+  )
+{
+  return gBS->AllocatePages (
+    Type,
+    MemoryType,
+    NoPages,
+    Memory
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreLocateDevicePath (
+  IN EFI_GUID                 *Protocol,
+  IN OUT EFI_DEVICE_PATH      **DevicePath,
+  OUT EFI_HANDLE              *Device
+  )
+{
+  return gBS->LocateDevicePath (
+    Protocol,
+    DevicePath,
+    Device
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreHandleProtocol (
+  IN EFI_HANDLE               Handle,
+  IN EFI_GUID                 *Protocol,
+  OUT VOID                    **Interface
+  )
+{
+  return gBS->HandleProtocol (
+    Handle,
+    Protocol,
+    Interface
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreLocateProtocol (
+  IN EFI_GUID                 *Protocol,
+  IN VOID                     *Registration OPTIONAL,
+  OUT VOID                    **Interface
+  )
+{
+  return gBS->LocateProtocol (
+    Protocol,
+    Registration,
+    Interface
+    );
+}
+
+STATIC
+EFI_STATUS
+CoreInstallProtocolInterface (
+  IN OUT EFI_HANDLE           *Handle,
+  IN EFI_GUID                 *Protocol,
+  IN EFI_INTERFACE_TYPE       InterfaceType,
+  IN VOID                     *Interface
+  )
+{
+  return gBS->InstallProtocolInterface (
+    Handle,
+    Protocol,
+    InterfaceType,
+    Interface
+    );
+}
+
 typedef struct {
   UINT16  MachineType;
   CHAR16  *MachineTypeName;
@@ -173,7 +363,7 @@ CoreUnloadAndCloseImage (
   //
   if (Image->Handle != NULL) {
 
-    Status = gBS->LocateHandleBuffer (
+    Status = CoreLocateHandleBuffer (
                AllHandles,
                NULL,
                NULL,
@@ -182,14 +372,14 @@ CoreUnloadAndCloseImage (
                );
     if (!EFI_ERROR (Status)) {
       for (HandleIndex = 0; HandleIndex < HandleCount; HandleIndex++) {
-        Status = gBS->ProtocolsPerHandle (
+        Status = CoreProtocolsPerHandle (
                    HandleBuffer[HandleIndex],
                    &ProtocolGuidArray,
                    &ArrayCount
                    );
         if (!EFI_ERROR (Status)) {
           for (ProtocolIndex = 0; ProtocolIndex < ArrayCount; ProtocolIndex++) {
-            Status = gBS->OpenProtocolInformation (
+            Status = CoreOpenProtocolInformation (
                        HandleBuffer[HandleIndex],
                        ProtocolGuidArray[ProtocolIndex],
                        &OpenInfo,
@@ -198,7 +388,7 @@ CoreUnloadAndCloseImage (
             if (!EFI_ERROR (Status)) {
               for (OpenInfoIndex = 0; OpenInfoIndex < OpenInfoCount; OpenInfoIndex++) {
                 if (OpenInfo[OpenInfoIndex].AgentHandle == Image->Handle) {
-                  Status = gBS->CloseProtocol (
+                  Status = CoreCloseProtocol (
                              HandleBuffer[HandleIndex],
                              ProtocolGuidArray[ProtocolIndex],
                              Image->Handle,
@@ -222,24 +412,23 @@ CoreUnloadAndCloseImage (
     }
 
     //
-    // CHECKME: Are we fill DebugImageInfo?
+    // Here we remove debug image info entry
     //
-    //CoreRemoveDebugImageInfoEntry (Image->Handle);
 
-    Status = gBS->UninstallProtocolInterface (
+    Status = CoreUninstallProtocolInterface (
                Image->Handle,
                &gEfiLoadedImageDevicePathProtocolGuid,
                Image->LoadedImageDevicePath
                );
 
-    Status = gBS->UninstallProtocolInterface (
+    Status = CoreUninstallProtocolInterface (
                Image->Handle,
                &gEfiLoadedImageProtocolGuid,
                &Image->Info
                );
 
     if (Image->ImageContext.HiiResourceData != 0) {
-      Status = gBS->UninstallProtocolInterface (
+      Status = CoreUninstallProtocolInterface (
                  Image->Handle,
                  &gEfiHiiPackageListProtocolGuid,
                  (VOID *) (UINTN) Image->ImageContext.HiiResourceData
@@ -260,32 +449,32 @@ CoreUnloadAndCloseImage (
       // 
       //RemoveImageRecord (Image->RuntimeData);
     }
-    FreePool (Image->RuntimeData);
+    CoreFreePool (Image->RuntimeData);
   }
 
   //
   // Free the Image from memory
   //
   if ((Image->ImageBasePage != 0) && FreePage) {
-    gBS->FreePages (Image->ImageBasePage, Image->NumberOfPages);
+    CoreFreePages (Image->ImageBasePage, Image->NumberOfPages);
   }
 
   //
   // Done with the Image structure
   //
   if (Image->Info.FilePath != NULL) {
-    FreePool (Image->Info.FilePath);
+    CoreFreePool (Image->Info.FilePath);
   }
 
   if (Image->LoadedImageDevicePath != NULL) {
-    FreePool (Image->LoadedImageDevicePath);
+    CoreFreePool (Image->LoadedImageDevicePath);
   }
 
   if (Image->FixupData != NULL) {
-    FreePool (Image->FixupData);
+    CoreFreePool (Image->FixupData);
   }
 
-  FreePool (Image);
+  CoreFreePool (Image);
 }
 
 /**
@@ -302,7 +491,7 @@ CoreLoadedImageInfo (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
   LOADED_IMAGE_PRIVATE_DATA  *Image;
 
-  Status = gBS->HandleProtocol (
+  Status = CoreHandleProtocol (
              ImageHandle,
              &gEfiLoadedImageProtocolGuid,
              (VOID **)&LoadedImage
@@ -336,7 +525,7 @@ CoreLoadPeImage (
   // CHECKME: 
   // Old platforms doesn't have gRuntime
   //
-  Status = gBS->LocateProtocol (
+  Status = CoreLocateProtocol (
     &gEfiRuntimeArchProtocolGuid,
     NULL,
     (VOID **) &gRuntime
@@ -421,7 +610,7 @@ CoreLoadPeImage (
     Status = EFI_OUT_OF_RESOURCES;
 
     if (Image->ImageContext.ImageAddress >= 0x100000 || Image->ImageContext.RelocationsStripped) {
-      Status = gBS->AllocatePages (
+      Status = CoreAllocatePages (
                  AllocateAddress,
                  (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
                  Image->NumberOfPages,
@@ -429,7 +618,7 @@ CoreLoadPeImage (
                  );
     }
     if (EFI_ERROR (Status) && !Image->ImageContext.RelocationsStripped) {
-      Status = gBS->AllocatePages (
+      Status = CoreAllocatePages (
                  AllocateAnyPages,
                  (EFI_MEMORY_TYPE) (Image->ImageContext.ImageCodeMemoryType),
                  Image->NumberOfPages,
@@ -630,13 +819,13 @@ Done:
   //
 
   if (DstBufAlocated) {
-    gBS->FreePages (Image->ImageContext.ImageAddress, Image->NumberOfPages);
+    CoreFreePages (Image->ImageContext.ImageAddress, Image->NumberOfPages);
     Image->ImageContext.ImageAddress = 0;
     Image->ImageBasePage = 0;
   }
 
   if (Image->ImageContext.FixupData != NULL) {
-    FreePool (Image->ImageContext.FixupData);
+    CoreFreePool (Image->ImageContext.FixupData);
   }
 
   return Status;
@@ -707,7 +896,7 @@ CoreLoadImageCommon (
   if (SourceBuffer != NULL) {
     FHand.Source     = SourceBuffer;
     FHand.SourceSize = SourceSize;
-    Status = gBS->LocateDevicePath (
+    Status = CoreLocateDevicePath (
       &gEfiDevicePathProtocolGuid,
       &HandleFilePath,
       &DeviceHandle
@@ -729,20 +918,20 @@ CoreLoadImageCommon (
     // Try to get the image device handle by checking the match protocol.
     //
     Node   = NULL;
-    Status = gBS->LocateDevicePath (&gEfiFirmwareVolume2ProtocolGuid, &HandleFilePath, &DeviceHandle);
+    Status = CoreLocateDevicePath (&gEfiFirmwareVolume2ProtocolGuid, &HandleFilePath, &DeviceHandle);
     if (!EFI_ERROR (Status)) {
       ImageIsFromFv = TRUE;
     } else {
       HandleFilePath = FilePath;
-      Status = gBS->LocateDevicePath (&gEfiSimpleFileSystemProtocolGuid, &HandleFilePath, &DeviceHandle);
+      Status = CoreLocateDevicePath (&gEfiSimpleFileSystemProtocolGuid, &HandleFilePath, &DeviceHandle);
       if (EFI_ERROR (Status)) {
         if (!BootPolicy) {
           HandleFilePath = FilePath;
-          Status = gBS->LocateDevicePath (&gEfiLoadFile2ProtocolGuid, &HandleFilePath, &DeviceHandle);
+          Status = CoreLocateDevicePath (&gEfiLoadFile2ProtocolGuid, &HandleFilePath, &DeviceHandle);
         }
         if (EFI_ERROR (Status)) {
           HandleFilePath = FilePath;
-          Status = gBS->LocateDevicePath (&gEfiLoadFileProtocolGuid, &HandleFilePath, &DeviceHandle);
+          Status = CoreLocateDevicePath (&gEfiLoadFileProtocolGuid, &HandleFilePath, &DeviceHandle);
           if (!EFI_ERROR (Status)) {
             ImageIsFromLoadFile = TRUE;
             Node = HandleFilePath;
@@ -814,7 +1003,7 @@ CoreLoadImageCommon (
   //
   FilePath = OriginalFilePath;
   if (DeviceHandle != NULL) {
-    Status = gBS->HandleProtocol (DeviceHandle, &gEfiDevicePathProtocolGuid, (VOID **)&HandleFilePath);
+    Status = CoreHandleProtocol (DeviceHandle, &gEfiDevicePathProtocolGuid, (VOID **)&HandleFilePath);
     if (!EFI_ERROR (Status)) {
       FilePathSize = GetDevicePathSize (HandleFilePath) - sizeof(EFI_DEVICE_PATH_PROTOCOL);
       FilePath = (EFI_DEVICE_PATH_PROTOCOL *) (((UINT8 *)FilePath) + FilePathSize );
@@ -859,10 +1048,14 @@ CoreLoadImageCommon (
   }
 
   //
+  // Here we add debug image info entry
+  //
+
+  //
   // WARN: Original function reinstalls loaded image protocol to fire notifications
   //
   //Install loaded image protocol
-  Status = gBS->InstallProtocolInterface (
+  Status = CoreInstallProtocolInterface (
              &Image->Handle,
              &gEfiLoadedImageProtocolGuid,
              EFI_NATIVE_INTERFACE,
@@ -883,7 +1076,7 @@ CoreLoadImageCommon (
   //
   // Install Loaded Image Device Path Protocol onto the image handle of a PE/COFE image
   //
-  Status = gBS->InstallProtocolInterface (
+  Status = CoreInstallProtocolInterface (
             &Image->Handle,
             &gEfiLoadedImageDevicePathProtocolGuid,
             EFI_NATIVE_INTERFACE,
@@ -897,7 +1090,7 @@ CoreLoadImageCommon (
   // Install HII Package List Protocol onto the image handle
   //
   if (Image->ImageContext.HiiResourceData != 0) {
-    Status = gBS->InstallProtocolInterface (
+    Status = CoreInstallProtocolInterface (
                &Image->Handle,
                &gEfiHiiPackageListProtocolGuid,
                EFI_NATIVE_INTERFACE,
@@ -920,10 +1113,10 @@ Done:
   // If we allocated the Source buffer, free it
   //
   if (FHand.FreeBuffer) {
-    FreePool (FHand.Source);
+    CoreFreePool (FHand.Source);
   }
   if (OriginalFilePath != InputFilePath) {
-    FreePool (OriginalFilePath);
+    CoreFreePool (OriginalFilePath);
   }
 
   //
@@ -963,7 +1156,7 @@ CoreLoadImage (
   EFI_HANDLE    Handle;
 
   // CHECKME
-  //PERF_LOAD_IMAGE_BEGIN (NULL);
+  PERF_LOAD_IMAGE_BEGIN (NULL);
 
   Status = CoreLoadImageCommon (
              BootPolicy,
@@ -987,7 +1180,7 @@ CoreLoadImage (
   }
 
   // CHEKME
-  //PERF_LOAD_IMAGE_END (Handle);
+  PERF_LOAD_IMAGE_END (Handle);
 
   return Status;
 }
