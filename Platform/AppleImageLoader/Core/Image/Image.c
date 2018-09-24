@@ -234,7 +234,7 @@ CoreInstallProtocolInterface (
     );
 }
 
-STATIC
+/*STATIC
 EFI_STATUS
 CoreExit (
   IN EFI_HANDLE                   ImageHandle,
@@ -249,7 +249,7 @@ CoreExit (
     ExitDataSize,
     ExitData
     );
-}
+}*/
 
 STATIC
 VOID
@@ -262,7 +262,7 @@ CoreRestoreTpl (
 
 STATIC
 EFI_TPL
-CoreRaiseTPL (
+CoreRaiseTpl (
   IN EFI_TPL      NewTpl
   )
 {
@@ -873,6 +873,157 @@ Done:
   return Status;
 }
 
+/**
+  Terminates the currently loaded EFI image and returns control to boot services.
+  @param  ImageHandle             Handle that identifies the image. This
+                                  parameter is passed to the image on entry.
+  @param  Status                  The image's exit code.
+  @param  ExitDataSize            The size, in bytes, of ExitData. Ignored if
+                                  ExitStatus is EFI_SUCCESS.
+  @param  ExitData                Pointer to a data buffer that includes a
+                                  Null-terminated Unicode string, optionally
+                                  followed by additional binary data. The string
+                                  is a description that the caller may use to
+                                  further indicate the reason for the image's
+                                  exit.
+  @retval EFI_INVALID_PARAMETER   Image handle is NULL or it is not current
+                                  image.
+  @retval EFI_SUCCESS             Successfully terminates the currently loaded
+                                  EFI image.
+  @retval EFI_ACCESS_DENIED       Should never reach there.
+  @retval EFI_OUT_OF_RESOURCES    Could not allocate pool
+**/
+EFI_STATUS
+EFIAPI
+CoreExit (
+  IN EFI_HANDLE  ImageHandle,
+  IN EFI_STATUS  Status,
+  IN UINTN       ExitDataSize,
+  IN CHAR16      *ExitData  OPTIONAL
+  )
+{
+  LOADED_IMAGE_PRIVATE_DATA  *Image;
+  EFI_TPL                    OldTpl;
+
+  //
+  // Prevent possible reentrance to this function
+  // for the same ImageHandle
+  //
+  OldTpl = CoreRaiseTpl (TPL_NOTIFY);
+
+  Image = CoreLoadedImageInfo (ImageHandle);
+  if (Image == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  if (!Image->Started) {
+    //
+    // The image has not been started so just free its resources
+    //
+    CoreUnloadAndCloseImage (Image, TRUE);
+    Status = EFI_SUCCESS;
+    goto Done;
+  }
+
+  //
+  // Image has been started, verify this image can exit
+  //
+  if (Image != mCurrentImage) {
+    DEBUG ((DEBUG_LOAD|DEBUG_ERROR, "Exit: Image is not exitable image\n"));
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  //
+  // Set status
+  //
+  Image->Status = Status;
+
+  //
+  // If there's ExitData info, move it
+  //
+  if (ExitData != NULL) {
+    Image->ExitDataSize = ExitDataSize;
+    Image->ExitData = AllocatePool (Image->ExitDataSize);
+    if (Image->ExitData == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
+      goto Done;
+    }
+    CopyMem (Image->ExitData, ExitData, Image->ExitDataSize);
+  }
+
+  CoreRestoreTpl (OldTpl);
+  //
+  // return to StartImage
+  //
+  LongJump (Image->JumpContext, (UINTN)-1);
+
+  //
+  // If we return from LongJump, then it is an error
+  //
+  ASSERT (FALSE);
+  Status = EFI_ACCESS_DENIED;
+Done:
+  CoreRestoreTpl (OldTpl);
+  return Status;
+}
+
+/**
+  Unloads an image.
+  @param  ImageHandle             Handle that identifies the image to be
+                                  unloaded.
+  @retval EFI_SUCCESS             The image has been unloaded.
+  @retval EFI_UNSUPPORTED         The image has been started, and does not support
+                                  unload.
+  @retval EFI_INVALID_PARAMPETER  ImageHandle is not a valid image handle.
+**/
+EFI_STATUS
+EFIAPI
+CoreUnloadImage (
+  IN EFI_HANDLE  ImageHandle
+  )
+{
+  EFI_STATUS                 Status;
+  LOADED_IMAGE_PRIVATE_DATA  *Image;
+
+  Image = CoreLoadedImageInfo (ImageHandle);
+  if (Image == NULL ) {
+    //
+    // The image handle is not valid
+    //
+    Status = EFI_INVALID_PARAMETER;
+    goto Done;
+  }
+
+  if (Image->Started) {
+    //
+    // The image has been started, request it to unload.
+    //
+    Status = EFI_UNSUPPORTED;
+    if (Image->Info.Unload != NULL) {
+      Status = Image->Info.Unload (ImageHandle);
+    }
+
+  } else {
+    //
+    // This Image hasn't been started, thus it can be unloaded
+    //
+    Status = EFI_SUCCESS;
+  }
+
+
+  if (!EFI_ERROR (Status)) {
+    //
+    // if the Image was not started or Unloaded O.K. then clean up
+    //
+    CoreUnloadAndCloseImage (Image, TRUE);
+  }
+
+Done:
+  return Status;
+}
+
 EFI_STATUS
 CoreLoadImageCommon (
   IN  BOOLEAN                          BootPolicy,
@@ -908,11 +1059,11 @@ CoreLoadImageCommon (
   //
   // Get current Tpl
   //
-  gEfiCurrentTpl = CoreRaiseTPL (TPL_APPLICATION);
+  gEfiCurrentTpl = CoreRaiseTpl (TPL_APPLICATION);
   //
   // Restore back
   //
-  CoreRaiseTPL (gEfiCurrentTpl);
+  CoreRaiseTpl (gEfiCurrentTpl);
 
   ASSERT (gEfiCurrentTpl < TPL_NOTIFY);
   ParentImage = NULL;
@@ -1292,11 +1443,11 @@ CoreStartImage (
   //
   // Get current Tpl
   //
-  gEfiCurrentTpl = CoreRaiseTPL (TPL_APPLICATION);
+  gEfiCurrentTpl = CoreRaiseTpl (TPL_APPLICATION);
   //
   // Restore back
   //
-  CoreRaiseTPL (gEfiCurrentTpl);
+  CoreRaiseTpl (gEfiCurrentTpl);
 
   LastImage         = mCurrentImage;
   mCurrentImage     = Image;
