@@ -16,7 +16,21 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
+#include <Base.h>
+#include <Uefi.h>
+#include <PiDxe.h>
+#include <Library/UefiLib.h>
+#include <Library/DebugLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/AppleDxeImageVerificationLib.h>
+#include <Library/DxeServicesLib.h>
+#include <Library/DevicePathLib.h>
+#include <Protocol/LoadedImage.h>
+#include <Protocol/AppleLoadImage.h>
 #include "AppleImageLoader.h"
+#include "Core/Image.h"
 #include <AppleSupportPkgVersion.h>
 
 STATIC EFI_IMAGE_LOAD  mOriginalLoadImage = NULL;

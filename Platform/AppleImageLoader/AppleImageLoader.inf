@@ -33,11 +33,17 @@
 [Protocols]
   gEfiLoadedImageProtocolGuid             ## PROTOCOL CONSUMES
   gAppleLoadImageProtocolGuid             ## PROTOCOL PRODUCES
+  gEfiLoadedImageDevicePathProtocolGuid   ## PROTOCOL PRODUCES
+  gEfiHiiPackageListProtocolGuid          ## PROTOCOL CONSUMES
+  gEfiRuntimeArchProtocolGuid             ## PROTOCOL CONSUMES
 
 [LibraryClasses]
   AppleDxeImageVerificationLib
   DxeServicesLib
   BaseLib
+  PeCoffLib
+  PeCoffGetEntryPointLib
+  PeCoffExtraActionLib
   DebugLib
   DevicePathLib
   UefiLib
@@ -45,6 +51,13 @@
   UefiBootServicesTableLib
   BaseMemoryLib
   MemoryAllocationLib
+  PcdLib
 
 [Sources]
   AppleImageLoader.c
+  Core/Image.c
+  Core/Image.h
+
+[Pcd]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdImageProtectionPolicy                   ## CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdLoadModuleAtFixAddressEnable            ## CONSUMES

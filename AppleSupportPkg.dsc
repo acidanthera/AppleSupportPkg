@@ -52,6 +52,9 @@
   AppleDxeImageVerificationLib|AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf
   AppleEventLib|AppleSupportPkg/Library/AppleEventLib/AppleEventLib.inf
   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
+  PeCoffLib|MdePkg/Library/BasePeCoffLib/BasePeCoffLib.inf
+  PeCoffGetEntryPointLib|MdePkg/Library/BasePeCoffGetEntryPointLib/BasePeCoffGetEntryPointLib.inf
+  PeCoffExtraActionLib|MdePkg/Library/BasePeCoffExtraActionLibNull/BasePeCoffExtraActionLibNull.inf
 
 [Components]
   AppleSupportPkg/Library/AppleDxeImageVerificationLib/AppleDxeImageVerificationLib.inf

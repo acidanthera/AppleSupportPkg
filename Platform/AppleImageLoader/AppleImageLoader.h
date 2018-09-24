@@ -18,21 +18,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APPLE_IMAGE_LOADER_H
 #define APPLE_IMAGE_LOADER_H
 
-#include <Base.h>
-#include <Uefi.h>
-#include <PiDxe.h>
-#include <Library/UefiLib.h>
-#include <Library/DebugLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/AppleDxeImageVerificationLib.h>
-#include <Library/DxeServicesLib.h>
-#include <Library/DevicePathLib.h>
-#include <Protocol/LoadedImage.h>
-#include <Protocol/AppleLoadImage.h>
-
-
 #define APPLE_EFI_FAT_MAGIC  0x0ef1fab9
 #define CPU_ARCH_ABI64 0x01000000
 #define CPUYPE_X86 7
