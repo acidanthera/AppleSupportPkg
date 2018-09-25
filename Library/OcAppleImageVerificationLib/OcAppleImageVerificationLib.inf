@@ -37,7 +37,6 @@
   AppleSupportPkg/AppleSupportPkg.dec
 
 [LibraryClasses]
-  OcCryptoLib
   UefiRuntimeServicesTableLib
   UefiBootServicesTableLib
   MemoryAllocationLib
@@ -46,6 +45,7 @@
   UefiLib
   DebugLib
   PcdLib
+  OcCryptoLib
 
 [Guids]
   gAppleEfiSignatureGuid

@@ -27,26 +27,26 @@ typedef struct {
     UINT32 DataLen;
     UINT64 BitLen;
     UINT32 State[8];
-} Sha256Context;
+} Sha256Ctx;
 
 //
 // Functions prototypes
 //
 VOID
 Sha256Init (
-	Sha256Context  *Context
+	Sha256Ctx  *Context
 	);
 
 VOID
 Sha256Update (
-	Sha256Context  *Context,
+	Sha256Ctx  *Context,
 	CONST UINT8    Data[],
 	UINT64         Len
 	);
 
 VOID
 Sha256Final (
-	Sha256Context  *Context,
+	Sha256Ctx  *Context,
 	UINT8          HashDigest[]
 	);
 

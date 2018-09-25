@@ -27,7 +27,7 @@ static CONST UINT32 K[64] = {
 
 VOID
 Sha256Transform (
-	Sha256Context *Context,
+	Sha256Ctx *Context,
 	CONST UINT8 Data[]
 	)
 {
@@ -83,7 +83,7 @@ Sha256Transform (
 }
 
 VOID Sha256Init (
-	Sha256Context *Context
+	Sha256Ctx *Context
 	)
 {
     Context->DataLen = 0;
@@ -99,7 +99,7 @@ VOID Sha256Init (
 }
 
 VOID Sha256Update (
-	Sha256Context *Context,
+	Sha256Ctx *Context,
 	CONST UINT8 Data[],
 	UINT64 Len
 	)
@@ -118,7 +118,7 @@ VOID Sha256Update (
 }
 
 VOID Sha256Final (
-	Sha256Context *Context,
+	Sha256Ctx *Context,
 	UINT8 HashDigest[]
 	)
 {
@@ -176,7 +176,7 @@ Sha256 (
     UINTN Len
     )
 {
-    Sha256Context Ctx;
+    Sha256Ctx Ctx;
 
     Sha256Init (&Ctx);
     Sha256Update(&Ctx, Data, Len);

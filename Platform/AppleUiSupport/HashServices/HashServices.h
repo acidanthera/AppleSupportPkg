@@ -7,18 +7,15 @@
  * Author: Joel Höner <athre0z@zyantific.com>
  */
 
+#include <Library/OcCryptoLib.h>
 #include <Protocol/ServiceBinding.h>
 #include <Protocol/Hash.h>
 
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
-
 typedef union _HS_CONTEXT_DATA
 {
-  MD5_CTX     Md5;
-  SHA1_CTX    Sha1;
-  SHA256_CTX  Sha256;
+  Md5Ctx     Md5;
+  Sha1Ctx    Sha1;
+  Sha256Ctx  Sha256;
 } HS_CONTEXT_DATA;
 
 typedef struct _HS_PRIVATE_DATA

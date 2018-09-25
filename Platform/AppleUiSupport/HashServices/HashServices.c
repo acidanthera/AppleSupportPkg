@@ -18,9 +18,6 @@
 #include <Protocol/Hash.h>
 
 #include "HashServices.h"
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
 
 STATIC EFI_SERVICE_BINDING_PROTOCOL mHashBindingProto = {
   &HSCreateChild,
@@ -75,30 +72,30 @@ HSHash (
 
   if (CompareGuid (&gEfiHashAlgorithmMD5Guid, HashAlgorithm)) {
     if (!Extend) {
-      md5_init (&PrivateData->Ctx.Md5);
+      Md5Init (&PrivateData->Ctx.Md5);
     }
 
-    md5_update (&PrivateData->Ctx.Md5, Message, MessageSize);
+    Md5Update (&PrivateData->Ctx.Md5, Message, MessageSize);
     CopyMem (&CtxCopy, &PrivateData->Ctx, sizeof (PrivateData->Ctx));
-    md5_final (&CtxCopy.Md5, *Hash->Md5Hash);
+    Md5Final (&CtxCopy.Md5, *Hash->Md5Hash);
     return EFI_SUCCESS;
   } else if (CompareGuid (&gEfiHashAlgorithmSha1Guid, HashAlgorithm)) {
     if (!Extend) {
-      sha1_init (&PrivateData->Ctx.Sha1);
+      Sha1Init (&PrivateData->Ctx.Sha1);
     }
 
-    sha1_update (&PrivateData->Ctx.Sha1, Message, MessageSize);
+    Sha1Update (&PrivateData->Ctx.Sha1, Message, MessageSize);
     CopyMem (&CtxCopy, &PrivateData->Ctx, sizeof (PrivateData->Ctx));
-    sha1_final (&CtxCopy.Sha1, *Hash->Sha1Hash);
+    Sha1Final (&CtxCopy.Sha1, *Hash->Sha1Hash);
     return EFI_SUCCESS;
   } else if (CompareGuid (&gEfiHashAlgorithmSha256Guid, HashAlgorithm)) {
     if (!Extend) {
-      sha256_init (&PrivateData->Ctx.Sha256);
+      Sha256Init (&PrivateData->Ctx.Sha256);
     }
 
-    sha256_update (&PrivateData->Ctx.Sha256, Message, MessageSize);
+    Sha256Update (&PrivateData->Ctx.Sha256, Message, MessageSize);
     CopyMem (&CtxCopy, &PrivateData->Ctx, sizeof (PrivateData->Ctx));
-    sha256_final (&CtxCopy.Sha256, *Hash->Sha256Hash);
+    Sha256Final (&CtxCopy.Sha256, *Hash->Sha256Hash);
     return EFI_SUCCESS;
   }
 

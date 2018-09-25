@@ -42,6 +42,7 @@
   UefiDriverEntryPoint
   DebugLib
   AppleEventLib
+  OcCryptoLib
 
 [Guids]
   gAppleVendorVariableGuid            ## GUID CONSUMES
@@ -78,14 +79,6 @@
   AppleEvent/PointerHandler.c
   AppleEvent/AppleKeyMap.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
-  HashServices/HashServices.c
-  HashServices/HashServices.h
-  HashServices/md5.c
-  HashServices/md5.h
-  HashServices/sha1.c
-  HashServices/sha1.h
-  HashServices/sha256.h
-  HashServices/sha256.c
   HashServices/HashServices.c
   HashServices/HashServices.h
   UnicodeCollation/UnicodeCollationEng.c

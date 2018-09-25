@@ -423,7 +423,7 @@ GetApplePeImageSha256 (
 {
   UINT64                   HashSize           = 0;
   UINT8                    *HashBase          = NULL;
-  Sha256Context            Sha256Ctx;
+  Sha256Ctx            Sha256Ctx;
   
   //
   // Initialise a SHA hash context
@@ -471,7 +471,7 @@ VerifyApplePeImageSignature (
   IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {
-  Sha256Context                      Sha256Ctx;
+  Sha256Ctx                      Sha256Ctx;
   UINT8                              PkLe[256];
   UINT8                              PkBe[256];
   UINT8                              SigLe[256];
