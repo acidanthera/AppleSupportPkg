@@ -8,9 +8,22 @@
                * http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf
               This implementation uses little endian byte order.
 *********************************************************************/
-
 #include <Library/BaseMemoryLib.h>
-#include "Sha1.h"
+
+#define ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
+
+//
+// SHA1 outputs a 20 byte digest
+//
+#define SHA1_BLOCK_SIZE 20
+
+typedef struct {
+  UINT8  Data[64];
+  UINT32 DataLen;
+  UINT64 BitLen;
+  UINT32 State[5];
+  UINT32 k[4];
+} Sha1Ctx;
 
 VOID
 Sha1Transform (

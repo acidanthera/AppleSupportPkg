@@ -9,7 +9,6 @@
           This implementation uses little endian byte order.
 *********************************************************************/
 #include <Library/BaseMemoryLib.h>
-#include "Md5.h"
 
 #define ROTLEFT(a,b) ((a << b) | (a >> (32-b)))
 
@@ -26,6 +25,17 @@
                             a = b + ROTLEFT(a,s); }
 #define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; \
                             a = b + ROTLEFT(a,s); }
+//
+// MD5 outputs a 16 byte digest
+//
+#define MD5_BLOCK_SIZE 16
+
+typedef struct {
+   UINT8   Data[64];
+   UINT32  DataLen;
+   UINT64  BitLen;
+   UINT32  State[4];
+} Md5Ctx;
 
 VOID
 Md5Transform (
