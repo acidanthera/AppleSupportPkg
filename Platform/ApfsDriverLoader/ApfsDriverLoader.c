@@ -84,7 +84,8 @@ StartApfsDriver (
   DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     AppleFileSystemDriverBuffer,
-    (UINT32 *) &AppleFileSystemDriverSize
+    (UINT32 *) &AppleFileSystemDriverSize,
+    NULL
     );
 
   DEBUG ((DEBUG_WARN, "New ImageSize after verification: %lu\n", AppleFileSystemDriverSize));

@@ -16,6 +16,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
+#include <Guid/AppleEfiSignature.h>
 #include "AppleDxeImageVerificationInternals.h"
 #include "ApplePublicKeyDb.h"
 
@@ -235,7 +236,9 @@ BuildPeContext (
                             + PeHdr->Pe32.FileHeader.SizeOfOptionalHeader
                             + sizeof (UINT32)
                             + sizeof (EFI_IMAGE_FILE_HEADER));
-    Context->SecDir = &PeHdr->Pe32.OptionalHeader.DataDirectory[EFI_IMAGE_DIRECTORY_ENTRY_SECURITY];
+    if (Context->NumberOfSections >= EFI_IMAGE_DIRECTORY_ENTRY_SECURITY) {
+      Context->SecDir = &PeHdr->Pe32.OptionalHeader.DataDirectory[EFI_IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
   } else {
     //
     // Fill context for Pe32+
@@ -254,7 +257,9 @@ BuildPeContext (
                             + PeHdr->Pe32.FileHeader.SizeOfOptionalHeader
                             + sizeof (UINT32)
                             + sizeof (EFI_IMAGE_FILE_HEADER));
-    Context->SecDir = &PeHdr->Pe32Plus.OptionalHeader.DataDirectory[EFI_IMAGE_DIRECTORY_ENTRY_SECURITY];
+    if (Context->NumberOfSections >= EFI_IMAGE_DIRECTORY_ENTRY_SECURITY) {
+      Context->SecDir = &PeHdr->Pe32Plus.OptionalHeader.DataDirectory[EFI_IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
   }
 
   //
@@ -283,15 +288,17 @@ BuildPeContext (
     return EFI_INVALID_PARAMETER;
   }
 
-  if ((UINT32) ((UINT8 *) Context->SecDir - (UINT8 *) Image) >
-      (ImageSize - sizeof (EFI_IMAGE_DATA_DIRECTORY))) {
-    DEBUG ((DEBUG_WARN, "Invalid image\n"));
-    return EFI_INVALID_PARAMETER;
-  }
+  if (Context->SecDir != NULL) {
+    if ((UINT32) ((UINT8 *) Context->SecDir - (UINT8 *) Image) >
+        (ImageSize - sizeof (EFI_IMAGE_DATA_DIRECTORY))) {
+      DEBUG ((DEBUG_WARN, "Invalid image\n"));
+      return EFI_INVALID_PARAMETER;
+    }
 
-  if (Context->SecDir->VirtualAddress >= ImageSize) {
-    DEBUG ((DEBUG_WARN, "Malformed security header\n"));
-    return EFI_INVALID_PARAMETER;
+    if (Context->SecDir->VirtualAddress >= ImageSize) {
+      DEBUG ((DEBUG_WARN, "Malformed security header\n"));
+      return EFI_INVALID_PARAMETER;
+    }
   }
 
   return EFI_SUCCESS;
@@ -308,33 +315,55 @@ GetApplePeImageSignature (
   UINT8                               *SigBe
   )
 {
+  EFI_STATUS                 Status                    = EFI_UNSUPPORTED;
   UINTN                      Index                     = 0;
-  UINT32                     SignatureDirectoryAddress = 0;
   APPLE_SIGNATURE_DIRECTORY  *SignatureDirectory       = NULL;
 
   //
-  // Get ptr and size of AppleSignatureDirectory
+  // Check SecDir extistence
   //
-  SignatureDirectoryAddress = Context->SecDir->VirtualAddress;
+  if (Context->SecDir != NULL) {
 
-  //
-  // Extract AppleSignatureDirectory
-  //
-  SignatureDirectory = (APPLE_SIGNATURE_DIRECTORY *)
-                       ((UINT8 *) Image + SignatureDirectoryAddress);
+    //
+    // Extract AppleSignatureDirectory
+    //
+    SignatureDirectory = (APPLE_SIGNATURE_DIRECTORY *)
+                         ((UINT8 *) Image + Context->SecDir->VirtualAddress);
 
-  //
-  // Load PublicKey and Signature into memory
-  //
-  CopyMem (PkLe, SignatureDirectory->PublicKey, 256);
-  CopyMem (SigLe, SignatureDirectory->Signature, 256);
+    //
+    // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
+    //
+    if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
+      DEBUG ((DEBUG_WARN, "AppleSignature entry size mismatch\n"));
+      return Status;
+    }
 
-  for (Index = 0; Index < 256; Index++) {
-    PkBe[256 - 1 - Index] = PkLe[Index];
-    SigBe[256 - 1 - Index] = SigLe[Index];
+    //
+    // Verify Apple Signature GUID
+    //
+    
+    if (!CompareGuid (&SignatureDirectory->AppleSignatureGuid, &gAppleEfiSignatureGuid)) {
+      return Status;
+    }
+
+    //
+    // Load PublicKey and Signature into memory
+    //
+    CopyMem (PkLe, SignatureDirectory->PublicKey, 256);
+    CopyMem (SigLe, SignatureDirectory->Signature, 256);
+
+    for (Index = 0; Index < 256; Index++) {
+      PkBe[256 - 1 - Index] = PkLe[Index];
+      SigBe[256 - 1 - Index] = SigLe[Index];
+    }
+
+    Status = EFI_SUCCESS;
+
+  } else {
+    DEBUG ((DEBUG_WARN, "Signature entry not exist\n"));
   }
 
-  return EFI_SUCCESS;
+  return Status;
 }
 
 VOID
@@ -437,8 +466,9 @@ GetApplePeImageSha256 (
 
 EFI_STATUS
 VerifyApplePeImageSignature (
-  VOID     *PeImage,
-  UINT32   *ImageSize
+  IN OUT VOID                                *PeImage,
+  IN OUT UINT32                              *ImageSize,
+  IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {
   Sha256Context                      Sha256Ctx;
@@ -450,36 +480,30 @@ VerifyApplePeImageSignature (
   UINT8                              PkHash[32];
   UINT32                             WorkBuf32[RSANUMWORDS*3];
   RsaPublicKey                       *Pk                      = NULL;
-  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT *Context                 = NULL;
-
-  Context = AllocateZeroPool (sizeof (APPLE_PE_COFF_LOADER_IMAGE_CONTEXT));
+  
+  //
+  // Build context if not present
+  //
   if (Context == NULL) {
-    DEBUG ((DEBUG_WARN, "Pe context allocation failure\n"));
-    return EFI_INVALID_PARAMETER;
-  }
-
-  //
-  // Build PE context
-  //
-  if (EFI_ERROR (BuildPeContext (PeImage, *ImageSize, Context))) {
-    DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
-    FreePool (Context);
-    return EFI_INVALID_PARAMETER;
+    Context = AllocateZeroPool (sizeof (APPLE_PE_COFF_LOADER_IMAGE_CONTEXT));
+    if (Context == NULL) {
+      DEBUG ((DEBUG_WARN, "Pe context allocation failure\n"));
+      return EFI_INVALID_PARAMETER;
+    }
+    //
+    // Build PE context
+    //
+    if (EFI_ERROR (BuildPeContext (PeImage, *ImageSize, Context))) {
+      DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
+      FreePool (Context);
+      return EFI_INVALID_PARAMETER;
+    }    
   }
 
   //
   // Sanitzie ApplePeImage
   //
   SanitizeApplePeImage (PeImage, ImageSize, Context);
-
-  //
-  // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
-  //
-  if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
-    DEBUG ((DEBUG_WARN, "AppleSignature entry size mismatch\n"));
-    FreePool (Context);
-    return EFI_UNSUPPORTED;
-  }
 
   //
   // Extract AppleSignature from PEImage

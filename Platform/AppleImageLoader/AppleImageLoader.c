@@ -181,7 +181,11 @@ LoadImageEx (
         //
         // Verify ApplePeImage signature
         //
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize);
+
+        //
+        // 
+        //
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }
@@ -295,7 +299,7 @@ AppleLoadImage (
       SourceSize = ImageSize;
 
       if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize);
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }
@@ -308,7 +312,7 @@ AppleLoadImage (
       }
     } else {
       if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize);
+        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }

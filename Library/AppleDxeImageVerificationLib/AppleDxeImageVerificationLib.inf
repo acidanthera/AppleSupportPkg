@@ -49,3 +49,7 @@
   UefiLib
   DebugLib
   PcdLib
+
+[Guids]
+  gAppleEfiSignatureGuid
+  

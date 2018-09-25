@@ -65,11 +65,10 @@ typedef struct APPLE_SIGNATURE_DIRECTORY_ {
     UINT32    SignatureSize;
     UINT16    CompressionType;
     UINT16    EfiSignature;
-    EFI_GUID  UnknownGuid;
+    EFI_GUID  AppleSignatureGuid;
     EFI_GUID  CertType;
     UINT8     PublicKey[256];
     UINT8     Signature[256];
 }  APPLE_SIGNATURE_DIRECTORY;
-
 
 #endif //APPLE_DXE_IMAGE_VERIFICATION_INTERNALS_H
