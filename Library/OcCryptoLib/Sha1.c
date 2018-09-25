@@ -49,34 +49,34 @@ Sha1Transform (
   e = Ctx->State[4];
 
   for (i = 0; i < 20; ++i) {
-    t = ROTLEFT(a, 5) + ((b & c) ^ (~b & d)) + e + Ctx->k[0] + m[i];
+    t = ROTLEFT (a, 5) + ((b & c) ^ (~b & d)) + e + Ctx->k[0] + m[i];
     e = d;
     d = c;
-    c = ROTLEFT(b, 30);
+    c = ROTLEFT (b, 30);
     b = a;
     a = t;
   }
   for ( ; i < 40; ++i) {
-    t = ROTLEFT(a, 5) + (b ^ c ^ d) + e + Ctx->k[1] + m[i];
+    t = ROTLEFT (a, 5) + (b ^ c ^ d) + e + Ctx->k[1] + m[i];
     e = d;
     d = c;
-    c = ROTLEFT(b, 30);
+    c = ROTLEFT (b, 30);
     b = a;
     a = t;
   }
   for ( ; i < 60; ++i) {
-    t = ROTLEFT(a, 5) + ((b & c) ^ (b & d) ^ (c & d))  + e + Ctx->k[2] + m[i];
+    t = ROTLEFT (a, 5) + ((b & c) ^ (b & d) ^ (c & d))  + e + Ctx->k[2] + m[i];
     e = d;
     d = c;
-    c = ROTLEFT(b, 30);
+    c = ROTLEFT (b, 30);
     b = a;
     a = t;
   }
   for ( ; i < 80; ++i) {
-    t = ROTLEFT(a, 5) + (b ^ c ^ d) + e + Ctx->k[3] + m[i];
+    t = ROTLEFT (a, 5) + (b ^ c ^ d) + e + Ctx->k[3] + m[i];
     e = d;
     d = c;
-    c = ROTLEFT(b, 30);
+    c = ROTLEFT (b, 30);
     b = a;
     a = t;
   }
@@ -99,11 +99,11 @@ Sha1Init (
   Ctx->State[1] = 0xEFCDAB89;
   Ctx->State[2] = 0x98BADCFE;
   Ctx->State[3] = 0x10325476;
-  Ctx->State[4] = 0xc3d2e1f0;
-  Ctx->k[0] = 0x5a827999;
-  Ctx->k[1] = 0x6ed9eba1;
-  Ctx->k[2] = 0x8f1bbcdc;
-  Ctx->k[3] = 0xca62c1d6;
+  Ctx->State[4] = 0xC3D2E1F0;
+  Ctx->k[0] = 0x5A827999;
+  Ctx->k[1] = 0x6ED9EBA1;
+  Ctx->k[2] = 0x8F1BBCDC;
+  Ctx->k[3] = 0xCA62C1D6;
 }
 
 VOID
