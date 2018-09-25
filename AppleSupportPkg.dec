@@ -26,7 +26,7 @@
 
 [LibraryClasses]
   ##  @libraryclass
-  OcCrptoLib|Include/Library/OcCryptoLib.h
+  OcCryptoLib|Include/Library/OcCryptoLib.h
 
   ##  @libraryclass
   OcAppleImageVerificationLib|Include/Library/OcAppleImageVerificationLib.h
