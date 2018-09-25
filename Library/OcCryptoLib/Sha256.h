@@ -50,5 +50,11 @@ Sha256Final (
 	UINT8          HashDigest[]
 	);
 
+VOID
+Sha256 (
+    UINT8 Hash[],
+    UINT8 Data[],
+    UINTN Len
+    );
 
 #endif   // SHA256_H

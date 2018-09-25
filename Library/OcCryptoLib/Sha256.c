@@ -168,3 +168,18 @@ VOID Sha256Final (
         HashDigest[Index + 28] = (UINT8) ((Context->State[7] >> (24 - Index * 8)) & 0x000000ff);
     }
 }
+
+VOID
+Sha256 (
+    UINT8 Hash[],
+    UINT8 Data[],
+    UINTN Len
+    )
+{
+    Sha256Context Ctx;
+
+    Sha256Init (&Ctx);
+    Sha256Update(&Ctx, Data, Len);
+    Sha256Final(&Ctx, Hash);
+}
+

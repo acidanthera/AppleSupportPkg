@@ -37,24 +37,103 @@ typedef struct {
     UINT32 State[8];
 } Sha256Context;
 
+typedef struct {
+	UINT8  Data[64];
+	UINT32 DataLen;
+	UINT64 BitLen;
+	UINT32 State[5];
+	UINT32 k[4];
+} Sha1Ctx;
+
+typedef struct {
+   UINT8   Data[64];
+   UINT32  DataLen;
+   UINT64  BitLen;
+   UINT32  State[4];
+} Md5Ctx;
+
 //
-// Functions prototypes
+// Sha256
 //
-void
+VOID
 Sha256Init (
 	Sha256Context  *Context
 	);
 
-void
+VOID
 Sha256Update (
 	Sha256Context  *Context,
-	const UINT8  Data[],
-	UINT64       Len
+	CONST UINT8    Data[],
+	UINT64         Len
 	);
 
-void Sha256Final(
+VOID
+Sha256Final (
 	Sha256Context  *Context,
-	UINT8        HashDigest[]
+	UINT8          HashDigest[]
+	);
+
+VOID
+Sha256 (
+    UINT8 Hash[],
+    UINT8 Data[],
+    UINTN Len
+    );
+
+//
+// Sha1
+//
+VOID
+Sha1Init (
+	Sha1Ctx  *Ctx
+	);
+
+VOID
+Sha1Update (
+	Sha1Ctx      *Ctx,
+	CONST UINT8  Data[],
+	UINTN        Len
+	);
+
+VOID
+Sha1Final (
+	Sha1Ctx  *Ctx,
+	UINT8    Hash[]
+	);
+
+VOID
+Sha1 (
+	UINT8  Hash[],
+	UINT8  Data[],
+	UINTN  Len
+	);
+
+//
+// Md5
+//
+VOID
+Md5Init (
+  Md5Ctx  *Ctx
+  );
+
+VOID
+Md5Update (
+  Md5Ctx       *Ctx,
+  CONST UINT8  Data[],
+  UINTN        Len
+  );
+
+VOID
+Md5Final (
+  Md5Ctx  *Ctx,
+  UINT8   Hash[]
+  );
+
+VOID
+Md5 (
+	UINT8  Hash[],
+	UINT8  Data[],
+	UINTN  Len
 	);
 
 int RsaVerify(
