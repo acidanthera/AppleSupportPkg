@@ -34,8 +34,8 @@ AppleUiSupportEntrypoint (
   EFI_STATUS            Status;
 
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "Starting AppleUiSupport ver. %s\n", 
+    DEBUG_VERBOSE,
+    "Starting AppleUiSupport ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
 

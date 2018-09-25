@@ -256,7 +256,7 @@ InternalRemoveUninstalledInstances (
         if (NewInstances != NULL) {
           Index2 = 0;
           for (Index = 0; Index < *NumberOfInstances; ++Index) {
-            Instance = &OrgInstances[Index]; 
+            Instance = &OrgInstances[Index];
             if (Instance->Installed) {
               CopyMem (
                 (VOID *)&NewInstances[Index2],
@@ -278,8 +278,8 @@ InternalRemoveUninstalledInstances (
     FreePool (Buffer);
   } else {
     if (OrgInstances != NULL) {
-      FreePool (OrgInstances);  
-    }    
+      FreePool (OrgInstances);
+    }
 
     *InstancesPtr      = NULL;
     *NumberOfInstances = 0;

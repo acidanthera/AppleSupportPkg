@@ -183,7 +183,7 @@ LoadImageEx (
         //
 
         //
-        // 
+        //
         //
         Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
       } else {
@@ -392,10 +392,10 @@ AppleImageLoaderEntryPoint (
   APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
 
   DEBUG ((
-    DEBUG_VERBOSE, 
-    "Starting AppleImageLoader ver. %s\n", 
+    DEBUG_VERBOSE,
+    "Starting AppleImageLoader ver. %s\n",
     APPLE_SUPPORT_VERSION
-    ));  
+    ));
 
   Status = gBS->LocateProtocol (
     &gAppleLoadImageProtocolGuid,

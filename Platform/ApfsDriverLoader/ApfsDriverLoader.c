@@ -123,7 +123,7 @@ StartApfsDriver (
       ParentDevicePath = NULL;
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
-  
+
   DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     AppleFileSystemDriverBuffer,

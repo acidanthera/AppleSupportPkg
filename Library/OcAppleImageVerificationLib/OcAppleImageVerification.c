@@ -88,7 +88,7 @@ BuildPeContext (
   // Verify DosHdr magic
   //
   if (DosHdr->e_magic == EFI_IMAGE_DOS_SIGNATURE) {
-    if (DosHdr->e_lfanew > ImageSize 
+    if (DosHdr->e_lfanew > ImageSize
       || DosHdr->e_lfanew < sizeof (EFI_IMAGE_DOS_HEADER)) {
       DEBUG ((DEBUG_WARN, "Invalid PE offset\n"));
       return EFI_INVALID_PARAMETER;
@@ -344,7 +344,7 @@ GetApplePeImageSignature (
     //
     // Verify Apple Signature GUID
     //
-    
+
     if (!CompareGuid (&SignatureDirectory->AppleSignatureGuid, &gAppleEfiSignatureGuid)) {
       return Status;
     }
@@ -381,13 +381,13 @@ SanitizeApplePeImage (
 
   //
   // Check DOS header existence
-  //  
+  //
 
   if (DosHdr->e_magic == EFI_IMAGE_DOS_SIGNATURE) {
     //
     // Drop DOS stub if it present
     //
-    if ((((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew 
+    if ((((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew
           - sizeof (EFI_IMAGE_DOS_HEADER)) != 0) {
       ZeroMem (
           (UINT8 *) Image + sizeof (EFI_IMAGE_DOS_HEADER),
@@ -402,9 +402,9 @@ SanitizeApplePeImage (
   DEBUG ((DEBUG_WARN, "Real image size: %lu\n", *RealImageSize));
 
   *RealImageSize = Context->SecDir->VirtualAddress
-                   + Context->SecDir->Size 
-                   + sizeof (APPLE_SIGNATURE_DIRECTORY);  
-  
+                   + Context->SecDir->Size
+                   + sizeof (APPLE_SIGNATURE_DIRECTORY);
+
   if (*RealImageSize < ImageSize) {
     DEBUG ((DEBUG_WARN, "Droping tail with size: %lu\n", ImageSize - *RealImageSize));
     //
@@ -427,7 +427,7 @@ GetApplePeImageSha256 (
   UINT64                   HashSize           = 0;
   UINT8                    *HashBase          = NULL;
   SHA256_CONTEXT           HashContext;
-  
+
   //
   // Initialise a SHA hash context
   //
@@ -483,7 +483,7 @@ VerifyApplePeImageSignature (
   UINT8                              PkHash[32];
   UINT32                             WorkBuf32[RSANUMWORDS*3];
   RSA_PUBLIC_KEY                     *Pk                      = NULL;
-  
+
   //
   // Build context if not present
   //
@@ -500,7 +500,7 @@ VerifyApplePeImageSignature (
       DEBUG ((DEBUG_WARN, "Malformed ApplePeImage\n"));
       FreePool (Context);
       return EFI_INVALID_PARAMETER;
-    }    
+    }
   }
 
   //

@@ -167,23 +167,23 @@ typedef struct APFS_NXSB_
     UINT32             BaseBlock;
     UINT32             Reserved_3[3];
     //
-    // This is the block where the CSBD from previous state is found and is 
-    // located in block "Base block" + PreviousCsbdInBlock. The CSBD for 
-    // previous state is in block PreviousCsbdInBlock+1 and the CSB for 
+    // This is the block where the CSBD from previous state is found and is
+    // located in block "Base block" + PreviousCsbdInBlock. The CSBD for
+    // previous state is in block PreviousCsbdInBlock+1 and the CSB for
     // the same state in block PreviousCsbdInBlock+2
     //
     UINT32             PreviousCsbdInBlock;
     UINT32             Reserved_4;
     //
     // The current state CSBD is located in block "Base block" in offset 0x70,
-    // 0x01 + OriginalCsbdInBlock. The CSBD for the current state of the file 
-    // system is in block 0x01 + OriginalCsbdInBlock. The original CSB is in 
+    // 0x01 + OriginalCsbdInBlock. The CSBD for the current state of the file
+    // system is in block 0x01 + OriginalCsbdInBlock. The original CSB is in
     // the succeeding block, 0x01 + OriginalCsbdInBlock.
     //
     UINT32             OriginalCsbdInBlock;
     //
-    // Oldest CSBD in block "Base block" + 0x02. The oldest CSBD is in block 
-    // 0x03 and the CSB for that state is in the succeeding block. OldestCsbd +  
+    // Oldest CSBD in block "Base block" + 0x02. The oldest CSBD is in block
+    // 0x03 and the CSB for that state is in the succeeding block. OldestCsbd +
     //  "Base block".
     //
     UINT32             OldestCsbd;
@@ -224,7 +224,7 @@ typedef struct APFS_APSB_
     //
     UINT32             MagicNumber;
     //
-    // Volume#. First volume start with 0, (0x00) 
+    // Volume#. First volume start with 0, (0x00)
     //
     UINT32             VolumeNumber;
     UINT8              Reserved_1[20];
@@ -241,8 +241,8 @@ typedef struct APFS_APSB_
     //
     UINT64             VolumeSize;
     UINT64             Reserved_3;
-    // 
-    // Blocks in use in this volumes 
+    //
+    // Blocks in use in this volumes
     //
     UINT64             BlocksInUseCount;
     UINT8              Reserved_4[32];
@@ -252,7 +252,7 @@ typedef struct APFS_APSB_
     //
     UINT64             BlockNumberToInitialBTOM;
     //
-    // Node Id of root-node 
+    // Node Id of root-node
     //
     UINT64             RootNodeId;
     //
@@ -287,12 +287,12 @@ typedef struct APFS_APSB_
     UINT64             ModificationTimestamp;
     UINT64             Reserved_7;
     //
-    // Creator/APFS-version 
+    // Creator/APFS-version
     // Ex. (hfs_convert (apfs- 687.0.0.1.7))
     //
     UINT8              CreatorVersionInfo[32];
     //
-    // Time Volume created 
+    // Time Volume created
     //
     UINT64             CreationTimestamp;
     //

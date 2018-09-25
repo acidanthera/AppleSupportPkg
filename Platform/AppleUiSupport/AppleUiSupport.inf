@@ -70,23 +70,23 @@
   gAppleKeyMapDatabaseProtocolGuid    ## PROTOCOL PRODUCES
 
 [Sources]
-  FirmwareVolumeInject/FirmwareVolumeInject.c
-  FirmwareVolumeInject/FirmwareVolumeInject.h
-  FirmwareVolumeInject/FvOnFv2Thunk.c
   AppleEvent/AppleEvent.c
   AppleEvent/EventQueue.c
   AppleEvent/KeyHandler.c
   AppleEvent/PointerHandler.c
   AppleEvent/AppleKeyMap.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
-  HashServices/HashServices.c
-  HashServices/HashServices.h
-  UnicodeCollation/UnicodeCollationEng.c
-  UnicodeCollation/UnicodeCollationEng.h
   AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
   AppleImageCodec/AppleImageCodec.c
   AppleImageCodec/AppleImageCodec.h
   AppleImageCodec/lodepng.c
   AppleImageCodec/lodepng.h
+  FirmwareVolumeInject/FirmwareVolumeInject.c
+  FirmwareVolumeInject/FirmwareVolumeInject.h
+  FirmwareVolumeInject/FvOnFv2Thunk.c
+  HashServices/HashServices.c
+  HashServices/HashServices.h
+  UnicodeCollation/UnicodeCollationEng.c
+  UnicodeCollation/UnicodeCollationEng.h
   AppleUiSupport.c
   AppleUiSupport.h

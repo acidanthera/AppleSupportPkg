@@ -1,5 +1,5 @@
 ## @file
-# AppleDxeVerificationLib
+# OcAppleVerificationLib
 #
 # Copyright (c) 2017-2018, savvas
 #
@@ -44,9 +44,7 @@
   BaseLib
   UefiLib
   DebugLib
-  PcdLib
   OcCryptoLib
 
 [Guids]
   gAppleEfiSignatureGuid
-  

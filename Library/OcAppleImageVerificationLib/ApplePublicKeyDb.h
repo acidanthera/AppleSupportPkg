@@ -1,6 +1,6 @@
 /** @file
 
-AppleDxeImageVerificationLib
+OcAppleImageVerificationLib
 
 Copyright (c) 2018, savvas
 
@@ -22,12 +22,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define NUM_OF_PK 2
 
 typedef struct APPLE_PK_ENTRY_ {
-    UINT8 Hash[32];
-    UINT8 PublicKey[520];
+  UINT8 Hash[32];
+  UINT8 PublicKey[520];
 } APPLE_PK_ENTRY;
 
 APPLE_PK_ENTRY PkDataBase[NUM_OF_PK] = {
-	{	
+	{
   	//
   	// PublicKey hash
   	//

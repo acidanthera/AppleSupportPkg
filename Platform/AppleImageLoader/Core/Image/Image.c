@@ -40,7 +40,7 @@ CoreLocateHandleBuffer (
   IN  VOID                     *SearchKey OPTIONAL,
   IN  OUT UINTN                *NoHandles,
   OUT EFI_HANDLE               **Buffer
-  ) 
+  )
 {
   return gBS->LocateHandleBuffer (
                SearchType,
@@ -89,7 +89,7 @@ CoreCloseProtocol (
   IN EFI_HANDLE               Handle,
   IN EFI_GUID                 *Protocol,
   IN EFI_HANDLE               AgentHandle,
-  IN EFI_HANDLE               ControllerHandle  
+  IN EFI_HANDLE               ControllerHandle
   )
 {
   return gBS->CloseProtocol (
@@ -119,7 +119,7 @@ STATIC
 VOID
 CoreFreePool (
   IN VOID                         *Buffer
-  ) 
+  )
 {
   FreePool (Buffer);
 }
@@ -369,7 +369,7 @@ UnregisterMemoryProfileImage (
   )
 {
   //
-  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL, 
+  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL,
   // which we do not need. Removed to reduce complexity.
   //
   (VOID) DriverEntry;
@@ -384,7 +384,7 @@ RegisterMemoryProfileImage (
   )
 {
   //
-  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL, 
+  // The original implementation had memory footprint profiling via EDKII_MEMORY_PROFILE_PROTOCOL,
   // which we do not need. Removed to reduce complexity.
   //
   (VOID) DriverEntry;
@@ -771,12 +771,12 @@ CoreLoadPeImage (
       Image->RuntimeData->ImageSize      = (UINT64) (Image->Info.ImageSize);
       Image->RuntimeData->RelocationData = Image->ImageContext.FixupData;
       Image->RuntimeData->Handle         = Image->Handle;
-      
+
       //
       // AIL: We access runtime arch protocol via a function call, as it may not be present.
       //
       InsertTailList (&CoreGetRuntimeArchProtcol ()->ImageHead, &Image->RuntimeData->Link);
-      
+
       //
       // AIL: ImageRecord is used by UEFI 2.5 specification, but we do not care for our needs.
       // The original implementation called InsertImageRecord here.
@@ -1308,7 +1308,7 @@ CoreLoadImageCommon (
   }
 
   //
-  // AIL: The original implementation calls private CoreInstallProtocolInterfaceNotify, 
+  // AIL: The original implementation calls private CoreInstallProtocolInterfaceNotify,
   // which does not invoke notification event on EFI_LOADED_IMAGE_PROTOCOL installation.
   // We workaround this by installing EFI_LOADED_IMAGE_PROTOCOL till later.
   //

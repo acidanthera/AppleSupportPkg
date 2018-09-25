@@ -29,7 +29,7 @@ typedef struct APPLE_PK_ENTRY_ {
 } APPLE_PK_ENTRY;
 
 APPLE_PK_ENTRY PkDataBase[NUM_OF_PK] = {
-	{	
+	{
   	//
   	// PublicKey hash
   	//

@@ -70,14 +70,14 @@ Md5Init (
 
 VOID
 Md5Update (
-  MD5_CONTEXT     *Context, 
-  CONST UINT8     *Data, 
+  MD5_CONTEXT     *Context,
+  CONST UINT8     *Data,
   UINTN           Len
   );
 
 VOID
 Md5Final (
-  MD5_CONTEXT     *Context, 
+  MD5_CONTEXT     *Context,
   UINT8           *Hash
   );
 
@@ -100,7 +100,7 @@ Sha1Update (
   UINTN           Len
   );
 
-VOID 
+VOID
 Sha1Final (
   SHA1_CONTEXT    *Context,
   UINT8           *Hash

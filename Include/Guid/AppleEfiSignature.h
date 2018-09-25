@@ -1,6 +1,6 @@
 /** @file
 
-AppleDxeImageVerificationLib
+AppleEfiSignature structure
 
 Copyright (c) 2018, savvas
 

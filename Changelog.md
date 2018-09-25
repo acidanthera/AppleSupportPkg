@@ -16,9 +16,9 @@ AppleSupport Changelog
 - Added support for AppleEfiFatBinary with signature verification (AppleImageLoader 1.5.0)
 - Extended AppleLoadImage protocol with signature verification of EFI binary (AppleImageLoader 1.5.0)
 
-#### v2.0.1 
+#### v2.0.1
 - Implemented support for AppleLoadImage protocol
-	
+
 	* Now for security reasons you should load AppleLoadImage.efi right before ApfsDriverLoader.efi. If you use Clover bootloader, you can just put AppleLoadImage.efi and ApfsDriverLoader.efi into your drivers64uefi folder.
 
 #### v1.3.2
@@ -30,7 +30,7 @@ AppleSupport Changelog
 #### v1.2.0
 - Discovered ApfsJumpStart driver protocol
 
-#### v1.1.9 
+#### v1.1.9
 - Add legacy partition entry scan back for incompatible PartitionDriver's;
 
 #### v1.1.1

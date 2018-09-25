@@ -45,5 +45,3 @@
   BaseMemoryLib
   BaseLib
   UefiLib
-  DebugLib
-  PcdLib
