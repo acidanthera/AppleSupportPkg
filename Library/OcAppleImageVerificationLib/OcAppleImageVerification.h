@@ -31,9 +31,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/PrintLib.h>
 #include <Library/UefiLib.h>
+#include <Library/OcCryptoLib/OcCryptoLib.h>
 #include <Protocol/DebugSupport.h>
-#include "Sha256.h"
-#include "Rsa2048Sha256.h"
 #include <IndustryStandard/PeImage.h>
 
 #define APPLE_SIGNATURE_SECENTRY_SIZE 8
@@ -58,17 +57,5 @@ typedef struct APPLE_PE_COFF_LOADER_IMAGE_CONTEXT_ {
     UINT16                           PeHdrMagic;
     EFI_IMAGE_OPTIONAL_HEADER_UNION  *PeHdr;
 } APPLE_PE_COFF_LOADER_IMAGE_CONTEXT;
-
-typedef struct APPLE_SIGNATURE_DIRECTORY_ {
-    UINT32    ImageSize;
-    UINT32    SignatureDirectorySize;
-    UINT32    SignatureSize;
-    UINT16    CompressionType;
-    UINT16    EfiSignature;
-    EFI_GUID  AppleSignatureGuid;
-    EFI_GUID  CertType;
-    UINT8     PublicKey[256];
-    UINT8     Signature[256];
-}  APPLE_SIGNATURE_DIRECTORY;
 
 #endif //APPLE_DXE_IMAGE_VERIFICATION_INTERNALS_H

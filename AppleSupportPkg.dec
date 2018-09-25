@@ -26,7 +26,10 @@
 
 [LibraryClasses]
   ##  @libraryclass
-  AppleDxeImageVerificationLib|Include/Library/AppleDxeImageVerificationLib.h
+  OcCrptoLib|Include/Library/OcCryptoLib.h
+
+  ##  @libraryclass
+  OcAppleImageVerificationLib|Include/Library/OcAppleImageVerificationLib.h
 
 [Guids]
   # Include/Guid/AppleEfiSignature.h

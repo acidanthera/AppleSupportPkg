@@ -1,6 +1,6 @@
 /** @file
 
-AppleDxeImageVerificationLib
+OcAppleImageVerificationLib
 
 Copyright (c) 2018, savvas
 

@@ -40,7 +40,7 @@
   EfiPkg/EfiPkg.dec
 
 [LibraryClasses]
-  AppleDxeImageVerificationLib
+  OcAppleImageVerificationLib
   UefiRuntimeServicesTableLib
   UefiBootServicesTableLib
   MemoryAllocationLib

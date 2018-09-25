@@ -38,7 +38,7 @@
   gEfiRuntimeArchProtocolGuid             ## PROTOCOL CONSUMES
 
 [LibraryClasses]
-  AppleDxeImageVerificationLib
+  OcAppleImageVerificationLib
   DxeServicesLib
   BaseLib
   CacheMaintenanceLib

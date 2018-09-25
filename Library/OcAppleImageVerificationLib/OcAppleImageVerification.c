@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 #include <Guid/AppleEfiSignature.h>
-#include "AppleDxeImageVerificationInternals.h"
+#include "OcAppleImageVerification.h"
 #include "ApplePublicKeyDb.h"
 
 UINT16
