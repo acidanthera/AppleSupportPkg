@@ -1,6 +1,9 @@
 /** @file
 
 AppleDxeImageVerificationLib
+- Apple key-storage
+- Apple Authenticode PE-256 hash calculation
+- Verifying Rsa2048Sha256 signature
 
 Copyright (c) 2018, savvas
 
@@ -423,17 +426,17 @@ GetApplePeImageSha256 (
 {
   UINT64                   HashSize           = 0;
   UINT8                    *HashBase          = NULL;
-  Sha256Ctx            Sha256Ctx;
+  SHA256_CONTEXT           HashContext;
   
   //
   // Initialise a SHA hash context
   //
-  Sha256Init (&Sha256Ctx);
+  Sha256Init (&HashContext);
 
   //
   // Hash DOS header and skip DOS stub
   //
-  Sha256Update (&Sha256Ctx, Image, sizeof (EFI_IMAGE_DOS_HEADER));
+  Sha256Update (&HashContext, Image, sizeof (EFI_IMAGE_DOS_HEADER));
 
   /**
     Measuring PE/COFF Image Header;
@@ -444,23 +447,23 @@ GetApplePeImageSha256 (
 
   HashBase = (UINT8 *) Image + ((EFI_IMAGE_DOS_HEADER *) Image)->e_lfanew;
   HashSize = (UINT8 *) Context->OptHdrChecksum - HashBase;
-  Sha256Update (&Sha256Ctx, HashBase, HashSize);
+  Sha256Update (&HashContext, HashBase, HashSize);
 
   //
   // Hash everything from the end of the checksum to the start of the Cert Directory.
   //
   HashBase = (UINT8 *) Context->OptHdrChecksum + sizeof (UINT32);
   HashSize = (UINT8 *) Context->SecDir - HashBase;
-  Sha256Update (&Sha256Ctx, HashBase, HashSize);
+  Sha256Update (&HashContext, HashBase, HashSize);
 
   //
   // Hash from the end of SecDirEntry till SecDir data
   //
   HashBase = (UINT8 *) Context->RelocDir;
   HashSize = (UINT8 *) Image + Context->SecDir->VirtualAddress - HashBase;
-  Sha256Update (&Sha256Ctx, HashBase, HashSize);
+  Sha256Update (&HashContext, HashBase, HashSize);
 
-  Sha256Final (&Sha256Ctx, CalcucatedHash);
+  Sha256Final (&HashContext, CalcucatedHash);
   return EFI_SUCCESS;
 }
 
@@ -471,7 +474,7 @@ VerifyApplePeImageSignature (
   IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {
-  Sha256Ctx                      Sha256Ctx;
+  SHA256_CONTEXT                     HashContext;
   UINT8                              PkLe[256];
   UINT8                              PkBe[256];
   UINT8                              SigLe[256];
@@ -479,7 +482,7 @@ VerifyApplePeImageSignature (
   UINT8                              CalcucatedHash[32];
   UINT8                              PkHash[32];
   UINT32                             WorkBuf32[RSANUMWORDS*3];
-  RsaPublicKey                       *Pk                      = NULL;
+  RSA_PUBLIC_KEY                     *Pk                      = NULL;
   
   //
   // Build context if not present
@@ -528,9 +531,9 @@ VerifyApplePeImageSignature (
   //
   // Calculate Sha256 of extracted public key
   //
-  Sha256Init (&Sha256Ctx);
-  Sha256Update (&Sha256Ctx, PkLe, sizeof (PkLe));
-  Sha256Final (&Sha256Ctx, PkHash);
+  Sha256Init (&HashContext);
+  Sha256Update (&HashContext, PkLe, sizeof (PkLe));
+  Sha256Final (&HashContext, PkHash);
 
   //
   // Verify existence in DataBase
@@ -540,7 +543,7 @@ VerifyApplePeImageSignature (
       //
       // PublicKey valid. Extract prepared publickey from database
       //
-      Pk = (RsaPublicKey *) PkDataBase[Index].PublicKey;
+      Pk = (RSA_PUBLIC_KEY *) PkDataBase[Index].PublicKey;
     }
   }
 

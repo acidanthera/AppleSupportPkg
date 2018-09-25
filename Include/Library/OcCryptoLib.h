@@ -23,123 +23,117 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
 #define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
 
-typedef struct _RsaPublicKey {
-    UINT32 Size;
-    UINT32 N0Inv;
-    UINT32 N[RSANUMWORDS];
-    UINT32 Rr[RSANUMWORDS];
-} RsaPublicKey;
+typedef struct RSA_PUBLIC_KEY_ {
+  UINT32  Size;
+  UINT32  N0Inv;
+  UINT32  N[RSANUMWORDS];
+  UINT32  Rr[RSANUMWORDS];
+} RSA_PUBLIC_KEY;
 
 typedef struct {
-    UINT8  Data[64];
-    UINT32 DataLen;
-    UINT64 BitLen;
-    UINT32 State[8];
-} Sha256Ctx;
+  UINT8   Data[64];
+  UINT32  DataLen;
+  UINT64  BitLen;
+  UINT32  State[4];
+} MD5_CONTEXT;
 
 typedef struct {
-	UINT8  Data[64];
-	UINT32 DataLen;
-	UINT64 BitLen;
-	UINT32 State[5];
-	UINT32 k[4];
-} Sha1Ctx;
+  UINT8   Data[64];
+  UINT32  DataLen;
+  UINT64  BitLen;
+  UINT32  State[5];
+  UINT32  K[4];
+} SHA1_CONTEXT;
 
 typedef struct {
-   UINT8   Data[64];
-   UINT32  DataLen;
-   UINT64  BitLen;
-   UINT32  State[4];
-} Md5Ctx;
+  UINT8   Data[64];
+  UINT32  DataLen;
+  UINT64  BitLen;
+  UINT32  State[8];
+} SHA256_CONTEXT;
 
 //
-// Sha256
+// Functions prototypes
 //
-VOID
-Sha256Init (
-	Sha256Ctx  *Context
-	);
+INTN
+RsaVerify (
+  RSA_PUBLIC_KEY  *Key,
+  UINT8           *Signature,
+  UINT8           *Sha,
+  UINT32          *Workbuf32
+  );
 
-VOID
-Sha256Update (
-	Sha256Ctx      *Context,
-	CONST UINT8    Data[],
-	UINT64         Len
-	);
-
-VOID
-Sha256Final (
-	Sha256Ctx  *Context,
-	UINT8      HashDigest[]
-	);
-
-VOID
-Sha256 (
-    UINT8 Hash[],
-    UINT8 Data[],
-    UINTN Len
-    );
-
-//
-// Sha1
-//
-VOID
-Sha1Init (
-	Sha1Ctx  *Ctx
-	);
-
-VOID
-Sha1Update (
-	Sha1Ctx      *Ctx,
-	CONST UINT8  Data[],
-	UINTN        Len
-	);
-
-VOID
-Sha1Final (
-	Sha1Ctx  *Ctx,
-	UINT8    Hash[]
-	);
-
-VOID
-Sha1 (
-	UINT8  Hash[],
-	UINT8  Data[],
-	UINTN  Len
-	);
-
-//
-// Md5
-//
 VOID
 Md5Init (
-  Md5Ctx  *Ctx
+  MD5_CONTEXT     *Context
   );
 
 VOID
 Md5Update (
-  Md5Ctx       *Ctx,
-  CONST UINT8  Data[],
-  UINTN        Len
+  MD5_CONTEXT     *Context, 
+  CONST UINT8     *Data, 
+  UINTN           Len
   );
 
 VOID
 Md5Final (
-  Md5Ctx  *Ctx,
-  UINT8   Hash[]
+  MD5_CONTEXT     *Context, 
+  UINT8           *Hash
   );
 
 VOID
 Md5 (
-	UINT8  Hash[],
-	UINT8  Data[],
-	UINTN  Len
-	);
+  UINT8  Hash[],
+  UINT8  Data[],
+  UINTN  Len
+  );
 
-INT32
-RsaVerify (
-	RsaPublicKey  *Key,
-	UINT8         *Signature,
-	UINT8         *Sha,
-	UINT32        *Workbuf32
-	);
+VOID
+Sha1Init (
+  SHA1_CONTEXT    *Context
+  );
+
+VOID
+Sha1Update (
+  SHA1_CONTEXT    *Context,
+  CONST UINT8     *Data,
+  UINTN           Len
+  );
+
+VOID 
+Sha1Final (
+  SHA1_CONTEXT    *Context,
+  UINT8           *Hash
+  );
+
+VOID
+Sha1 (
+  UINT8  Hash[],
+  UINT8  Data[],
+  UINTN  Len
+  );
+
+VOID
+Sha256Init (
+  SHA256_CONTEXT  *Context
+  );
+
+VOID
+Sha256Update (
+  SHA256_CONTEXT  *Context,
+  CONST UINT8     *Data,
+  UINTN           Len
+  );
+
+VOID
+Sha256Final (
+  SHA256_CONTEXT  *Context,
+  UINT8           *HashDigest
+  );
+
+VOID
+Sha256 (
+  UINT8 Hash[],
+  UINT8 Data[],
+  UINTN Len
+  );

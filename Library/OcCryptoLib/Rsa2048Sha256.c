@@ -17,12 +17,12 @@
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
 #define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
 
-typedef struct _RsaPublicKey {
+typedef struct _RSA_PUBLIC_KEY {
     UINT32 Size;
     UINT32 N0Inv;
     UINT32 N[RSANUMWORDS];
     UINT32 Rr[RSANUMWORDS];
-} RsaPublicKey;
+} RSA_PUBLIC_KEY;
 
 UINT64
 Mula32 (
@@ -62,8 +62,8 @@ Mulaa32 (
 STATIC
 VOID
 SubMod (
-  RsaPublicKey  *Key,
-  UINT32        *A
+  RSA_PUBLIC_KEY  *Key,
+  UINT32          *A
   )
 {
   INT64  B     = 0;
@@ -81,8 +81,8 @@ SubMod (
 STATIC
 INT32
 GeMod (
-  RsaPublicKey  *Key,
-  CONST UINT32  *A
+  RSA_PUBLIC_KEY  *Key,
+  CONST UINT32    *A
   )
 {
   UINT32 Index = 0;
@@ -103,7 +103,7 @@ GeMod (
 STATIC
 VOID
 MontMulAdd (
-  RsaPublicKey  *Key,
+  RSA_PUBLIC_KEY  *Key,
   UINT32        *C,
   UINT32        Aa,
   UINT32        *Bb
@@ -138,10 +138,10 @@ MontMulAdd (
 STATIC
 VOID
 MontMul (
-  RsaPublicKey  *Key,
-  UINT32        *C,
-  UINT32        *A,
-  UINT32        *B
+  RSA_PUBLIC_KEY  *Key,
+  UINT32          *C,
+  UINT32          *A,
+  UINT32          *B
   )
 {
   UINT32 Index = 0;
@@ -163,9 +163,9 @@ MontMul (
 STATIC
 VOID
 ModPow (
-  RsaPublicKey  *Key,
-  UINT8         *InOut,
-  UINT32        *Workbuf32
+  RSA_PUBLIC_KEY  *Key,
+  UINT8           *InOut,
+  UINT32          *Workbuf32
   )
 {
   UINT32 *A     = NULL;
@@ -292,10 +292,10 @@ CheckPadding (
  **/
 INT32
 RsaVerify (
-  RsaPublicKey  *Key,
-  UINT8         *Signature,
-  UINT8         *Sha,
-  UINT32        *Workbuf32
+  RSA_PUBLIC_KEY  *Key,
+  UINT8           *Signature,
+  UINT8           *Sha,
+  UINT32          *Workbuf32
   )
 {
   UINT8 Buf[RSANUMBYTES];

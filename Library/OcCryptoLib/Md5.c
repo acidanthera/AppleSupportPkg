@@ -35,12 +35,12 @@ typedef struct {
    UINT32  DataLen;
    UINT64  BitLen;
    UINT32  State[4];
-} Md5Ctx;
+} MD5_CONTEXT;
 
 VOID
 Md5Transform (
-	Md5Ctx       *Ctx,
-	CONST UINT8  Data[]
+	MD5_CONTEXT  *Ctx,
+	CONST UINT8  *Data
 	)
 {
   UINT32 a, b, c, d, m[16], i, j;
@@ -134,7 +134,7 @@ Md5Transform (
 
 VOID
 Md5Init (
-	Md5Ctx  *Ctx
+	MD5_CONTEXT  *Ctx
 	)
 {
   Ctx->DataLen = 0;
@@ -147,8 +147,8 @@ Md5Init (
 
 VOID
 Md5Update (
-	Md5Ctx       *Ctx,
-	CONST UINT8  Data[],
+	MD5_CONTEXT  *Ctx,
+	CONST UINT8  *Data,
 	UINTN        Len
 	)
 {
@@ -167,8 +167,8 @@ Md5Update (
 
 VOID
 Md5Final (
-	Md5Ctx  *Ctx,
-	UINT8   Hash[]
+	MD5_CONTEXT  *Ctx,
+	UINT8        *Hash
 	)
 {
   UINTN Index = Ctx->DataLen;
@@ -219,7 +219,7 @@ Md5 (
 	UINTN  Len
 	)
 {
-	Md5Ctx Ctx;
+	MD5_CONTEXT Ctx;
 
 	Md5Init   (&Ctx);
 	Md5Update (&Ctx, Data, Len);

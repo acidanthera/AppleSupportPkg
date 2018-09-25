@@ -38,11 +38,54 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/ApfsEfiBootRecordInfo.h>
 #include <Protocol/NullTextOutputProtocol.h>
 #include "ApfsDriverLoader.h"
-#include "FletcherChecksum.h"
 #include "EfiComponentName.h"
 
 STATIC BOOLEAN  LegacyScan       = FALSE;
 STATIC UINT64   LegacyBaseOffset = 0;
+
+UINT64
+ApfsBlockChecksumCalculate (
+  UINT32  *Data,
+  UINTN  DataSize
+  )
+{
+  UINTN         Index;
+  UINT64        Sum1 = 0;
+  UINT64        Check1 = 0;
+  UINT64        Sum2 = 0;
+  UINT64        Check2 = 0;
+  CONST UINT64  ModValue = 0xFFFFFFFF;
+  for (Index = 0; Index < DataSize / sizeof (UINT32); Index++) {
+    Sum1 = ((Sum1 + (UINT64)Data[Index]) % ModValue);
+    Sum2 = (Sum2 + Sum1) % ModValue;
+  }
+
+  Check1 = ModValue - ((Sum1 + Sum2) % ModValue);
+  Check2 = ModValue - ((Sum1 + Check1) % ModValue);
+
+  return (Check2 << 32) | Check1;
+}
+
+//
+// Function to check block checksum.
+// Returns TRUE if the checksum is valid.
+//
+BOOLEAN
+ApfsBlockChecksumVerify (
+  UINT8   *Data,
+  UINTN  DataSize
+  )
+{
+  UINT64  NewChecksum;
+  UINT64  *CurrChecksum = (UINT64 *)Data;
+
+  NewChecksum = ApfsBlockChecksumCalculate (
+    (UINT32 *)(Data + sizeof (UINT64)),
+    DataSize - sizeof (UINT64)
+    );
+
+  return NewChecksum == *CurrChecksum;
+}
 
 EFI_STATUS
 EFIAPI

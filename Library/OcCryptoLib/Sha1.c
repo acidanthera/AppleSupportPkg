@@ -23,12 +23,12 @@ typedef struct {
   UINT64 BitLen;
   UINT32 State[5];
   UINT32 k[4];
-} Sha1Ctx;
+} SHA1_CONTEXT;
 
 VOID
 Sha1Transform (
-  Sha1Ctx      *Ctx,
-  CONST UINT8  Data[]
+  SHA1_CONTEXT *Ctx,
+  CONST UINT8  *Data
   )
 {
   UINT32 a, b, c, d, e, i, j, t, m[80];
@@ -90,7 +90,7 @@ Sha1Transform (
 
 VOID
 Sha1Init (
-  Sha1Ctx  *Ctx
+  SHA1_CONTEXT  *Ctx
   )
 {
   Ctx->DataLen = 0;
@@ -108,8 +108,8 @@ Sha1Init (
 
 VOID
 Sha1Update (
-  Sha1Ctx      *Ctx,
-  CONST UINT8  Data[],
+  SHA1_CONTEXT *Ctx,
+  CONST UINT8  *Data,
   UINTN        Len
   )
 {
@@ -128,8 +128,8 @@ Sha1Update (
 
 VOID
 Sha1Final (
-  Sha1Ctx  *Ctx,
-  UINT8    Hash[]
+  SHA1_CONTEXT  *Ctx,
+  UINT8         *Hash
   )
 {
   UINT32 Index = Ctx->DataLen;
@@ -181,7 +181,7 @@ Sha1 (
   UINTN  Len
   )
 {
-  Sha1Ctx Ctx;
+  SHA1_CONTEXT Ctx;
 
   Sha1Init (&Ctx);
   Sha1Update (&Ctx, Data, Len);

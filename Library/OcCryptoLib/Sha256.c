@@ -31,7 +31,7 @@ typedef struct {
     UINT32 DataLen;
     UINT64 BitLen;
     UINT32 State[8];
-} Sha256Ctx;
+} SHA256_CONTEXT;
 
 static CONST UINT32 K[64] = {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
@@ -46,8 +46,8 @@ static CONST UINT32 K[64] = {
 
 VOID
 Sha256Transform (
-	Sha256Ctx *Context,
-	CONST UINT8 Data[]
+	SHA256_CONTEXT  *Context,
+	CONST UINT8     *Data
 	)
 {
     UINT32 A      =     0;
@@ -102,7 +102,7 @@ Sha256Transform (
 }
 
 VOID Sha256Init (
-	Sha256Ctx *Context
+	SHA256_CONTEXT *Context
 	)
 {
     Context->DataLen = 0;
@@ -118,9 +118,9 @@ VOID Sha256Init (
 }
 
 VOID Sha256Update (
-	Sha256Ctx *Context,
-	CONST UINT8 Data[],
-	UINT64 Len
+	SHA256_CONTEXT *Context,
+	CONST UINT8    *Data,
+	UINT64         Len
 	)
 {
     UINT32 Index;
@@ -137,8 +137,8 @@ VOID Sha256Update (
 }
 
 VOID Sha256Final (
-	Sha256Ctx *Context,
-	UINT8 HashDigest[]
+	SHA256_CONTEXT  *Context,
+	UINT8           *HashDigest
 	)
 {
     UINT32 Index  = 0;
@@ -195,7 +195,7 @@ Sha256 (
     UINTN Len
     )
 {
-    Sha256Ctx Ctx;
+    SHA256_CONTEXT Ctx;
 
     Sha256Init   (&Ctx);
     Sha256Update (&Ctx, Data, Len);

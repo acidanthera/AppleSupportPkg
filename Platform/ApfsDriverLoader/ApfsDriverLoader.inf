@@ -28,8 +28,6 @@
 [Sources]
   ApfsDriverLoader.c
   ApfsDriverLoader.h
-  FletcherChecksum.c
-  FletcherChecksum.h
   EfiComponentName.c
   EfiComponentName.h
 
@@ -40,7 +38,6 @@
   EfiPkg/EfiPkg.dec
 
 [LibraryClasses]
-  OcAppleImageVerificationLib
   UefiRuntimeServicesTableLib
   UefiBootServicesTableLib
   MemoryAllocationLib
@@ -50,6 +47,7 @@
   UefiDriverEntryPoint
   DebugLib
   PcdLib
+  OcAppleImageVerificationLib
 
 [Guids]
   gAppleApfsPartitionTypeGuid                     ## GUID CONSUMES

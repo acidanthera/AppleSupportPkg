@@ -13,9 +13,9 @@
 
 typedef union _HS_CONTEXT_DATA
 {
-  Md5Ctx     Md5;
-  Sha1Ctx    Sha1;
-  Sha256Ctx  Sha256;
+  MD5_CONTEXT     Md5;
+  SHA1_CONTEXT    Sha1;
+  SHA256_CONTEXT  Sha256;
 } HS_CONTEXT_DATA;
 
 typedef struct _HS_PRIVATE_DATA
