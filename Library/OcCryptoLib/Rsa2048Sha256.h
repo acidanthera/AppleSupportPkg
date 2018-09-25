@@ -3,14 +3,12 @@
  * found in the LICENSE file.
  */
 
-#include <Library/BaseMemoryLib.h>
-
 //
 // Default to 2048-bit key length
 //
 #define CONFIG_RSA_KEY_SIZE 2048
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
-#define RSANUMWORDS (RSANUMBYTES / sizeof(UINT32))
+#define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
 
 typedef struct _RsaPublicKey {
     UINT32 Size;

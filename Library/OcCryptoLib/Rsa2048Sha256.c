@@ -6,7 +6,8 @@
   Implementation of RSA signature verification which uses a pre-processed key
   for computation.
 **/
-#include <Library/OcCryptoLib/OcCryptoLib.h>
+#include <Library/BaseMemoryLib.h>
+#include "Rsa2048Sha256.h"
 
 #define SHA256_DIGEST_SIZE 32
 

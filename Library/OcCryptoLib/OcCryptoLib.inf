@@ -30,7 +30,13 @@
 
 [Sources]
   Sha256.c
+  Sha256.h
   Rsa2048Sha256.c
+  Rsa2048Sha256.h
+  Md5.c
+  Md5.h
+  Sha1.c
+  Sha1.h
 
 [Packages]
   MdePkg/MdePkg.dec

@@ -56,4 +56,10 @@ CoreExit (
   IN CHAR16      *ExitData   OPTIONAL
   );
 
+EFI_STATUS
+EFIAPI
+CoreUnloadImage (
+  IN EFI_HANDLE  ImageHandle
+  );
+
 #endif

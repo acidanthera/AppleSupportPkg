@@ -9,8 +9,6 @@
 #ifndef SHA256_H
 #define SHA256_H
 
-#include <Library/BaseMemoryLib.h>
-
 //
 // SHA256 outputs a 32 UINT8 digest
 //
