@@ -136,7 +136,8 @@ Md5 (
 	UINTN  Len
 	);
 
-int RsaVerify(
+INT32
+RsaVerify (
 	RsaPublicKey  *Key,
 	UINT8         *Signature,
 	UINT8         *Sha,

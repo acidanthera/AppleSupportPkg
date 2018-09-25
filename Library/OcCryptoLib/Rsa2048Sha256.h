@@ -17,7 +17,8 @@ typedef struct _RsaPublicKey {
     UINT32 Rr[RSANUMWORDS];
 } RsaPublicKey;
 
-int RsaVerify(
+INT32
+RsaVerify (
 	RsaPublicKey  *Key,
 	UINT8         *Signature,
 	UINT8         *Sha,

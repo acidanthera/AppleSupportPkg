@@ -46,8 +46,8 @@ Mulaa32 (
 /**
   A[] -= Mod
 **/
-static
-void
+STATIC
+VOID
 SubMod (
   RsaPublicKey  *Key,
   UINT32        *A
@@ -65,11 +65,11 @@ SubMod (
 //
 // Return A[] >= Mod
 //
-static
-int
+STATIC
+INT32
 GeMod (
   RsaPublicKey  *Key,
-  const UINT32  *A
+  CONST UINT32  *A
   )
 {
   UINT32 Index = 0;
@@ -87,8 +87,8 @@ GeMod (
 //
 // Montgomery c[] += a * b[] / R % mod
 //
-static
-void
+STATIC
+VOID
 MontMulAdd (
   RsaPublicKey  *Key,
   UINT32        *C,
@@ -122,8 +122,8 @@ MontMulAdd (
 //
 // Montgomery c[] = a[] * b[] / R % mod
 //
-static
-void
+STATIC
+VOID
 MontMul (
   RsaPublicKey  *Key,
   UINT32        *C,
@@ -147,8 +147,8 @@ MontMul (
   @param Workbuf32  Work buffer; caller must verify this is
                     3 x RSANUMWORDS elements long.
  **/
-static
-void
+STATIC
+VOID
 ModPow (
   RsaPublicKey  *Key,
   UINT8         *InOut,
@@ -224,7 +224,7 @@ ModPow (
 
   PS: octet string consisting of {Length(RSA Key) - Length(T) - 3} 0xFF
  **/
-static  UINT8 Sha256Tail[] = {
+STATIC  UINT8 Sha256Tail[] = {
   0x00, 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60,
   0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
   0x05, 0x00, 0x04, 0x20
@@ -238,14 +238,14 @@ static  UINT8 Sha256Tail[] = {
  * @param sig  Signature to verify
  * @return 0 if the padding is correct.
  */
-static
-int
+STATIC
+INT32
 CheckPadding (
   UINT8  *Sig
   )
 {
   UINT8   *Ptr   = NULL;
-  int     Result = 0;
+  INT32   Result = 0;
   UINT32  Index  = 0;
 
   Ptr = Sig;
@@ -277,7 +277,7 @@ CheckPadding (
         3 x RSANUMWORDS elements long.
   @return 0 on failure, 1 on success.
  **/
-int
+INT32
 RsaVerify (
   RsaPublicKey  *Key,
   UINT8         *Signature,
