@@ -40,13 +40,14 @@ Sha256Init (
 void
 Sha256Update (
 	Sha256Context  *Context,
-	const UINT8  Data[],
-	UINT64       Len
+	const UINT8    Data[],
+	UINT64         Len
 	);
 
-void Sha256Final(
+void 
+Sha256Final (
 	Sha256Context  *Context,
-	UINT8        HashDigest[]
+	UINT8          HashDigest[]
 	);
 
 

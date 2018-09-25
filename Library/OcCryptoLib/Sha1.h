@@ -37,13 +37,13 @@ Sha1Update (
 	UINTN        Len
 	);
 
-VOID 
+VOID
 Sha1Final (
 	Sha1Ctx  *Ctx,
 	UINT8    Hash[]
 	);
 
-VOID 
+VOID
 Sha1 (
 	UINT8  Hash[],
 	UINT8  Data[],

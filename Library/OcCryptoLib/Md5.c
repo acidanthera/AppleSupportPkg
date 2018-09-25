@@ -29,8 +29,8 @@
 
 VOID
 Md5Transform (
-	Md5Ctx *Ctx, 
-	CONST UINT8 Data[]
+	Md5Ctx       *Ctx,
+	CONST UINT8  Data[]
 	)
 {
   UINT32 a, b, c, d, m[16], i, j;
@@ -124,7 +124,7 @@ Md5Transform (
 
 VOID
 Md5Init (
-	Md5Ctx *Ctx
+	Md5Ctx  *Ctx
 	)
 {
   Ctx->DataLen = 0;
@@ -135,11 +135,11 @@ Md5Init (
   Ctx->State[3] = 0x10325476;
 }
 
-VOID 
+VOID
 Md5Update (
-	Md5Ctx *Ctx,
-	CONST UINT8 Data[],
-	UINTN Len
+	Md5Ctx       *Ctx,
+	CONST UINT8  Data[],
+	UINTN        Len
 	)
 {
   UINTN Index = 0;
@@ -157,8 +157,8 @@ Md5Update (
 
 VOID
 Md5Final (
-	Md5Ctx *Ctx, 
-	UINT8 Hash[]
+	Md5Ctx  *Ctx,
+	UINT8   Hash[]
 	)
 {
   UINTN Index = Ctx->DataLen;
@@ -169,9 +169,8 @@ Md5Final (
   if (Ctx->DataLen < 56) {
     Ctx->Data[Index++] = 0x80;
     ZeroMem(Ctx->Data + Index, 56-Index);
-  }
-  else if (Ctx->DataLen >= 56) {
-     Ctx->Data[Index++] = 0x80;
+  } else if (Ctx->DataLen >= 56) {
+    Ctx->Data[Index++] = 0x80;
 		ZeroMem(Ctx->Data + Index, 64-Index);
     Md5Transform (Ctx, Ctx->Data);
     ZeroMem (Ctx->Data, 56);
@@ -201,4 +200,18 @@ Md5Final (
     Hash[Index + 8]  = (Ctx->State[2] >> (Index * 8)) & 0x000000FF;
     Hash[Index + 12] = (Ctx->State[3] >> (Index * 8)) & 0x000000FF;
   }
+}
+
+VOID
+Md5 (
+	UINT8  Hash[],
+	UINT8  Data[],
+	UINTN  Len
+	)
+{
+	Md5Ctx Ctx;
+
+	Md5Init(&Ctx);
+	Md5Update(&Ctx, Data, Len);
+	Md5Final(&Ctx,Hash);
 }

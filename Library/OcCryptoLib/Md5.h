@@ -11,31 +11,38 @@
 //
 // MD5 outputs a 16 byte digest
 //
-#define MD5_BLOCK_SIZE 16               
+#define MD5_BLOCK_SIZE 16
 
 typedef struct {
-   UINT8  Data[64];
-   UINT32 DataLen;
-   UINT64 BitLen;
-   UINT32 State[4];
+   UINT8   Data[64];
+   UINT32  DataLen;
+   UINT64  BitLen;
+   UINT32  State[4];
 } Md5Ctx;
 
 VOID
 Md5Init (
-  Md5Ctx *Ctx
+  Md5Ctx  *Ctx
   );
 
 VOID
 Md5Update (
-  Md5Ctx *Ctx, 
-  CONST UINT8 Data[], 
-  UINTN Len
+  Md5Ctx       *Ctx,
+  CONST UINT8  Data[],
+  UINTN        Len
   );
 
 VOID
 Md5Final (
-  Md5Ctx *Ctx, 
-  UINT8 Hash[]
+  Md5Ctx  *Ctx,
+  UINT8   Hash[]
   );
+
+VOID
+Md5 (
+	UINT8  Hash[],
+	UINT8  Data[],
+	UINTN  Len
+	);
 
 #endif   // MD5_H

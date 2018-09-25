@@ -12,16 +12,18 @@
 #include <Library/BaseMemoryLib.h>
 #include "Sha1.h"
 
-VOID 
+VOID
 Sha1Transform (
-  Sha1Ctx      *Ctx, 
+  Sha1Ctx      *Ctx,
   CONST UINT8  Data[]
   )
 {
   UINT32 a, b, c, d, e, i, j, t, m[80];
 
-  for (i = 0, j = 0; i < 16; ++i, j += 4)
+  for (i = 0, j = 0; i < 16; ++i, j += 4) {
     m[i] = (Data[j] << 24) + (Data[j + 1] << 16) + (Data[j + 2] << 8) + (Data[j + 3]);
+  }
+  
   for ( ; i < 80; ++i) {
     m[i] = (m[i - 3] ^ m[i - 8] ^ m[i - 14] ^ m[i - 16]);
     m[i] = (m[i] << 1) | (m[i] >> 31);
@@ -111,9 +113,9 @@ Sha1Update (
   }
 }
 
-VOID 
+VOID
 Sha1Final (
-  Sha1Ctx  *Ctx, 
+  Sha1Ctx  *Ctx,
   UINT8    Hash[]
   )
 {
@@ -125,8 +127,7 @@ Sha1Final (
   if (Ctx->DataLen < 56) {
     Ctx->Data[Index++] = 0x80;
     ZeroMem (Ctx->Data + Index, 56-Index);
-  }
-  else {
+  } else {
     Ctx->Data[Index++] = 0x80;
     ZeroMem (Ctx->Data + Index, 64-Index);
     Sha1Transform (Ctx, Ctx->Data);
