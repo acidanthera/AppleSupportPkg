@@ -195,10 +195,10 @@ Md5Final (
   // reverse all the bytes when copying the final State to the output Hash.
   //
   for (Index = 0; Index < 4; ++Index) {
-    Hash[Index]      = (Ctx->State[0] >> (Index * 8)) & 0x000000FF;
-    Hash[Index + 4]  = (Ctx->State[1] >> (Index * 8)) & 0x000000FF;
-    Hash[Index + 8]  = (Ctx->State[2] >> (Index * 8)) & 0x000000FF;
-    Hash[Index + 12] = (Ctx->State[3] >> (Index * 8)) & 0x000000FF;
+    Hash[Index]      = (UINT8) ((Ctx->State[0] >> (Index * 8)) & 0x000000FF);
+    Hash[Index + 4]  = (UINT8) ((Ctx->State[1] >> (Index * 8)) & 0x000000FF);
+    Hash[Index + 8]  = (UINT8) ((Ctx->State[2] >> (Index * 8)) & 0x000000FF);
+    Hash[Index + 12] = (UINT8) ((Ctx->State[3] >> (Index * 8)) & 0x000000FF);
   }
 }
 

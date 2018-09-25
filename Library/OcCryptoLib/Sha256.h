@@ -32,19 +32,19 @@ typedef struct {
 //
 // Functions prototypes
 //
-void
+VOID
 Sha256Init (
 	Sha256Context  *Context
 	);
 
-void
+VOID
 Sha256Update (
 	Sha256Context  *Context,
-	const UINT8    Data[],
+	CONST UINT8    Data[],
 	UINT64         Len
 	);
 
-void 
+VOID
 Sha256Final (
 	Sha256Context  *Context,
 	UINT8          HashDigest[]

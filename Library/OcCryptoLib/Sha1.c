@@ -23,7 +23,7 @@ Sha1Transform (
   for (i = 0, j = 0; i < 16; ++i, j += 4) {
     m[i] = (Data[j] << 24) + (Data[j + 1] << 16) + (Data[j + 2] << 8) + (Data[j + 3]);
   }
-  
+
   for ( ; i < 80; ++i) {
     m[i] = (m[i - 3] ^ m[i - 8] ^ m[i - 14] ^ m[i - 16]);
     m[i] = (m[i] << 1) | (m[i] >> 31);
@@ -153,11 +153,11 @@ Sha1Final (
   // reverse all the bytes when copying the final State to the output Hash.
   //
   for (Index = 0; Index < 4; ++Index) {
-    Hash[Index]      = (Ctx->State[0] >> (24 - Index * 8)) & 0x000000FF;
-    Hash[Index + 4]  = (Ctx->State[1] >> (24 - Index * 8)) & 0x000000FF;
-    Hash[Index + 8]  = (Ctx->State[2] >> (24 - Index * 8)) & 0x000000FF;
-    Hash[Index + 12] = (Ctx->State[3] >> (24 - Index * 8)) & 0x000000FF;
-    Hash[Index + 16] = (Ctx->State[4] >> (24 - Index * 8)) & 0x000000FF;
+    Hash[Index]      = (UINT8) ((Ctx->State[0] >> (24 - Index * 8)) & 0x000000FF);
+    Hash[Index + 4]  = (UINT8) ((Ctx->State[1] >> (24 - Index * 8)) & 0x000000FF);
+    Hash[Index + 8]  = (UINT8) ((Ctx->State[2] >> (24 - Index * 8)) & 0x000000FF);
+    Hash[Index + 12] = (UINT8) ((Ctx->State[3] >> (24 - Index * 8)) & 0x000000FF);
+    Hash[Index + 16] = (UINT8) ((Ctx->State[4] >> (24 - Index * 8)) & 0x000000FF);
   }
 }
 
