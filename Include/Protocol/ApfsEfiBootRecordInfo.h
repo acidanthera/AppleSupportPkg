@@ -24,14 +24,14 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 typedef struct  _APFS_EFIBOOTRECORD_LOCATION_INFO
 {
-	//
-	// Handle of partition which contain EfiBootRecord section
-	//
-	EFI_HANDLE  ControllerHandle;
-	//
-	// UUID of GPT container partition
-	//
-	EFI_GUID    ContainerUuid;
+  //
+  // Handle of partition which contain EfiBootRecord section
+  //
+  EFI_HANDLE  ControllerHandle;
+  //
+  // UUID of GPT container partition
+  //
+  EFI_GUID    ContainerUuid;
 } APFS_EFIBOOTRECORD_LOCATION_INFO;
 
 extern EFI_GUID gApfsEfiBootRecordInfoProtocolGuid;

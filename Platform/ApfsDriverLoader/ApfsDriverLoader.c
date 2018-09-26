@@ -889,7 +889,7 @@ ApfsDriverLoaderStart (
 
   //
   // FIXME: Loop over extents inside EfiBootRecord
-  //        Multiple embedded EFI drivers is possible
+  //        EFI embedded driver could be deframented across whole container
   //
 
   DEBUG ((
