@@ -1,3 +1,4 @@
+
 //********************************************************************
 //  created:  28:8:2012   20:54
 //  filename:   AppleImageCodec.h
@@ -11,8 +12,8 @@
 //         code refactor and cleanup. use lodepng instead of picopng
 //********************************************************************
 
-#ifndef _APPLE_IMAGE_CODEC_H_
-#define _APPLE_IMAGE_CODEC_H_
+#ifndef APPLE_IMAGE_CODEC_H_
+#define APPLE_IMAGE_CODEC_H_
 
 
 #define APPLE_IMAGE_CODEC_PROTOCOL_GUID\
@@ -31,10 +32,10 @@ typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS) (
   );
 
 typedef EFI_STATUS (EFIAPI* DECODE_IMAGE_DATA) (
-  VOID             *ImageBuffer,
-  UINTN            ImageSize,
-  EFI_UGA_PIXEL    **RawImageData,
-  UINTN            *RawImageDataSize
+  VOID           *ImageBuffer,
+  UINTN          ImageSize,
+  EFI_UGA_PIXEL  **RawImageData,
+  UINTN          *RawImageDataSize
   );
 
 typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS_VER) (
@@ -46,24 +47,24 @@ typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS_VER) (
   );
 
 typedef EFI_STATUS (EFIAPI* DECODE_IMAGE_DATA_VER) (
-  VOID             *ImageBuffer,
-  UINTN            ImageSize,
-  UINTN            Version,
-  EFI_UGA_PIXEL    **RawImageData,
-  UINTN            *RawImageDataSize
+  VOID           *ImageBuffer,
+  UINTN          ImageSize,
+  UINTN          Version,
+  EFI_UGA_PIXEL  **RawImageData,
+  UINTN          *RawImageDataSize
   );
 
 typedef struct _APPLE_IMAGE_CODEC_PROTOCOL
 {
-    UINT64                Version;
-    UINTN                 FileExt;
-    RECOGNIZE_IMAGE_DATA  RecognizeImageData;
-    GET_IMAGE_DIMS        GetImageDims;
-    DECODE_IMAGE_DATA     DecodeImageData;
-    GET_IMAGE_DIMS_VER    GetImageDimsVer;
-    DECODE_IMAGE_DATA_VER DecodeImageDataVer;
+  UINT64                 Version;
+  UINTN                  FileExt;
+  RECOGNIZE_IMAGE_DATA   RecognizeImageData;
+  GET_IMAGE_DIMS         GetImageDims;
+  DECODE_IMAGE_DATA      DecodeImageData;
+  GET_IMAGE_DIMS_VER     GetImageDimsVer;
+  DECODE_IMAGE_DATA_VER  DecodeImageDataVer;
 } APPLE_IMAGE_CODEC_PROTOCOL;
 
 extern EFI_GUID gAppleImageCodecProtocolGuid;
 
-#endif
+#endif //APPLE_IMAGE_CODEC_H_

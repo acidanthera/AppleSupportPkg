@@ -41,21 +41,21 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // The context structure used while PE/COFF image is being loaded and relocated.
 //
 typedef struct APPLE_PE_COFF_LOADER_IMAGE_CONTEXT_ {
-    UINT64                           ImageAddress;
-    UINT64                           ImageSize;
-    UINT64                           EntryPoint;
-    UINT64                           SizeOfHeaders;
-    UINT16                           ImageType;
-    UINT16                           NumberOfSections;
-    UINT32                           *OptHdrChecksum;
-    UINT32                           SizeOfOptionalHeader;
-    UINT64                           SumOfSectionBytes;
-    EFI_IMAGE_SECTION_HEADER         *FirstSection;
-    EFI_IMAGE_DATA_DIRECTORY         *RelocDir;
-    EFI_IMAGE_DATA_DIRECTORY         *SecDir;
-    UINT64                           NumberOfRvaAndSizes;
-    UINT16                           PeHdrMagic;
-    EFI_IMAGE_OPTIONAL_HEADER_UNION  *PeHdr;
+  UINT64                           ImageAddress;
+  UINT64                           ImageSize;
+  UINT64                           EntryPoint;
+  UINT64                           SizeOfHeaders;
+  UINT16                           ImageType;
+  UINT16                           NumberOfSections;
+  UINT32                           *OptHdrChecksum;
+  UINT32                           SizeOfOptionalHeader;
+  UINT64                           SumOfSectionBytes;
+  EFI_IMAGE_SECTION_HEADER         *FirstSection;
+  EFI_IMAGE_DATA_DIRECTORY         *RelocDir;
+  EFI_IMAGE_DATA_DIRECTORY         *SecDir;
+  UINT64                           NumberOfRvaAndSizes;
+  UINT16                           PeHdrMagic;
+  EFI_IMAGE_OPTIONAL_HEADER_UNION  *PeHdr;
 } APPLE_PE_COFF_LOADER_IMAGE_CONTEXT;
 
 #endif //OC_APPLE_IMAGE_VERIFICATION_H

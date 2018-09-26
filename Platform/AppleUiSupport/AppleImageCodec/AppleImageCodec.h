@@ -23,10 +23,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // Efi Graphics Image
 //
 typedef struct {
-    INTN            Width;
-    INTN            Height;
-    BOOLEAN         HasAlpha;
-    EFI_UGA_PIXEL   *PixelData;
+  INTN            Width;
+  INTN            Height;
+  BOOLEAN         HasAlpha;
+  EFI_UGA_PIXEL   *PixelData;
 } EG_IMAGE;
 
 #endif //APPLE_IMAGE_CODEC_H

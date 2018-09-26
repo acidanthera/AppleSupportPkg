@@ -24,41 +24,41 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define CPUYPE_X86_64 (CPUYPE_X86 | CPU_ARCH_ABI64)
 
 typedef struct {
-    //
-    // Probably 0x07 (CPUYPE_X86) or 0x01000007 (CPUYPE_X86_64)
-    //
-    UINT32 CpuType;
-    //
-    // Probably 3 (CPU_SUBTYPE_I386_ALL)
-    //
-    UINT32 CpuSubtype;
-    //
-    // Offset to beginning of architecture section
-    //
-    UINT32 Offset;
-    //
-    // Size of arch section
-    //
-    UINT32 Size;
-    //
-    // Alignment
-    //
-    UINT32 Align;
+  //
+  // Probably 0x07 (CPUYPE_X86) or 0x01000007 (CPUYPE_X86_64)
+  //
+  UINT32 CpuType;
+  //
+  // Probably 3 (CPU_SUBTYPE_I386_ALL)
+  //
+  UINT32 CpuSubtype;
+  //
+  // Offset to beginning of architecture section
+  //
+  UINT32 Offset;
+  //
+  // Size of arch section
+  //
+  UINT32 Size;
+  //
+  // Alignment
+  //
+  UINT32 Align;
 } APPLE_EFI_FAT_ARCH_HEADER;
 
 typedef struct {
-    //
-    // Apple EFI fat binary magic number (0x0ef1fab9)
-    //
-    UINT32 Magic;
-    //
-    // Number of architectures
-    //
-    UINT32 NumArchs;
-    //
-    // Architecture headers
-    //
-    APPLE_EFI_FAT_ARCH_HEADER Archs[];
+  //
+  // Apple EFI fat binary magic number (0x0ef1fab9)
+  //
+  UINT32 Magic;
+  //
+  // Number of architectures
+  //
+  UINT32 NumArchs;
+  //
+  // Architecture headers
+  //
+  APPLE_EFI_FAT_ARCH_HEADER Archs[];
 } APPLE_EFI_FAT_HEADER;
 
 #endif //APPLE_IMAGE_LOADER_H

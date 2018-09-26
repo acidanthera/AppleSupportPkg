@@ -23,15 +23,15 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
   { 0x45E7BC51, 0x913C, 0x42AC, {0x96, 0xA2, 0x10, 0x71, 0x2F, 0xFB, 0xEB, 0xA7 } }
 
 typedef struct APPLE_SIGNATURE_DIRECTORY_ {
-    UINT32    ImageSize;
-    UINT32    SignatureDirectorySize;
-    UINT32    SignatureSize;
-    UINT16    CompressionType;
-    UINT16    EfiSignature;
-    EFI_GUID  AppleSignatureGuid;
-    EFI_GUID  CertType;
-    UINT8     PublicKey[256];
-    UINT8     Signature[256];
+  UINT32    ImageSize;
+  UINT32    SignatureDirectorySize;
+  UINT32    SignatureSize;
+  UINT16    CompressionType;
+  UINT16    EfiSignature;
+  EFI_GUID  AppleSignatureGuid;
+  EFI_GUID  CertType;
+  UINT8     PublicKey[256];
+  UINT8     Signature[256];
 }  APPLE_SIGNATURE_DIRECTORY;
 
 extern EFI_GUID gAppleEfiSignatureGuid;
