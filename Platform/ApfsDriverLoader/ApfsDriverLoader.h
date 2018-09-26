@@ -22,7 +22,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define APFS_DRIVER_INFO_PRIVATE_DATA_SIGNATURE  SIGNATURE_32 ('A', 'F', 'J', 'S')
 
 //
-// Container Superblock magic
+// Container Superblock definitions
 //
 #define APFS_CSB_SIGNATURE  SIGNATURE_32 ('N', 'X', 'S', 'B')
 #define APFS_CSB_MAX_FILE_SYSTEMS  100
@@ -34,14 +34,20 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define APFS_CSB_NUM_COUNTERS  32
 
 //
-// Volume Superblock magic
+// Volume Superblock definitions
 //
 #define APFS_VSB_SIGNATURE  SIGNATURE_32 ('A', 'P', 'S', 'B')
 
 //
-// EfiBootRecord block magic
+// EfiBootRecord block definitions
 //
 #define APFS_EFIBOOTRECORD_SIGNATURE  SIGNATURE_32 ('J', 'S', 'D', 'R')
+#define APFS_EFIBOOTRECORD_VERSION 1
+
+typedef struct PhysicalRange_ {
+    INT64     StartPhysicalAddr;
+    UINT64    BlockCount;
+} PhysicalRange;
 
 typedef struct UNKNOWNFIELD_
 {
@@ -134,7 +140,7 @@ typedef struct APFS_CSB_
   //
   // Magic: NXSB
   //
-  UINT32             MagicNumber;
+  UINT32             Magic;
   //
   // Size of each allocation unit: 4096 bytes
   // (by default)
@@ -165,13 +171,22 @@ typedef struct APFS_CSB_
   UINT64             ReaperOid;
   UINT32             TestType;
   UINT32             MaxFileSystems;
-  UINT64             FileSystemOid[NX_MAX_FILE_SYSTEMS];
-  UINT64             Counters[NX_NUM_COUNTERS];
-  UINT8              Reserved_7[280];
+  UINT64             FileSystemOid[APFS_CSB_MAX_FILE_SYSTEMS];
+  UINT64             Counters[APFS_CSB_NUM_COUNTERS];
+  PhysicalRange             BlockedOutPhysicalRange;
+  UINT64             EvictMappingTreeOid;
+  UINT64             Flags;
   //
   // Pointer to JSDR block (EfiBootRecordBlock)
   //
-  UINT64   EfiBootRecordBlock;
+  UINT64             EfiBootRecordBlock;
+  EFI_GUID           FusionUuid;
+  PhysicalRange             KeyLocker;
+  UINT64             EphermalInfo[APFS_CSB_EPH_INFO_COUNT];
+  UINT64             TestOid;
+  UINT64             FusionMtIod;
+  UINT64             FusionWbcOid;
+  PhysicalRange             FusionWbc;
 } APFS_CSB;
 #pragma pack(pop)
 
@@ -186,7 +201,7 @@ typedef struct APFS_APSB_
   // Volume Superblock magic
   // Magic: APSB
   //
-  UINT32             MagicNumber;
+  UINT32             Magic;
   //
   // Volume#. First volume start with 0, (0x00)
   //
@@ -273,24 +288,32 @@ typedef struct APFS_EFI_BOOT_RECORD_
 {
   APFS_BLOCK_HEADER  BlockHeader;
   //
-  // EfiBootRecord magic
-  // Magic: JSDR
+  // A number that can be used to verify that youʼre reading an instance of
+  // APFS_EFI_BOOT_RECORD
   //
-  UINT32             MagicNumber;
+  UINT32             Magic;
   //
-  // EfiBootRecord version
-  // should be 1 ?
+  // The version of this data structure
   //
   UINT32             Version;
-  UINT8              Reserved2[136];
   //
-  // Apfs driver start LBA
+  // The length in bytes, of the embedded EFI driver
   //
-  UINT64             BootRecordLBA;
+  UINT32             EfiFileLen;
   //
-  // Apfs driver size
+  // Num of extents in the array
   //
-  UINT64             BootRecordSize;
+  UINT32             NumOfExtents;
+  //
+  // Reserved
+  // Populate this field with 0 when you create a new instance, 
+  // and preserve its value when you modify an existing instance.
+  //
+  UINT64             Reserved[16];
+  //
+  // Apfs driver physical range location
+  //
+  PhysicalRange      RecordExtents[];
 } APFS_EFI_BOOT_RECORD;
 #pragma pack(pop)
 

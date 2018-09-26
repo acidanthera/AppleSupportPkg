@@ -749,20 +749,20 @@ ApfsDriverLoaderStart (
   ContainerSuperBlock = (APFS_CSB *) ApfsBlock;
 
   //
-  // Verify NodeId and NodeType
+  // Verify ObjectOid and ObjectType
   //
-  if (ContainerSuperBlock->BlockHeader.NodeType != 0x80000001
-      || ContainerSuperBlock->BlockHeader.NodeId != 1) {
+  if (ContainerSuperBlock->BlockHeader.ObjectOid != 0x80000001
+      || ContainerSuperBlock->BlockHeader.ObjectType != 1) {
     return EFI_UNSUPPORTED;
   }
 
   //
   // Verify ContainerSuperblock magic.
   //
-  DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->MagicNumber));
+  DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->Magic));
   DEBUG ((DEBUG_VERBOSE, "Should be: %04x\n", APFS_CSB_SIGNATURE));
 
-  if (ContainerSuperBlock->MagicNumber != APFS_CSB_SIGNATURE) {
+  if (ContainerSuperBlock->Magic != APFS_CSB_SIGNATURE) {
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
   }
@@ -872,7 +872,7 @@ ApfsDriverLoaderStart (
   }
 
   EfiBootRecordBlock = (APFS_EFI_BOOT_RECORD *) ApfsBlock;
-  if (EfiBootRecordBlock->MagicNumber != APFS_EFIBOOTRECORD_SIGNATURE) {
+  if (EfiBootRecordBlock->Magic != APFS_EFIBOOTRECORD_SIGNATURE) {
     FreePool (ApfsBlock);
     return EFI_UNSUPPORTED;
   }
@@ -882,18 +882,24 @@ ApfsDriverLoaderStart (
     "EfiBootRecordBlock checksum: %08llx\n",
     EfiBootRecordBlock->BlockHeader.Checksum
     ));
+
+  //
+  // FIXME: Loop over extents inside EfiBootRecord
+  //        Multiple embedded EFI drivers is possible
+  //
+
   DEBUG ((
     DEBUG_VERBOSE,
     "ApfsDriver located at: %llu block\n",
-    EfiBootRecordBlock->BootRecordLBA
+    EfiBootRecordBlock->RecordExtents[0].StartPhysicalAddr
     ));
 
   ApfsDriverBootRecordOffset = MultU64x32 (
-                                EfiBootRecordBlock->BootRecordLBA,
+                                EfiBootRecordBlock->RecordExtents[0].StartPhysicalAddr,
                                 ApfsBlockSize
                                 )  + LegacyBaseOffset;
   AppleFileSystemDriverSize = MultU64x32 (
-                                EfiBootRecordBlock->BootRecordSize,
+                                EfiBootRecordBlock->RecordExtents[0].BlockCount,
                                 ApfsBlockSize
                                 );
 
