@@ -48,7 +48,7 @@ GetPeHeaderMagicValue (
 EFI_STATUS
 BuildPeContext (
   VOID                                *Image,
-  UINT32                              ImageSize,
+  UINTN                               ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   )
 {
@@ -372,11 +372,11 @@ GetApplePeImageSignature (
 VOID
 SanitizeApplePeImage (
   VOID                                *Image,
-  UINT32                              *RealImageSize,
+  UINTN                               *RealImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   )
 {
-  UINT32                   ImageSize            = *RealImageSize;
+  UINTN                    ImageSize            = *RealImageSize;
   EFI_IMAGE_DOS_HEADER     *DosHdr              = Image;
 
   //
@@ -470,7 +470,7 @@ GetApplePeImageSha256 (
 EFI_STATUS
 VerifyApplePeImageSignature (
   IN OUT VOID                                *PeImage,
-  IN OUT UINT32                              *ImageSize,
+  IN OUT UINTN                               *ImageSize,
   IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {

@@ -185,7 +185,7 @@ LoadImageEx (
         //
         //
         //
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
+        Status = VerifyApplePeImageSignature (SourceBuffer, &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }
@@ -299,7 +299,7 @@ AppleLoadImage (
       SourceSize = ImageSize;
 
       if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
+        Status = VerifyApplePeImageSignature (SourceBuffer, &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }
@@ -312,7 +312,7 @@ AppleLoadImage (
       }
     } else {
       if (SourceSize > 0 && SourceSize <= (UINT32) 0xFFFFFFFFULL) {
-        Status = VerifyApplePeImageSignature (SourceBuffer, (UINT32 *) &SourceSize, NULL);
+        Status = VerifyApplePeImageSignature (SourceBuffer, &SourceSize, NULL);
       } else {
         Status = EFI_INVALID_PARAMETER;
       }
@@ -376,9 +376,9 @@ AppleLoadImage (
   return Status;
 }
 
-STATIC APPLE_LOAD_IMAGE_PROTOCOL mAppleLoadImageProtocol = {
+/*STATIC APPLE_LOAD_IMAGE_PROTOCOL mAppleLoadImageProtocol = {
   AppleLoadImage
-};
+};*/
 
 EFI_STATUS
 EFIAPI
@@ -387,9 +387,9 @@ AppleImageLoaderEntryPoint (
   IN EFI_SYSTEM_TABLE     *SystemTable
   )
 {
-  EFI_STATUS                    Status;
-  EFI_HANDLE                    NewHandle                = NULL;
-  APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
+  //EFI_STATUS                    Status;
+  //EFI_HANDLE                    NewHandle                = NULL;
+  //APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
 
   DEBUG ((
     DEBUG_VERBOSE,
@@ -397,7 +397,7 @@ AppleImageLoaderEntryPoint (
     APPLE_SUPPORT_VERSION
     ));
 
-  Status = gBS->LocateProtocol (
+  /*Status = gBS->LocateProtocol (
     &gAppleLoadImageProtocolGuid,
     NULL,
     (VOID **)&AppleLoadImageInterface
@@ -423,6 +423,7 @@ AppleImageLoaderEntryPoint (
   } else {
     DEBUG ((DEBUG_VERBOSE, "AppleLoadImage already present\n"));
   }
+  */
 
   //
   // Override Edk2LoadImage protocol for AppleFatBinary support

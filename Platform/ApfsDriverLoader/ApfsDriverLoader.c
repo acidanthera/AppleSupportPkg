@@ -124,11 +124,13 @@ StartApfsDriver (
       ParentDevicePath = NULL;
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
+  
+  DEBUG ((DEBUG_WARN, "ImageSize before verification: %lu\n", AppleFileSystemDriverSize));
 
   DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     AppleFileSystemDriverBuffer,
-    (UINT32 *) &AppleFileSystemDriverSize,
+    &AppleFileSystemDriverSize,
     NULL
     );
 
@@ -751,8 +753,10 @@ ApfsDriverLoaderStart (
   //
   // Verify ObjectOid and ObjectType
   //
-  if (ContainerSuperBlock->BlockHeader.ObjectOid != 0x80000001
-      || ContainerSuperBlock->BlockHeader.ObjectType != 1) {
+  DEBUG ((DEBUG_VERBOSE, "ObjectId: %04x\n", ContainerSuperBlock->BlockHeader.ObjectOid ));
+  DEBUG ((DEBUG_VERBOSE, "ObjectType: %04x\n", ContainerSuperBlock->BlockHeader.ObjectType ));
+  if (ContainerSuperBlock->BlockHeader.ObjectOid != 1
+      || ContainerSuperBlock->BlockHeader.ObjectType != 0x80000001) {
     return EFI_UNSUPPORTED;
   }
 
@@ -898,10 +902,21 @@ ApfsDriverLoaderStart (
                                 EfiBootRecordBlock->RecordExtents[0].StartPhysicalAddr,
                                 ApfsBlockSize
                                 )  + LegacyBaseOffset;
-  AppleFileSystemDriverSize = MultU64x32 (
+
+  //
+  // Verify EfiFileLen with physical block size
+  //
+  if (EfiBootRecordBlock->EfiFileLen <= MultU64x32 (
                                 EfiBootRecordBlock->RecordExtents[0].BlockCount,
                                 ApfsBlockSize
-                                );
+                                )) {
+    AppleFileSystemDriverSize = EfiBootRecordBlock->EfiFileLen;
+  } else {
+    AppleFileSystemDriverSize = MultU64x32 (
+                                  EfiBootRecordBlock->RecordExtents[0].BlockCount,
+                                  ApfsBlockSize
+                                  );
+  }
 
   DEBUG ((
     DEBUG_VERBOSE,
