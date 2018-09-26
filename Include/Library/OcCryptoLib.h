@@ -83,8 +83,8 @@ Md5Final (
 
 VOID
 Md5 (
-  UINT8  Hash[],
-  UINT8  Data[],
+  UINT8  *Hash,
+  UINT8  *Data,
   UINTN  Len
   );
 
@@ -108,8 +108,8 @@ Sha1Final (
 
 VOID
 Sha1 (
-  UINT8  Hash[],
-  UINT8  Data[],
+  UINT8  *Hash,
+  UINT8  *Data,
   UINTN  Len
   );
 
@@ -133,7 +133,7 @@ Sha256Final (
 
 VOID
 Sha256 (
-  UINT8 Hash[],
-  UINT8 Data[],
-  UINTN Len
+  UINT8  *Hash,
+  UINT8  *Data,
+  UINTN  Len
   );

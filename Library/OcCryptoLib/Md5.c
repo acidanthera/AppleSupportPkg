@@ -10,21 +10,21 @@
 *********************************************************************/
 #include <Library/BaseMemoryLib.h>
 
-#define ROTLEFT(a,b) ((a << b) | (a >> (32-b)))
+#define ROTLEFT(A,B) ((A << B) | (A >> (32 - B)))
 
-#define F(x,y,z) ((x & y) | (~x & z))
-#define G(x,y,z) ((x & z) | (y & ~z))
-#define H(x,y,z) (x ^ y ^ z)
-#define I(x,y,z) (y ^ (x | ~z))
+#define F(X,Y,Z) ((X & Y) | (~X & Z))
+#define G(X,Y,Z) ((X & Z) | (Y & ~Z))
+#define H(X,Y,Z) (X ^ Y ^ Z)
+#define I(X,Y,Z) (Y ^ (X | ~Z))
 
-#define FF(a,b,c,d,m,s,t) { a += F(b,c,d) + m + t; \
-                            a = b + ROTLEFT(a,s); }
-#define GG(a,b,c,d,m,s,t) { a += G(b,c,d) + m + t; \
-                            a = b + ROTLEFT(a,s); }
-#define HH(a,b,c,d,m,s,t) { a += H(b,c,d) + m + t; \
-                            a = b + ROTLEFT(a,s); }
-#define II(a,b,c,d,m,s,t) { a += I(b,c,d) + m + t; \
-                            a = b + ROTLEFT(a,s); }
+#define FF(A,B,C,D,M,S,T) do { A += F(B,C,D) + M + T; \
+                            A = B + ROTLEFT(A,S); } while (0)
+#define GG(A,B,C,D,M,S,T) do { A += G(B,C,D) + M + T; \
+                            A = B + ROTLEFT(A,S); } while (0)
+#define HH(A,B,C,D,M,S,T) do { A += H(B,C,D) + M + T; \
+                            A = B + ROTLEFT(A,S); } while (0)
+#define II(A,B,C,D,M,S,T) do { A += I(B,C,D) + M + T; \
+                            A = B + ROTLEFT(A,S); } while (0)
 //
 // MD5 outputs a 16 byte digest
 //
@@ -43,93 +43,94 @@ Md5Transform (
 	CONST UINT8  *Data
 	)
 {
-  UINT32 a, b, c, d, m[16], i, j;
+  UINT32 A, B, C, D, M[16], Index1, Index2;
 
   //
   // MD5 specifies big endian byte order, but this implementation assumes a little
   // endian byte order CPU. Reverse all the bytes upon input, and re-reverse them
   // on output (in md5_final()).
   //
-  for (i = 0, j = 0; i < 16; ++i, j += 4)
-    m[i] = (Data[j]) + (Data[j + 1] << 8) + (Data[j + 2] << 16) + (Data[j + 3] << 24);
+  for (Index1 = 0, Index2 = 0; Index1 < 16; ++Index1, Index2 += 4) {
+    M[Index1] = (Data[Index2]) + (Data[Index2 + 1] << 8) 
+                + (Data[Index2 + 2] << 16) + (Data[Index2 + 3] << 24);
+  }
+  A = Ctx->State[0];
+  B = Ctx->State[1];
+  C = Ctx->State[2];
+  D = Ctx->State[3];
 
-  a = Ctx->State[0];
-  b = Ctx->State[1];
-  c = Ctx->State[2];
-  d = Ctx->State[3];
+  FF (A, B, C, D, M[0],   7, 0xD76AA478);
+  FF (D, A, B, C, M[1],  12, 0xE8C7B756);
+  FF (C, D, A, B, M[2],  17, 0x242070DB);
+  FF (B, C, D, A, M[3],  22, 0xC1BDCEEE);
+  FF (A, B, C, D, M[4],   7, 0xF57C0FAF);
+  FF (D, A, B, C, M[5],  12, 0x4787C62A);
+  FF (C, D, A, B, M[6],  17, 0xA8304613);
+  FF (B, C, D, A, M[7],  22, 0xFD469501);
+  FF (A, B, C, D, M[8],   7, 0x698098D8);
+  FF (D, A, B, C, M[9],  12, 0x8B44F7AF);
+  FF (C, D, A, B, M[10], 17, 0xFFFF5BB1);
+  FF (B, C, D, A, M[11], 22, 0x895CD7BE);
+  FF (A, B, C, D, M[12],  7, 0x6B901122);
+  FF (D, A, B, C, M[13], 12, 0xFD987193);
+  FF (C, D, A, B, M[14], 17, 0xA679438E);
+  FF (B, C, D, A, M[15], 22, 0x49B40821);
 
-  FF (a, b, c, d, m[0],   7, 0xD76AA478);
-  FF (d, a, b, c, m[1],  12, 0xE8C7B756);
-  FF (c, d, a, b, m[2],  17, 0x242070DB);
-  FF (b, c, d, a, m[3],  22, 0xC1BDCEEE);
-  FF (a, b, c, d, m[4],   7, 0xF57C0FAF);
-  FF (d, a, b, c, m[5],  12, 0x4787C62A);
-  FF (c, d, a, b, m[6],  17, 0xA8304613);
-  FF (b, c, d, a, m[7],  22, 0xFD469501);
-  FF (a, b, c, d, m[8],   7, 0x698098D8);
-  FF (d, a, b, c, m[9],  12, 0x8B44F7AF);
-  FF (c, d, a, b, m[10], 17, 0xFFFF5BB1);
-  FF (b, c, d, a, m[11], 22, 0x895CD7BE);
-  FF (a, b, c, d, m[12],  7, 0x6B901122);
-  FF (d, a, b, c, m[13], 12, 0xFD987193);
-  FF (c, d, a, b, m[14], 17, 0xA679438E);
-  FF (b, c, d, a, m[15], 22, 0x49B40821);
+  GG (A, B, C, D, M[1],   5, 0xF61E2562);
+  GG (D, A, B, C, M[6],   9, 0xC040B340);
+  GG (C, D, A, B, M[11], 14, 0x265E5A51);
+  GG (B, C, D, A, M[0],  20, 0xE9B6C7AA);
+  GG (A, B, C, D, M[5],   5, 0xD62F105D);
+  GG (D, A, B, C, M[10],  9, 0x02441453);
+  GG (C, D, A, B, M[15], 14, 0xD8A1E681);
+  GG (B, C, D, A, M[4],  20, 0xE7D3FBC8);
+  GG (A, B, C, D, M[9],   5, 0x21E1CDE6);
+  GG (D, A, B, C, M[14],  9, 0xC33707D6);
+  GG (C, D, A, B, M[3],  14, 0xF4D50D87);
+  GG (B, C, D, A, M[8],  20, 0x455A14ED);
+  GG (A, B, C, D, M[13],  5, 0xA9E3E905);
+  GG (D, A, B, C, M[2],   9, 0xFCEFA3F8);
+  GG (C, D, A, B, M[7],  14, 0x676F02D9);
+  GG (B, C, D, A, M[12], 20, 0x8D2A4C8A);
 
-  GG (a, b, c, d, m[1],   5, 0xF61E2562);
-  GG (d, a, b, c, m[6],   9, 0xC040B340);
-  GG (c, d, a, b, m[11], 14, 0x265E5A51);
-  GG (b, c, d, a, m[0],  20, 0xE9B6C7AA);
-  GG (a, b, c, d, m[5],   5, 0xD62F105D);
-  GG (d, a, b, c, m[10],  9, 0x02441453);
-  GG (c, d, a, b, m[15], 14, 0xD8A1E681);
-  GG (b, c, d, a, m[4],  20, 0xE7D3FBC8);
-  GG (a, b, c, d, m[9],   5, 0x21E1CDE6);
-  GG (d, a, b, c, m[14],  9, 0xC33707D6);
-  GG (c, d, a, b, m[3],  14, 0xF4D50D87);
-  GG (b, c, d, a, m[8],  20, 0x455A14ED);
-  GG (a, b, c, d, m[13],  5, 0xA9E3E905);
-  GG (d, a, b, c, m[2],   9, 0xFCEFA3F8);
-  GG (c, d, a, b, m[7],  14, 0x676F02D9);
-  GG (b, c, d, a, m[12], 20, 0x8D2A4C8A);
+  HH (A, B, C, D, M[5],   4, 0xFFFA3942);
+  HH (D, A, B, C, M[8],  11, 0x8771F681);
+  HH (C, D, A, B, M[11], 16, 0x6D9D6122);
+  HH (B, C, D, A, M[14], 23, 0xFDE5380C);
+  HH (A, B, C, D, M[1],   4, 0xA4BEEA44);
+  HH (D, A, B, C, M[4],  11, 0x4BDECFA9);
+  HH (C, D, A, B, M[7],  16, 0xF6BB4B60);
+  HH (B, C, D, A, M[10], 23, 0xBEBFBC70);
+  HH (A, B, C, D, M[13],  4, 0x289B7EC6);
+  HH (D, A, B, C, M[0],  11, 0xEAA127FA);
+  HH (C, D, A, B, M[3],  16, 0xD4EF3085);
+  HH (B, C, D, A, M[6],  23, 0x04881D05);
+  HH (A, B, C, D, M[9],   4, 0xD9D4D039);
+  HH (D, A, B, C, M[12], 11, 0xE6DB99E5);
+  HH (C, D, A, B, M[15], 16, 0x1FA27CF8);
+  HH (B, C, D, A, M[2],  23, 0xC4AC5665);
 
-  HH (a, b, c, d, m[5],   4, 0xFFFA3942);
-  HH (d, a, b, c, m[8],  11, 0x8771F681);
-  HH (c, d, a, b, m[11], 16, 0x6D9D6122);
-  HH (b, c, d, a, m[14], 23, 0xFDE5380C);
-  HH (a, b, c, d, m[1],   4, 0xA4BEEA44);
-  HH (d, a, b, c, m[4],  11, 0x4BDECFA9);
-  HH (c, d, a, b, m[7],  16, 0xF6BB4B60);
-  HH (b, c, d, a, m[10], 23, 0xBEBFBC70);
-  HH (a, b, c, d, m[13],  4, 0x289B7EC6);
-  HH (d, a, b, c, m[0],  11, 0xEAA127FA);
-  HH (c, d, a, b, m[3],  16, 0xD4EF3085);
-  HH (b, c, d, a, m[6],  23, 0x04881D05);
-  HH (a, b, c, d, m[9],   4, 0xD9D4D039);
-  HH (d, a, b, c, m[12], 11, 0xE6DB99E5);
-  HH (c, d, a, b, m[15], 16, 0x1FA27CF8);
-  HH (b, c, d, a, m[2],  23, 0xC4AC5665);
+  II (A, B, C, D, M[0],   6, 0xF4292244);
+  II (D, A, B, C, M[7],  10, 0x432AFF97);
+  II (C, D, A, B, M[14], 15, 0xAB9423A7);
+  II (B, C, D, A, M[5],  21, 0xFC93A039);
+  II (A, B, C, D, M[12],  6, 0x655B59C3);
+  II (D, A, B, C, M[3],  10, 0x8F0CCC92);
+  II (C, D, A, B, M[10], 15, 0xFFEFF47D);
+  II (B, C, D, A, M[1],  21, 0x85845DD1);
+  II (A, B, C, D, M[8],   6, 0x6FA87E4F);
+  II (D, A, B, C, M[15], 10, 0xFE2CE6E0);
+  II (C, D, A, B, M[6],  15, 0xA3014314);
+  II (B, C, D, A, M[13], 21, 0x4E0811A1);
+  II (A, B, C, D, M[4],   6, 0xF7537E82);
+  II (D, A, B, C, M[11], 10, 0xBD3AF235);
+  II (C, D, A, B, M[2],  15, 0x2AD7D2BB);
+  II (B, C, D, A, M[9],  21, 0xEB86D391);
 
-  II (a, b, c, d, m[0],   6, 0xF4292244);
-  II (d, a, b, c, m[7],  10, 0x432AFF97);
-  II (c, d, a, b, m[14], 15, 0xAB9423A7);
-  II (b, c, d, a, m[5],  21, 0xFC93A039);
-  II (a, b, c, d, m[12],  6, 0x655B59C3);
-  II (d, a, b, c, m[3],  10, 0x8F0CCC92);
-  II (c, d, a, b, m[10], 15, 0xFFEFF47D);
-  II (b, c, d, a, m[1],  21, 0x85845DD1);
-  II (a, b, c, d, m[8],   6, 0x6FA87E4F);
-  II (d, a, b, c, m[15], 10, 0xFE2CE6E0);
-  II (c, d, a, b, m[6],  15, 0xA3014314);
-  II (b, c, d, a, m[13], 21, 0x4E0811A1);
-  II (a, b, c, d, m[4],   6, 0xF7537E82);
-  II (d, a, b, c, m[11], 10, 0xBD3AF235);
-  II (c, d, a, b, m[2],  15, 0x2AD7D2BB);
-  II (b, c, d, a, m[9],  21, 0xEB86D391);
-
-  Ctx->State[0] += a;
-  Ctx->State[1] += b;
-  Ctx->State[2] += c;
-  Ctx->State[3] += d;
+  Ctx->State[0] += A;
+  Ctx->State[1] += B;
+  Ctx->State[2] += C;
+  Ctx->State[3] += D;
 }
 
 VOID
@@ -152,7 +153,7 @@ Md5Update (
 	UINTN        Len
 	)
 {
-  UINTN Index = 0;
+  UINTN Index;
 
   for (Index = 0; Index < Len; ++Index) {
     Ctx->Data[Ctx->DataLen] = Data[Index];
@@ -214,14 +215,14 @@ Md5Final (
 
 VOID
 Md5 (
-	UINT8  Hash[],
-	UINT8  Data[],
+	UINT8  *Hash,
+	UINT8  *Data,
 	UINTN  Len
 	)
 {
 	MD5_CONTEXT Ctx;
 
-	Md5Init   (&Ctx);
+	Md5Init (&Ctx);
 	Md5Update (&Ctx, Data, Len);
-	Md5Final  (&Ctx,Hash);
+	Md5Final (&Ctx,Hash);
 }

@@ -22,7 +22,7 @@ typedef struct {
   UINT32 DataLen;
   UINT64 BitLen;
   UINT32 State[5];
-  UINT32 k[4];
+  UINT32 K[4];
 } SHA1_CONTEXT;
 
 VOID
@@ -31,61 +31,62 @@ Sha1Transform (
   CONST UINT8  *Data
   )
 {
-  UINT32 a, b, c, d, e, i, j, t, m[80];
+  UINT32 A, B, C, D, E, Index1, Index2, T, M[80];
 
-  for (i = 0, j = 0; i < 16; ++i, j += 4) {
-    m[i] = (Data[j] << 24) + (Data[j + 1] << 16) + (Data[j + 2] << 8) + (Data[j + 3]);
-  }
-
-  for ( ; i < 80; ++i) {
-    m[i] = (m[i - 3] ^ m[i - 8] ^ m[i - 14] ^ m[i - 16]);
-    m[i] = (m[i] << 1) | (m[i] >> 31);
+  for (Index1 = 0, Index2 = 0; Index1 < 16; ++Index1, Index2 += 4) {
+    M[Index1] = (Data[Index2] << 24) + (Data[Index2 + 1] << 16) 
+                + (Data[Index2 + 2] << 8) + (Data[Index2 + 3]);
   }
 
-  a = Ctx->State[0];
-  b = Ctx->State[1];
-  c = Ctx->State[2];
-  d = Ctx->State[3];
-  e = Ctx->State[4];
-
-  for (i = 0; i < 20; ++i) {
-    t = ROTLEFT (a, 5) + ((b & c) ^ (~b & d)) + e + Ctx->k[0] + m[i];
-    e = d;
-    d = c;
-    c = ROTLEFT (b, 30);
-    b = a;
-    a = t;
-  }
-  for ( ; i < 40; ++i) {
-    t = ROTLEFT (a, 5) + (b ^ c ^ d) + e + Ctx->k[1] + m[i];
-    e = d;
-    d = c;
-    c = ROTLEFT (b, 30);
-    b = a;
-    a = t;
-  }
-  for ( ; i < 60; ++i) {
-    t = ROTLEFT (a, 5) + ((b & c) ^ (b & d) ^ (c & d))  + e + Ctx->k[2] + m[i];
-    e = d;
-    d = c;
-    c = ROTLEFT (b, 30);
-    b = a;
-    a = t;
-  }
-  for ( ; i < 80; ++i) {
-    t = ROTLEFT (a, 5) + (b ^ c ^ d) + e + Ctx->k[3] + m[i];
-    e = d;
-    d = c;
-    c = ROTLEFT (b, 30);
-    b = a;
-    a = t;
+  for ( ; Index1 < 80; ++Index1) {
+    M[Index1] = (M[Index1 - 3] ^ M[Index1 - 8] ^ M[Index1 - 14] ^ M[Index1 - 16]);
+    M[Index1] = (M[Index1] << 1) | (M[Index1] >> 31);
   }
 
-  Ctx->State[0] += a;
-  Ctx->State[1] += b;
-  Ctx->State[2] += c;
-  Ctx->State[3] += d;
-  Ctx->State[4] += e;
+  A = Ctx->State[0];
+  B = Ctx->State[1];
+  C = Ctx->State[2];
+  D = Ctx->State[3];
+  E = Ctx->State[4];
+
+  for (Index1 = 0; Index1 < 20; ++Index1) {
+    T = ROTLEFT (A, 5) + ((B & C) ^ (~B & D)) + E + Ctx->K[0] + M[Index1];
+    E = D;
+    D = C;
+    C = ROTLEFT (B, 30);
+    B = A;
+    A = T;
+  }
+  for ( ; Index1 < 40; ++Index1) {
+    T = ROTLEFT (A, 5) + (B ^ C ^ D) + E + Ctx->K[1] + M[Index1];
+    E = D;
+    D = C;
+    C = ROTLEFT (B, 30);
+    B = A;
+    A = T;
+  }
+  for ( ; Index1 < 60; ++Index1) {
+    T = ROTLEFT (A, 5) + ((B & C) ^ (B & D) ^ (C & D))  + E + Ctx->K[2] + M[Index1];
+    E = D;
+    D = C;
+    C = ROTLEFT (B, 30);
+    B = A;
+    A = T;
+  }
+  for ( ; Index1 < 80; ++Index1) {
+    T = ROTLEFT (A, 5) + (B ^ C ^ D) + E + Ctx->K[3] + M[Index1];
+    E = D;
+    D = C;
+    C = ROTLEFT (B, 30);
+    B = A;
+    A = T;
+  }
+
+  Ctx->State[0] += A;
+  Ctx->State[1] += B;
+  Ctx->State[2] += C;
+  Ctx->State[3] += D;
+  Ctx->State[4] += E;
 }
 
 VOID
@@ -100,10 +101,10 @@ Sha1Init (
   Ctx->State[2] = 0x98BADCFE;
   Ctx->State[3] = 0x10325476;
   Ctx->State[4] = 0xC3D2E1F0;
-  Ctx->k[0] = 0x5A827999;
-  Ctx->k[1] = 0x6ED9EBA1;
-  Ctx->k[2] = 0x8F1BBCDC;
-  Ctx->k[3] = 0xCA62C1D6;
+  Ctx->K[0] = 0x5A827999;
+  Ctx->K[1] = 0x6ED9EBA1;
+  Ctx->K[2] = 0x8F1BBCDC;
+  Ctx->K[3] = 0xCA62C1D6;
 }
 
 VOID
@@ -176,8 +177,8 @@ Sha1Final (
 
 VOID
 Sha1 (
-  UINT8  Hash[],
-  UINT8  Data[],
+  UINT8  *Hash,
+  UINT8  *Data,
   UINTN  Len
   )
 {

@@ -56,9 +56,9 @@ Mulaa32 (
   return Ret;
 }
 
-/**
-  A[] -= Mod
-**/
+//
+//  A[] -= Mod
+//
 STATIC
 VOID
 SubMod (
@@ -185,7 +185,7 @@ ModPow (
   Aaa = Aar;
 
   //
-  //Convert from big endian byte array to little endian word array
+  // Convert from big endian byte array to little endian word array
   //
   for (Index = 0; Index < (INT32) RSANUMWORDS; ++Index) {
     Tmp =
@@ -290,7 +290,7 @@ CheckPadding (
         3 x RSANUMWORDS elements long.
   @return 0 on failure, 1 on success.
  **/
-INT32
+INTN
 RsaVerify (
   RSA_PUBLIC_KEY  *Key,
   UINT8           *Signature,
