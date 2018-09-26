@@ -33,14 +33,14 @@ typedef struct RSA_PUBLIC_KEY_ {
   UINT32  Rr[RSANUMWORDS];
 } RSA_PUBLIC_KEY;
 
-typedef struct {
+typedef struct MD5_CONTEXT_ {
   UINT8   Data[64];
   UINT32  DataLen;
   UINT64  BitLen;
   UINT32  State[4];
 } MD5_CONTEXT;
 
-typedef struct {
+typedef struct SHA1_CONTEXT_ {
   UINT8   Data[64];
   UINT32  DataLen;
   UINT64  BitLen;
@@ -48,7 +48,7 @@ typedef struct {
   UINT32  K[4];
 } SHA1_CONTEXT;
 
-typedef struct {
+typedef struct SHA256_CONTEXT_ {
   UINT8   Data[64];
   UINT32  DataLen;
   UINT64  BitLen;
@@ -68,20 +68,20 @@ RsaVerify (
 
 VOID
 Md5Init (
-  MD5_CONTEXT     *Context
+  MD5_CONTEXT  *Context
   );
 
 VOID
 Md5Update (
-  MD5_CONTEXT     *Context,
-  CONST UINT8     *Data,
-  UINTN           Len
+  MD5_CONTEXT  *Context,
+  CONST UINT8  *Data,
+  UINTN        Len
   );
 
 VOID
 Md5Final (
-  MD5_CONTEXT     *Context,
-  UINT8           *Hash
+  MD5_CONTEXT  *Context,
+  UINT8        *Hash
   );
 
 VOID
@@ -93,20 +93,20 @@ Md5 (
 
 VOID
 Sha1Init (
-  SHA1_CONTEXT    *Context
+  SHA1_CONTEXT  *Context
   );
 
 VOID
 Sha1Update (
-  SHA1_CONTEXT    *Context,
-  CONST UINT8     *Data,
-  UINTN           Len
+  SHA1_CONTEXT  *Context,
+  CONST UINT8   *Data,
+  UINTN         Len
   );
 
 VOID
 Sha1Final (
-  SHA1_CONTEXT    *Context,
-  UINT8           *Hash
+  SHA1_CONTEXT  *Context,
+  UINT8         *Hash
   );
 
 VOID

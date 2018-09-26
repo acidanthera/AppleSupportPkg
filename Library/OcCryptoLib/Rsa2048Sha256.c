@@ -35,16 +35,37 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
 #define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
 
+/**
+  PKCS#1 padding (from the RSA PKCS#1 v2.1 standard)
+
+  The DER-encoded padding is defined as follows :
+  0x00 || 0x01 || PS || 0x00 || T
+
+  T: DER Encoded DigestInfo value which depends on the hash function used,
+  for SHA-256:
+  (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00 04 20 || H.
+
+  Length(T) = 51 octets for SHA-256
+
+  PS: octet string consisting of {Length(RSA Key) - Length(T) - 3} 0xFF
+ **/
+#define PKCS_PAD_SIZE (RSANUMBYTES - SHA256_DIGEST_SIZE)
+
+STATIC  UINT8 Sha256Tail[] = {
+  0x00, 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60,
+  0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
+  0x05, 0x00, 0x04, 0x20
+};
+
 UINT64
 Mula32 (
-  UINT32 A,
-  UINT32 B,
-  UINT32 C
+  UINT32  A,
+  UINT32  B,
+  UINT32  C
   )
 {
-  UINT64 Ret = 0;
+  UINT64 Ret = A;
 
-  Ret  = A;
   Ret *= B;
   Ret += C;
   return Ret;
@@ -52,15 +73,14 @@ Mula32 (
 
 UINT64
 Mulaa32 (
-  UINT32 A,
-  UINT32 B,
-  UINT32 C,
-  UINT32 D
+  UINT32  A,
+  UINT32  B,
+  UINT32  C,
+  UINT32  D
   )
 {
-  UINT64 Ret = 0;
+  UINT64 Ret = A;
 
-  Ret  = A;
   Ret *= B;
   Ret += C;
   Ret += D;
@@ -115,15 +135,13 @@ STATIC
 VOID
 MontMulAdd (
   RSA_PUBLIC_KEY  *Key,
-  UINT32        *C,
-  UINT32        Aa,
-  UINT32        *Bb
+  UINT32          *C,
+  UINT32          Aa,
+  UINT32          *Bb
   )
 {
-  UINT64 A = 0;
-  UINT32 D0 = 0;
-  UINT64 B = 0;
-  UINT32 Index = 0;
+  UINT64 A,B;
+  UINT32 D0, Index;
 
   A = Mula32 (Aa, Bb[0], C[0]);
   D0 = (UINT32) A * Key->N0Inv;
@@ -155,9 +173,10 @@ MontMul (
   UINT32          *B
   )
 {
-  UINT32 Index = 0;
+  UINT32 Index;
 
   ZeroMem (C, RSANUMBYTES);
+
   for (Index = 0; Index < RSANUMWORDS; ++Index)
     MontMulAdd (Key, C, A[Index], B);
 }
@@ -233,28 +252,6 @@ ModPow (
     *InOut++ = (UINT8) (Tmp >>  0);
   }
 }
-
-/**
-  PKCS#1 padding (from the RSA PKCS#1 v2.1 standard)
-
-  The DER-encoded padding is defined as follows :
-  0x00 || 0x01 || PS || 0x00 || T
-
-  T: DER Encoded DigestInfo value which depends on the hash function used,
-  for SHA-256:
-  (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00 04 20 || H.
-
-  Length(T) = 51 octets for SHA-256
-
-  PS: octet string consisting of {Length(RSA Key) - Length(T) - 3} 0xFF
- **/
-STATIC  UINT8 Sha256Tail[] = {
-  0x00, 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60,
-  0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
-  0x05, 0x00, 0x04, 0x20
-};
-
-#define PKCS_PAD_SIZE (RSANUMBYTES - SHA256_DIGEST_SIZE)
 
 /**
  * Check PKCS#1 padding bytes
