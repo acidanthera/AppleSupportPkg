@@ -1,3 +1,20 @@
+/** @file
+
+OcCryptoLib
+
+Copyright (c) 2018, savvas
+
+All rights reserved.
+
+This program and the accompanying materials
+are licensed and made available under the terms and conditions of the BSD License
+which accompanies this distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+**/
 /**
 * Filename:   sha256.c
 * Author:     Brad Conte (brad AT bradconte.com)
@@ -12,6 +29,7 @@
               This implementation uses little endian byte order.
 **/
 #include <Library/BaseMemoryLib.h>
+#include <Library/OcCryptoLib.h>
 
 //
 // SHA256 outputs a 32 UINT8 digest
@@ -25,13 +43,6 @@
 #define EP1(x)  (ROTRIGHT(x, 6)  ^ ROTRIGHT(x, 11) ^ ROTRIGHT(x, 25))
 #define SIG0(x) (ROTRIGHT(x, 7)  ^ ROTRIGHT(x, 18) ^ ((x) >> 3))
 #define SIG1(x) (ROTRIGHT(x, 17) ^ ROTRIGHT(x, 19) ^ ((x) >> 10))
-
-typedef struct {
-    UINT8  Data[64];
-    UINT32 DataLen;
-    UINT64 BitLen;
-    UINT32 State[8];
-} SHA256_CONTEXT;
 
 STATIC CONST UINT32 K[64] = {
     0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,

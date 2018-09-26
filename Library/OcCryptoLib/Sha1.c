@@ -1,3 +1,20 @@
+/** @file
+
+OcCryptoLib
+
+Copyright (c) 2018, savvas
+
+All rights reserved.
+
+This program and the accompanying materials
+are licensed and made available under the terms and conditions of the BSD License
+which accompanies this distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+**/
 /*********************************************************************
 * Filename:   sha1.c
 * Author:     Brad Conte (brad AT bradconte.com)
@@ -9,6 +26,7 @@
               This implementation uses little endian byte order.
 *********************************************************************/
 #include <Library/BaseMemoryLib.h>
+#include <Library/OcCryptoLib.h>
 
 #define ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
 
@@ -16,14 +34,6 @@
 // SHA1 outputs a 20 byte digest
 //
 #define SHA1_BLOCK_SIZE 20
-
-typedef struct {
-  UINT8  Data[64];
-  UINT32 DataLen;
-  UINT64 BitLen;
-  UINT32 State[5];
-  UINT32 K[4];
-} SHA1_CONTEXT;
 
 VOID
 Sha1Transform (

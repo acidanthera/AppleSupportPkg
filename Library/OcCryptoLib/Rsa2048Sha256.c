@@ -1,3 +1,20 @@
+/** @file
+
+OcCryptoLib
+
+Copyright (c) 2018, savvas
+
+All rights reserved.
+
+This program and the accompanying materials
+are licensed and made available under the terms and conditions of the BSD License
+which accompanies this distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+**/
 /**
   Copyright (c) 2014 The Chromium OS Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
@@ -7,6 +24,7 @@
   for computation.
 **/
 #include <Library/BaseMemoryLib.h>
+#include <Library/OcCryptoLib.h>
 
 #define SHA256_DIGEST_SIZE 32
 
@@ -16,13 +34,6 @@
 #define CONFIG_RSA_KEY_SIZE 2048
 #define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
 #define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
-
-typedef struct _RSA_PUBLIC_KEY {
-    UINT32 Size;
-    UINT32 N0Inv;
-    UINT32 N[RSANUMWORDS];
-    UINT32 Rr[RSANUMWORDS];
-} RSA_PUBLIC_KEY;
 
 UINT64
 Mula32 (

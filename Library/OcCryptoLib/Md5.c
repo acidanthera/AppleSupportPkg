@@ -1,3 +1,20 @@
+/** @file
+
+OcCryptoLib
+
+Copyright (c) 2018, savvas
+
+All rights reserved.
+
+This program and the accompanying materials
+are licensed and made available under the terms and conditions of the BSD License
+which accompanies this distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+**/
 /*********************************************************************
 * Filename:   md5.c
 * Author:     Brad Conte (brad AT bradconte.com)
@@ -9,6 +26,7 @@
           This implementation uses little endian byte order.
 *********************************************************************/
 #include <Library/BaseMemoryLib.h>
+#include <Library/OcCryptoLib.h>
 
 #define ROTLEFT(A,B) ((A << B) | (A >> (32 - B)))
 
@@ -29,13 +47,6 @@
 // MD5 outputs a 16 byte digest
 //
 #define MD5_BLOCK_SIZE 16
-
-typedef struct {
-   UINT8   Data[64];
-   UINT32  DataLen;
-   UINT64  BitLen;
-   UINT32  State[4];
-} MD5_CONTEXT;
 
 VOID
 Md5Transform (

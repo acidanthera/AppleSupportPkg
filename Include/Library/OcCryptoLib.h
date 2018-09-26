@@ -16,6 +16,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
+#ifndef OC_CRYPTO_LIB_H
+#define OC_CRYPTO_LIB_H
+
 //
 // Default to 2048-bit key length
 //
@@ -137,3 +140,5 @@ Sha256 (
   UINT8  *Data,
   UINTN  Len
   );
+
+#endif //OC_CRYPTO_LIB_H
