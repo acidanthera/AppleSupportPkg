@@ -25,10 +25,19 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // Container Superblock magic
 //
 #define APFS_CSB_SIGNATURE  SIGNATURE_32 ('N', 'X', 'S', 'B')
+#define APFS_CSB_MAX_FILE_SYSTEMS  100
+#define APFS_CSB_EPH_INFO_COUNT  4 
+#define APFS_CSB_EPH_MIN_BLOCK_COUNT  8 
+#define APFS_CSB_MAX_FILE_SYSTEM_EPH_STRUCTS  4 
+#define APFS_CSB_TX_MIN_CHECKPOINT_COUNT  4 
+#define APFS_CSB_EPH_INFO_VERSION_1  1
+#define APFS_CSB_NUM_COUNTERS  32
+
 //
 // Volume Superblock magic
 //
 #define APFS_VSB_SIGNATURE  SIGNATURE_32 ('A', 'P', 'S', 'B')
+
 //
 // EfiBootRecord block magic
 //
@@ -76,43 +85,34 @@ typedef struct APFS_BLOCK_HEADER_
   //
   UINT64             Checksum;
   //
+  // The object's identifier
   // Probably plays a role in the Btree structure NXSB=01 00
   // APSB=02 04, 06 04 and 08 04
   // nid
   //
-  UINT64             NodeId;
+  UINT64             ObjectOid;
   //
-  // Checkpoint Id ( transaction id )
-  // xid
+  // The identifier of the most recent transaction that this object 
+  // was modified in.
   //
-  UINT64             CheckpointId;
+  UINT64             ObjectXid;
   //
-  // Node type:
-  // 0x00000002:  Directory Root
-  // 0x00000003:  Directory
-  // 0x0000000D:  Volume Superblock
-  // 0x40000002:  Mapping Root
-  // 0x40000003:  Mapping
-  // 0x40000007:  Bitmap Block List
-  // 0x4000000B:  Pointer to Header
-  // 0x4000000C:  Another Mapping
-  // 0x40000014:  EfiBootRecord Block
-  // 0x80000001:  Container Superblock
-  // 0x80000002:  Unknown
-  // 0x80000003:  Unknown
-  // 0x80000005:  Unknown
-  // 0x80000011:  Unknown
+  // The objectʼs type and flags.
+  // #define OBJ_VIRTUAL  0x00000000
+  // #define OBJ_EPHEMERAL  0x80000000
+  // #define OBJ_PHYSICAL  0x40000000
+  // #define OBJ_NOHEADER  0x20000000
+  // #define OBJ_ENCRYPTED  0x10000000
+  // #define OBJ_NONPERSISTENT  0x08000000
   //
-  UINT32             NodeType;
+  UINT32             ObjectType;
   //
-  // ????
+  // The objectʼs subtype
+  // Subtypes indicate the type of data stored in a data structure such as a
+  // B-tree. For example, a node in a B-tree that contains volume records has
+  // a type of OBJECT_TYPE_BTREE_NODE and a subtype of OBJECT_TYPE_FS.
   //
-  UINT16             ContentType;
-  //
-  // Just a padding
-  // Unknown behavior
-  //
-  UINT16             Padding;
+  UINT32             ObjectSubType;
 } APFS_BLOCK_HEADER;
 #pragma pack(pop)
 
@@ -144,62 +144,29 @@ typedef struct APFS_CSB_
   // Number of blocks in the container
   //
   UINT64             TotalBlocks;
-  UINT8              Reserved_1[24];
-  //
-  // UUID of the container
-  //
+  UINT64             Features;
+  UINT64             ReadOnlyCompatibleFeatures;
+  UINT64             IncompatibleFeatures;
   EFI_GUID           Uuid;
-  //
-  // Next free block id
-  //
-  UINT64             NextFreeBlockId;
-  //
-  // What is the next CSB id
-  //
-  UINT64             NextCsbNodeId;
-  UINT64             Reserved_2;
-  //
-  // The base block is used to calculate current and previous CSBD/ CSB.
-  //
-  UINT32             BaseBlock;
-  UINT32             Reserved_3[3];
-  //
-  // This is the block where the CSBD from previous state is found and is
-  // located in block "Base block" + PreviousCsbdInBlock. The CSBD for
-  // previous state is in block PreviousCsbdInBlock+1 and the CSB for
-  // the same state in block PreviousCsbdInBlock+2
-  //
-  UINT32             PreviousCsbdInBlock;
-  UINT32             Reserved_4;
-  //
-  // The current state CSBD is located in block "Base block" in offset 0x70,
-  // 0x01 + OriginalCsbdInBlock. The CSBD for the current state of the file
-  // system is in block 0x01 + OriginalCsbdInBlock. The original CSB is in
-  // the succeeding block, 0x01 + OriginalCsbdInBlock.
-  //
-  UINT32             OriginalCsbdInBlock;
-  //
-  // Oldest CSBD in block "Base block" + 0x02. The oldest CSBD is in block
-  // 0x03 and the CSB for that state is in the succeeding block. OldestCsbd +
-  //  "Base block".
-  //
-  UINT32             OldestCsbd;
-  UINT64             Reserved_5;
-  UINT64             SpacemanId;
-  UINT64             BlockMapBlock;
-  UINT64             UnknownId;
-  UINT32             Reserved_6;
-  //
-  // Count of Volume IDs
-  // (by default 100)
-  //
-  UINT32             ListOfVolumeIds;
-  //
-  // Array of 8 byte VolumeRootIds
-  // Length of array - ListOfVolumeIds
-  //
-  UINT64             VolumesRootIds[100];
-  UINT64             UnknownBlockId;
+  UINT64             NextOid;
+  UINT64             NextXid;
+  UINT32             XpDescBlocks;
+  UINT32             XpDataBlocks;
+  INT64              XpDescBase;
+  INT64              XpDataBase;
+  UINT32             XpDescNext;
+  UINT32             XpDataNext;
+  UINT32             XpDescIndex;
+  UINT32             XpDescLen;
+  UINT32             XpDataIndex;
+  UINT32             XpDataLen;
+  UINT64             SpacemanOid;
+  UINT64             ObjectMapOid;
+  UINT64             ReaperOid;
+  UINT32             TestType;
+  UINT32             MaxFileSystems;
+  UINT64             FileSystemOid[NX_MAX_FILE_SYSTEMS];
+  UINT64             Counters[NX_NUM_COUNTERS];
   UINT8              Reserved_7[280];
   //
   // Pointer to JSDR block (EfiBootRecordBlock)
