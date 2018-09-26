@@ -409,8 +409,7 @@ LegacyApfsContainerScan (
   //
   for (Index = 0; Index < PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
     EFI_PARTITION_ENTRY *CurrentEntry = (EFI_PARTITION_ENTRY *) (Block + Index);
-
-    if (CompareMem(&CurrentEntry->PartitionTypeGUID, &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) == 0) {
+    if (CompareGuid (&CurrentEntry->PartitionTypeGUID, &gAppleApfsPartitionTypeGuid)) {
       ApfsGptEntry = CurrentEntry;
       break;
     }
@@ -575,8 +574,8 @@ ApfsDriverLoaderSupported (
         //
         // Verify GPT entry GUID
         //
-        if (CompareMem((EFI_GUID *)(ApplePartitionInfo->PartitionType),
-                       &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+        if (CompareGuid ((EFI_GUID *)(ApplePartitionInfo->PartitionType),
+                         &gAppleApfsPartitionTypeGuid)) {
           return EFI_UNSUPPORTED;
         }
       }
@@ -592,10 +591,10 @@ ApfsDriverLoaderSupported (
       //
       // Verify GPT entry GUID
       //
-      if (CompareMem(&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID, &gAppleApfsPartitionTypeGuid, sizeof (EFI_GUID)) != 0) {
+      if (CompareGuid (&Edk2PartitionInfo->Info.Gpt.PartitionTypeGUID,
+                       &gAppleApfsPartitionTypeGuid)) {
         return EFI_UNSUPPORTED;
       }
-
     }
   }
 
