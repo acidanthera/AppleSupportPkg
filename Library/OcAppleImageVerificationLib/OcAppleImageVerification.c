@@ -414,6 +414,14 @@ SanitizeApplePeImage (
       (UINT8 *) Image + *RealImageSize,
       ImageSize - *RealImageSize
       );
+    //
+    // Reallocate file buffer
+    //
+    Image = ReallocatePool (
+              ImageSize,
+              *RealImageSize,
+              Image
+              );
   }
 }
 
