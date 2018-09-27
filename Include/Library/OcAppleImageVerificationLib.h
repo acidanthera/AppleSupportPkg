@@ -21,6 +21,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 #include <IndustryStandard/PeImage.h>
 
+#define APPLE_SIGNATURE_SECENTRY_SIZE 8
+
 typedef struct APPLE_PE_COFF_LOADER_IMAGE_CONTEXT_ {
   UINT64                           ImageAddress;
   UINT64                           ImageSize;
@@ -37,7 +39,17 @@ typedef struct APPLE_PE_COFF_LOADER_IMAGE_CONTEXT_ {
   UINT64                           NumberOfRvaAndSizes;
   UINT16                           PeHdrMagic;
   EFI_IMAGE_OPTIONAL_HEADER_UNION  *PeHdr;
+  UINT8                            PeImageHash[32];
 } APPLE_PE_COFF_LOADER_IMAGE_CONTEXT;
+
+//
+// Signature context
+//
+typedef struct APPLE_SIGNATURE_CONTEXT_ {
+  UINT8                            PublicKey[256];
+  UINT8                            PublicKeyHash[32];
+  UINT8                            Signature[256];
+} APPLE_SIGNATURE_CONTEXT;
 
 //
 // Function prototypes
@@ -63,21 +75,16 @@ SanitizeApplePeImage (
 
 EFI_STATUS
 GetApplePeImageSignature (
-  VOID                               *Image,
-  UINTN                              ImageSize,  
-  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT *Context,
-  UINT8                              *PkLe,
-  UINT8                              *PkBe,
-  UINT8                              *SigLe,
-  UINT8                              *SigBe
+  VOID                                *Image,
+  UINTN                               ImageSize,  
+  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
+  APPLE_SIGNATURE_CONTEXT             *SignatureContext
   );
 
 EFI_STATUS
 GetApplePeImageSha256 (
   VOID                                *Image,
-  UINTN                               *ImageSize,
-  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
-  UINT8                               *CalcucatedHash
+  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   );
 
 EFI_STATUS

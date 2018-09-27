@@ -2,7 +2,7 @@
 
 AppleDxeImageVerificationLib
 - Apple key-storage
-- Apple Authenticode PE-256 hash calculation
+- Apple PE-256 hash calculation
 - Verifying Rsa2048Sha256 signature
 
 Copyright (c) 2018, savvas
@@ -19,8 +19,23 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
+#include <Base.h>
+#include <Uefi.h>
+#include <Library/DebugLib.h>
+#include <Library/BaseLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/PrintLib.h>
+#include <Library/UefiLib.h>
+#include <Library/OcCryptoLib.h>
+#include <Library/OcAppleImageVerificationLib.h>
+#include <Protocol/DebugSupport.h>
+#include <IndustryStandard/PeImage.h>
 #include <Guid/AppleEfiCertificate.h>
-#include "OcAppleImageVerification.h"
 #include "ApplePublicKeyDb.h"
 
 #define CHECK_ADD_SAFETY( x, y )  ((x + y) < x ? EFI_INVALID_PARAMETER : EFI_SUCCESS)
@@ -315,17 +330,15 @@ GetApplePeImageSignature (
   VOID                                *Image,
   UINTN                               ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
-  UINT8                               *PkLe,
-  UINT8                               *PkBe,
-  UINT8                               *SigLe,
-  UINT8                               *SigBe
+  APPLE_SIGNATURE_CONTEXT             *SignatureContext
   )
 {
   EFI_STATUS                  Status                    = EFI_UNSUPPORTED;
   UINTN                       Index                     = 0;
   APPLE_EFI_CERTIFICATE       *Cert                     = NULL;
   APPLE_EFI_CERTIFICATE_INFO  *CertInfo                 = NULL;
-
+  UINT8                       PkLe[256];
+  UINT8                       SigLe[256];
   //
   // Check SecDir extistence
   //
@@ -400,14 +413,22 @@ GetApplePeImageSignature (
     }
 
     //
-    // Load PublicKey and Signature into memory
+    // Extract PublicKey and Signature
     //
     CopyMem (PkLe, Cert->CertData.PublicKey, 256);
     CopyMem (SigLe, Cert->CertData.Signature, 256);
 
+    //
+    // Calc public key hash and add in sig context
+    //
+    Sha256 (SignatureContext->PublicKeyHash, PkLe, 256);
+
+    //
+    // Convert to big endian and add in sig context
+    //
     for (Index = 0; Index < 256; Index++) {
-      PkBe[256 - 1 - Index] = PkLe[Index];
-      SigBe[256 - 1 - Index] = SigLe[Index];
+      SignatureContext->PublicKey[256 - 1 - Index] = PkLe[Index];
+      SignatureContext->Signature[256 - 1 - Index] = SigLe[Index];
     }
 
     Status = EFI_SUCCESS;
@@ -478,8 +499,7 @@ SanitizeApplePeImage (
 EFI_STATUS
 GetApplePeImageSha256 (
   VOID                                *Image,
-  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
-  UINT8                               *CalcucatedHash
+  APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context
   )
 {
   UINT64                   HashSize           = 0;
@@ -521,7 +541,7 @@ GetApplePeImageSha256 (
   HashSize = (UINT8 *) Image + Context->SecDir->VirtualAddress - HashBase;
   Sha256Update (&HashContext, HashBase, HashSize);
 
-  Sha256Final (&HashContext, CalcucatedHash);
+  Sha256Final (&HashContext, Context->PeImageHash);
   return EFI_SUCCESS;
 }
 
@@ -532,13 +552,7 @@ VerifyApplePeImageSignature (
   IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {
-  SHA256_CONTEXT                     HashContext;
-  UINT8                              PkLe[256];
-  UINT8                              PkBe[256];
-  UINT8                              SigLe[256];
-  UINT8                              SigBe[256];
-  UINT8                              CalcucatedHash[32];
-  UINT8                              PkHash[32];
+  APPLE_SIGNATURE_CONTEXT            *SignatureContext;
   UINT32                             WorkBuf32[RSANUMWORDS*3];
   RSA_PUBLIC_KEY                     *Pk                      = NULL;
 
@@ -549,7 +563,7 @@ VerifyApplePeImageSignature (
     Context = AllocateZeroPool (sizeof (APPLE_PE_COFF_LOADER_IMAGE_CONTEXT));
     if (Context == NULL) {
       DEBUG ((DEBUG_WARN, "Pe context allocation failure\n"));
-      return EFI_INVALID_PARAMETER;
+      return EFI_OUT_OF_RESOURCES;
     }
     //
     // Build PE context
@@ -567,37 +581,39 @@ VerifyApplePeImageSignature (
   SanitizeApplePeImage (PeImage, ImageSize, Context);
 
   //
+  // Allocate signature context
+  //
+  SignatureContext = AllocateZeroPool (sizeof (APPLE_SIGNATURE_CONTEXT));
+  if (SignatureContext == NULL) {
+    DEBUG ((DEBUG_WARN, "Signature context allocation failure\n"));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  //
   // Extract AppleSignature from PEImage
   //
-  if (EFI_ERROR (GetApplePeImageSignature (PeImage, *ImageSize, Context, PkLe, PkBe, SigLe, SigBe))) {
+  if (EFI_ERROR (GetApplePeImageSignature (PeImage, *ImageSize, Context, SignatureContext))) {
     DEBUG ((DEBUG_WARN, "AppleSignature broken or not present!\n"));
+    FreePool (SignatureContext);
     FreePool (Context);
     return EFI_UNSUPPORTED;
   }
 
   //
-  // Calcucate PeImage hash via AppleAuthenticode algorithm
+  // Calcucate PeImage hash
   //
-  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, Context, CalcucatedHash))) {
+  if (EFI_ERROR (GetApplePeImageSha256 (PeImage, Context))) {
     DEBUG ((DEBUG_WARN, "Couldn't calcuate hash of PeImage\n"));
+    FreePool (SignatureContext);
     FreePool (Context);
     return EFI_INVALID_PARAMETER;
   }
-
-  FreePool (Context);
-
-  //
-  // Calculate Sha256 of extracted public key
-  //
-  Sha256Init (&HashContext);
-  Sha256Update (&HashContext, PkLe, sizeof (PkLe));
-  Sha256Final (&HashContext, PkHash);
 
   //
   // Verify existence in DataBase
   //
   for (int Index = 0; Index < NUM_OF_PK; Index++) {
-    if (CompareMem (PkDataBase[Index].Hash, PkHash, sizeof (PkHash)) == 0) {
+    if (CompareMem (PkDataBase[Index].Hash, SignatureContext->PublicKeyHash, 32) == 0) {
       //
       // PublicKey valid. Extract prepared publickey from database
       //
@@ -606,17 +622,24 @@ VerifyApplePeImageSignature (
   }
 
   if (Pk == NULL) {
-    DEBUG ((DEBUG_WARN, "Unknown publickey or malformed AppleSignature directory!\n"));
+    DEBUG ((DEBUG_WARN, "Unknown publickey or malformed certificate\n"));
+    FreePool (SignatureContext);
+    FreePool (Context);
     return EFI_UNSUPPORTED;
   }
 
   //
   // Verify signature
   //
-  if (RsaVerify (Pk, SigBe, CalcucatedHash, WorkBuf32) == 1 ) {
+  if (RsaVerify (Pk, SignatureContext->Signature, Context->PeImageHash, WorkBuf32) == 1 ) {
     DEBUG ((DEBUG_WARN, "Signature verified!\n"));
+    FreePool (SignatureContext);
+    FreePool (Context);
     return EFI_SUCCESS;
   }
+
+  FreePool (SignatureContext);
+  FreePool (Context);
 
   return EFI_SECURITY_VIOLATION;
 }
