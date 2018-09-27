@@ -92,8 +92,8 @@ EFI_STATUS
 EFIAPI
 StartApfsDriver (
   IN EFI_HANDLE  ControllerHandle,
-  IN VOID        *AppleFileSystemDriverBuffer,
-  IN UINTN       AppleFileSystemDriverSize
+  IN VOID        *EfiFileBuffer,
+  IN UINTN       EfiFileSize
   )
 {
   EFI_STATUS                 Status;
@@ -102,9 +102,9 @@ StartApfsDriver (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedApfsDrvImage      = NULL;
   EFI_SYSTEM_TABLE           *NewSystemTable          = NULL;
 
-  if (AppleFileSystemDriverBuffer == NULL
-    || AppleFileSystemDriverSize == 0
-    || AppleFileSystemDriverSize > (UINT32) 0xFFFFFFFFULL) {
+  if (EfiFileBuffer == NULL
+    || EfiFileSize == 0
+    || EfiFileSize > (UINT32) 0xFFFFFFFFULL) {
     DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
     return EFI_UNSUPPORTED;
   }
@@ -124,25 +124,25 @@ StartApfsDriver (
       ParentDevicePath = NULL;
       DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
   }
-  
-  DEBUG ((DEBUG_WARN, "ImageSize before verification: %lu\n", AppleFileSystemDriverSize));
+
+  DEBUG ((DEBUG_WARN, "ImageSize before verification: %lu\n", EfiFileSize));
 
   DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
-    AppleFileSystemDriverBuffer,
-    &AppleFileSystemDriverSize,
+    EfiFileBuffer,
+    &EfiFileSize,
     NULL
     );
 
-  DEBUG ((DEBUG_WARN, "New ImageSize after verification: %lu\n", AppleFileSystemDriverSize));
+  DEBUG ((DEBUG_WARN, "New ImageSize after verification: %lu\n", EfiFileSize));
 
   if (!EFI_ERROR (Status)) {
     Status = gBS->LoadImage (
       FALSE,
       gImageHandle,
       ParentDevicePath,
-      AppleFileSystemDriverBuffer,
-      AppleFileSystemDriverSize,
+      EfiFileBuffer,
+      EfiFileSize,
       &ImageHandle
       );
       if (EFI_ERROR (Status)) {
@@ -210,7 +210,7 @@ StartApfsDriver (
   //
   // Connect loaded apfs.efi to controller from which we retrieve it
   //
-  gBS->ConnectController(ControllerHandle, NULL, NULL, TRUE);
+  gBS->ConnectController (ControllerHandle, NULL, NULL, TRUE);
 
   return EFI_SUCCESS;
 }
@@ -531,7 +531,7 @@ ApfsDriverLoaderSupported (
   }
 
   if (LegacyScan) {
-    return LegacyApfsContainerScan(This, ControllerHandle);
+    return LegacyApfsContainerScan (This, ControllerHandle);
   }
 
   //
@@ -576,7 +576,7 @@ ApfsDriverLoaderSupported (
         //
         // Verify GPT entry GUID
         //
-        if (CompareGuid ((EFI_GUID *)(ApplePartitionInfo->PartitionType),
+        if (CompareGuid (&ApplePartitionInfo->PartitionType,
                          &gAppleApfsPartitionTypeGuid)) {
           return EFI_UNSUPPORTED;
         }
@@ -632,6 +632,8 @@ ApfsDriverLoaderStart (
   )
 {
   EFI_STATUS                        Status;
+  UINTN                             Index                        = 0;
+  UINTN                             CurPos                       = 0;
   EFI_BLOCK_IO_PROTOCOL             *BlockIo                     = NULL;
   EFI_BLOCK_IO2_PROTOCOL            *BlockIo2                    = NULL;
   EFI_DISK_IO_PROTOCOL              *DiskIo                      = NULL;
@@ -644,12 +646,11 @@ ApfsDriverLoaderStart (
   UINT64                            EfiBootRecordBlockPtr        = 0;
   APFS_EFI_BOOT_RECORD              *EfiBootRecordBlock          = NULL;
   APFS_CSB                          *ContainerSuperBlock         = NULL;
-  UINT64                            ApfsDriverBootRecordOffset   = 0;
-  VOID                              *AppleFileSystemDriverBuffer = NULL;
-  UINTN                             AppleFileSystemDriverSize    = 0;
+  UINT64                            EfiFileCurrentExtentOffset   = 0;
+  VOID                              *EfiFileBuffer               = NULL;
+  UINTN                             EfiFileCurrentExtentSize     = 0;
   APFS_DRIVER_INFO_PRIVATE_DATA     *Private                     = NULL;
   APFS_EFIBOOTRECORD_LOCATION_INFO  *EfiBootRecordLocationInfo   = NULL;
-
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
@@ -836,10 +837,10 @@ ApfsDriverLoaderStart (
   // Extract Container UUID
   //
   ContainerSuperBlock = (APFS_CSB *)ApfsBlock;
-  CopyMem (&ContainerUuid, &ContainerSuperBlock->Uuid, 16);
+  CopyMem (&ContainerUuid, &ContainerSuperBlock->Uuid, sizeof (EFI_GUID));
 
   //
-  // Calculate Offset of EfiBootRecordBlock...
+  // Calculate Offset of EfiBootRecordBlock
   //
   EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize)
                               + LegacyBaseOffset;
@@ -888,72 +889,108 @@ ApfsDriverLoaderStart (
     ));
 
   //
-  // FIXME: Loop over extents inside EfiBootRecord
-  //        EFI embedded driver could be deframented across whole container
+  // Loop over extents inside EfiBootRecord
+  //        EFI embedded driver could be defragmented across whole container
   //
-
   DEBUG ((
     DEBUG_VERBOSE,
-    "ApfsDriver located at: %llu block\n",
-    EfiBootRecordBlock->RecordExtents[0].StartPhysicalAddr
+    "EFI embedded driver extents number %llu\n",
+    EfiBootRecordBlock->NumOfExtents
     ));
 
-  ApfsDriverBootRecordOffset = MultU64x32 (
-                                EfiBootRecordBlock->RecordExtents[0].StartPhysicalAddr,
+  //
+  // Read EFI embedded file from extents
+  //
+  for (Index = 0; Index < EfiBootRecordBlock->NumOfExtents; Index++) {
+    DEBUG ((
+        DEBUG_VERBOSE,
+        "EFI embedded driver extent located at: %llu block\n with size %llu\n",
+        EfiBootRecordBlock->RecordExtents[Index].StartPhysicalAddr,
+        EfiBootRecordBlock->RecordExtents[Index].BlockCount
+        ));
+
+    EfiFileCurrentExtentOffset = MultU64x32 (
+                                EfiBootRecordBlock->RecordExtents[Index].StartPhysicalAddr,
                                 ApfsBlockSize
                                 )  + LegacyBaseOffset;
 
-  //
-  // Verify EfiFileLen with physical block size
-  //
-  if (EfiBootRecordBlock->EfiFileLen <= MultU64x32 (
-                                EfiBootRecordBlock->RecordExtents[0].BlockCount,
+    EfiFileCurrentExtentSize = MultU64x32 (
+                                EfiBootRecordBlock->RecordExtents[Index].BlockCount,
                                 ApfsBlockSize
-                                )) {
-    AppleFileSystemDriverSize = EfiBootRecordBlock->EfiFileLen;
-  } else {
-    AppleFileSystemDriverSize = MultU64x32 (
-                                  EfiBootRecordBlock->RecordExtents[0].BlockCount,
-                                  ApfsBlockSize
-                                  );
+                                );
+
+    //
+    // Check bounds
+    //
+    if (EfiBootRecordBlock->EfiFileLen <= EfiFileCurrentExtentSize) {
+      //
+      // Adjust buffer size
+      //
+      EfiFileBuffer = ReallocatePool (
+                        CurPos,
+                        CurPos + EfiFileCurrentExtentSize,
+                        EfiFileBuffer
+                        );
+
+      if (EfiFileBuffer == NULL) {
+        return EFI_OUT_OF_RESOURCES;
+      }
+
+      //
+      // Read current extent
+      //
+      Status = ReadDisk (
+        DiskIo,
+        DiskIo2,
+        MediaId,
+        EfiFileCurrentExtentOffset,
+        EfiFileCurrentExtentSize,
+        EfiFileBuffer + CurPos
+        );
+
+      if (EFI_ERROR (Status)) {
+        return EFI_DEVICE_ERROR;
+      }
+      //
+      // Sum size for buffer offset
+      //
+      CurPos += EfiFileCurrentExtentSize;
+    } else {
+      //
+      // CHECKME: May be return?
+      //
+      break;
+    }
   }
 
-  DEBUG ((
-    DEBUG_VERBOSE,
-    "ApfsDriver offset: %08llx \n",
-    ApfsDriverBootRecordOffset
-    ));
-  DEBUG ((
-    DEBUG_VERBOSE,
-    "ApfsDriver size: %llu bytes\n",
-    AppleFileSystemDriverSize
-    ));
+  //
+  // Drop tail
+  // We do it because we read blocksize aligned data
+  // Apfs driver size given in bytes
+  //
+  if (CurPos > EfiBootRecordBlock->EfiFileLen) {
+    //
+    // Zero tail
+    //
+    ZeroMem (
+      EfiFileBuffer + EfiBootRecordBlock->EfiFileLen,
+      CurPos - EfiBootRecordBlock->EfiFileLen
+      );
+    //
+    // Reallocate buffer
+    //
+    EfiFileBuffer = ReallocatePool (
+                      CurPos,
+                      EfiBootRecordBlock->EfiFileLen,
+                      EfiFileBuffer
+                      );
+  }
 
   FreePool (ApfsBlock);
-
-  AppleFileSystemDriverBuffer = AllocateZeroPool (AppleFileSystemDriverSize);
-
-  if (AppleFileSystemDriverBuffer == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-
-  Status = ReadDisk (
-    DiskIo,
-    DiskIo2,
-    MediaId,
-    ApfsDriverBootRecordOffset,
-    AppleFileSystemDriverSize,
-    AppleFileSystemDriverBuffer
-    );
-
-  if (EFI_ERROR (Status)) {
-    return EFI_DEVICE_ERROR;
-  }
 
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
-
   Private = AllocatePool (sizeof (APFS_DRIVER_INFO_PRIVATE_DATA));
   if (Private == NULL) {
     return EFI_OUT_OF_RESOURCES;
@@ -974,11 +1011,11 @@ ApfsDriverLoaderStart (
   if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_WARN,
-      "AppleFileSystemEfiBootRecordInfoProtocol install failed with Status %r\n",
+      "ApfsEfiBootRecordInfoProtocol install failed with Status %r\n",
       Status
       ));
-    if (AppleFileSystemDriverBuffer != NULL) {
-      FreePool (AppleFileSystemDriverBuffer);
+    if (EfiFileBuffer != NULL) {
+      FreePool (EfiFileBuffer);
     }
     if (Private != NULL) {
       FreePool (Private);
@@ -988,8 +1025,8 @@ ApfsDriverLoaderStart (
 
   Status = StartApfsDriver (
     ControllerHandle,
-    AppleFileSystemDriverBuffer,
-    AppleFileSystemDriverSize
+    EfiFileBuffer,
+    EfiBootRecordBlock->EfiFileLen
     );
 
   if (EFI_ERROR (Status)) {
@@ -999,8 +1036,8 @@ ApfsDriverLoaderStart (
       NULL
       );
 
-    if (AppleFileSystemDriverBuffer != NULL) {
-      FreePool (AppleFileSystemDriverBuffer);
+    if (EfiFileBuffer != NULL) {
+      FreePool (EfiFileBuffer);
     }
     if (Private != NULL) {
       FreePool (Private);
@@ -1012,8 +1049,8 @@ ApfsDriverLoaderStart (
   //
   // Free memory and close DiskIo protocol
   //
-  if (AppleFileSystemDriverBuffer != NULL) {
-    FreePool (AppleFileSystemDriverBuffer);
+  if (EfiFileBuffer != NULL) {
+    FreePool (EfiFileBuffer);
   }
   if (Private != NULL) {
     FreePool (Private);

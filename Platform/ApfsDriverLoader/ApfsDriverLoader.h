@@ -173,7 +173,7 @@ typedef struct APFS_CSB_
   UINT32             MaxFileSystems;
   UINT64             FileSystemOid[APFS_CSB_MAX_FILE_SYSTEMS];
   UINT64             Counters[APFS_CSB_NUM_COUNTERS];
-  PhysicalRange             BlockedOutPhysicalRange;
+  PhysicalRange      BlockedOutPhysicalRange;
   UINT64             EvictMappingTreeOid;
   UINT64             Flags;
   //
@@ -181,12 +181,12 @@ typedef struct APFS_CSB_
   //
   UINT64             EfiBootRecordBlock;
   EFI_GUID           FusionUuid;
-  PhysicalRange             KeyLocker;
+  PhysicalRange      KeyLocker;
   UINT64             EphermalInfo[APFS_CSB_EPH_INFO_COUNT];
   UINT64             TestOid;
   UINT64             FusionMtIod;
   UINT64             FusionWbcOid;
-  PhysicalRange             FusionWbc;
+  PhysicalRange      FusionWbc;
 } APFS_CSB;
 #pragma pack(pop)
 
