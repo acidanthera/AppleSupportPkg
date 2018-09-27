@@ -38,8 +38,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Guid/AppleEfiCertificate.h>
 #include "ApplePublicKeyDb.h"
 
-#define CHECK_ADD_SAFETY( x, y )  ((x + y) < x ? EFI_INVALID_PARAMETER : EFI_SUCCESS)
-
 UINT16
 GetPeHeaderMagicValue (
   EFI_IMAGE_OPTIONAL_HEADER_UNION  *Hdr
@@ -335,6 +333,7 @@ GetApplePeImageSignature (
 {
   EFI_STATUS                  Status                    = EFI_UNSUPPORTED;
   UINTN                       Index                     = 0;
+  UINT32                      Result                    = 0;
   APPLE_EFI_CERTIFICATE       *Cert                     = NULL;
   APPLE_EFI_CERTIFICATE_INFO  *CertInfo                 = NULL;
   UINT8                       PkLe[256];
@@ -355,24 +354,20 @@ GetApplePeImageSignature (
     //
     CertInfo = (APPLE_EFI_CERTIFICATE_INFO *) 
                       ((UINT8 *) Image + Context->SecDir->VirtualAddress);
+
     //
-    // Check its bounds
+    // Check for overflow
     //           
-    Status = CHECK_ADD_SAFETY (
-                                CertInfo->CertOffset,
-                                CertInfo->CertSize
-                              );
-    if (EFI_ERROR (Status)) {
+    if (__builtin_uadd_overflow (CertInfo->CertOffset, CertInfo->CertSize, &Result)) {
       DEBUG ((DEBUG_WARN, "CertificateInfo causes overflow\n"));
-      return Status;
+      return EFI_INVALID_PARAMETER;
     }
 
     //
     // Check that Offset+Size in ImageSize range
     //
-    if (CertInfo->CertOffset + CertInfo->CertSize 
-        > ImageSize) {
-      DEBUG ((DEBUG_WARN, "CertificateInfo our of bounds\n"));
+    if (Result > ImageSize) {
+      DEBUG ((DEBUG_WARN, "CertificateInfo out of bounds\n"));
       return EFI_INVALID_PARAMETER;
     }
 
@@ -552,9 +547,10 @@ VerifyApplePeImageSignature (
   IN OUT APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context OPTIONAL
   )
 {
-  APPLE_SIGNATURE_CONTEXT            *SignatureContext;
-  UINT32                             WorkBuf32[RSANUMWORDS*3];
-  RSA_PUBLIC_KEY                     *Pk                      = NULL;
+  UINT32                   WorkBuf32[RSANUMWORDS * 3];
+  UINTN                    Index                       = 0;
+  APPLE_SIGNATURE_CONTEXT  *SignatureContext           = NULL;
+  RSA_PUBLIC_KEY           *Pk                         = NULL;
 
   //
   // Build context if not present
@@ -612,7 +608,7 @@ VerifyApplePeImageSignature (
   //
   // Verify existence in DataBase
   //
-  for (int Index = 0; Index < NUM_OF_PK; Index++) {
+  for (Index = 0; Index < NUM_OF_PK; Index++) {
     if (CompareMem (PkDataBase[Index].Hash, SignatureContext->PublicKeyHash, 32) == 0) {
       //
       // PublicKey valid. Extract prepared publickey from database
