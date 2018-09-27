@@ -19,9 +19,11 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#include <Guid/AppleEfiSignature.h>
+#include <Guid/AppleEfiCertificate.h>
 #include "OcAppleImageVerification.h"
 #include "ApplePublicKeyDb.h"
+
+#define CHECK_ADD_SAFETY( x, y )  ((x + y) < x ? EFI_INVALID_PARAMETER : EFI_SUCCESS)
 
 UINT16
 GetPeHeaderMagicValue (
@@ -311,6 +313,7 @@ BuildPeContext (
 EFI_STATUS
 GetApplePeImageSignature (
   VOID                                *Image,
+  UINTN                               ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   UINT8                               *PkLe,
   UINT8                               *PkBe,
@@ -318,42 +321,89 @@ GetApplePeImageSignature (
   UINT8                               *SigBe
   )
 {
-  EFI_STATUS                 Status                    = EFI_UNSUPPORTED;
-  UINTN                      Index                     = 0;
-  APPLE_SIGNATURE_DIRECTORY  *SignatureDirectory       = NULL;
+  EFI_STATUS                  Status                    = EFI_UNSUPPORTED;
+  UINTN                       Index                     = 0;
+  APPLE_EFI_CERTIFICATE       *Cert                     = NULL;
+  APPLE_EFI_CERTIFICATE_INFO  *CertInfo                 = NULL;
 
   //
   // Check SecDir extistence
   //
   if (Context->SecDir != NULL) {
-
-    //
-    // Extract AppleSignatureDirectory
-    //
-    SignatureDirectory = (APPLE_SIGNATURE_DIRECTORY *)
-                         ((UINT8 *) Image + Context->SecDir->VirtualAddress);
-
     //
     // Apple EFI_IMAGE_DIRECTORY_ENTRY_SECURITY is always 8 bytes.
     //
     if (Context->SecDir->Size != APPLE_SIGNATURE_SECENTRY_SIZE) {
-      DEBUG ((DEBUG_WARN, "AppleSignature entry size mismatch\n"));
+      DEBUG ((DEBUG_WARN, "Certificate entry size mismatch\n"));
+      return Status;
+    }
+    //
+    // Extract APPLE_EFI_CERTIFICATE_INFO
+    //
+    CertInfo = (APPLE_EFI_CERTIFICATE_INFO *) 
+                      ((UINT8 *) Image + Context->SecDir->VirtualAddress);
+    //
+    // Check its bounds
+    //           
+    Status = CHECK_ADD_SAFETY (
+                                CertInfo->CertOffset,
+                                CertInfo->CertSize
+                              );
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_WARN, "CertificateInfo causes overflow\n"));
       return Status;
     }
 
     //
-    // Verify Apple Signature GUID
+    // Check that Offset+Size in ImageSize range
     //
+    if (CertInfo->CertOffset + CertInfo->CertSize 
+        > ImageSize) {
+      DEBUG ((DEBUG_WARN, "CertificateInfo our of bounds\n"));
+      return EFI_INVALID_PARAMETER;
+    }
 
-    if (!CompareGuid (&SignatureDirectory->AppleSignatureGuid, &gAppleEfiSignatureGuid)) {
+    //
+    // Extract signature directory
+    //
+    Cert = (APPLE_EFI_CERTIFICATE *)
+             ((UINT8 *) Image + CertInfo->CertOffset);
+
+    //
+    // Compare size of signature directory with value from PE SecDir header
+    //
+    if (CertInfo->CertSize != Cert->CertSize) {
+      DEBUG ((DEBUG_WARN, "Certificate size mismatch with CertificateInfo size value\n"));
+      return EFI_INVALID_PARAMETER;
+    }
+
+    //
+    // Verify certificate type
+    //
+    if (Cert->CertType != APPLE_CERT_TYPE_EFI_GUID) {
+      DEBUG ((DEBUG_WARN, "Unknown certificate type\n"));
+      return EFI_UNSUPPORTED;
+    }
+
+    //
+    // Verify certificate GUID
+    //
+    if (!CompareGuid (&Cert->AppleSignatureGuid, &gAppleEfiCertificateGuid)) {
       return Status;
+    }
+
+    //
+    // Verify HashType == Rsa2048Sha256
+    //
+    if (!CompareGuid (&Cert->CertData.HashType, &gEfiCertTypeRsa2048Sha256Guid)) {
+      return EFI_UNSUPPORTED;
     }
 
     //
     // Load PublicKey and Signature into memory
     //
-    CopyMem (PkLe, SignatureDirectory->PublicKey, 256);
-    CopyMem (SigLe, SignatureDirectory->Signature, 256);
+    CopyMem (PkLe, Cert->CertData.PublicKey, 256);
+    CopyMem (SigLe, Cert->CertData.Signature, 256);
 
     for (Index = 0; Index < 256; Index++) {
       PkBe[256 - 1 - Index] = PkLe[Index];
@@ -363,7 +413,7 @@ GetApplePeImageSignature (
     Status = EFI_SUCCESS;
 
   } else {
-    DEBUG ((DEBUG_WARN, "Signature entry not exist\n"));
+    DEBUG ((DEBUG_WARN, "Certificate entry not exist\n"));
   }
 
   return Status;
@@ -403,7 +453,7 @@ SanitizeApplePeImage (
 
   *RealImageSize = Context->SecDir->VirtualAddress
                    + Context->SecDir->Size
-                   + sizeof (APPLE_SIGNATURE_DIRECTORY);
+                   + sizeof (APPLE_EFI_CERTIFICATE);
 
   if (*RealImageSize < ImageSize) {
     DEBUG ((DEBUG_WARN, "Droping tail with size: %lu\n", ImageSize - *RealImageSize));
@@ -519,7 +569,7 @@ VerifyApplePeImageSignature (
   //
   // Extract AppleSignature from PEImage
   //
-  if (EFI_ERROR (GetApplePeImageSignature (PeImage, Context, PkLe, PkBe, SigLe, SigBe))) {
+  if (EFI_ERROR (GetApplePeImageSignature (PeImage, *ImageSize, Context, PkLe, PkBe, SigLe, SigBe))) {
     DEBUG ((DEBUG_WARN, "AppleSignature broken or not present!\n"));
     FreePool (Context);
     return EFI_UNSUPPORTED;

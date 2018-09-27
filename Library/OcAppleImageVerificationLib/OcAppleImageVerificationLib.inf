@@ -47,4 +47,6 @@
   OcCryptoLib
 
 [Guids]
-  gAppleEfiSignatureGuid
+  gAppleEfiCertificateGuid
+  gEfiCertTypeRsa2048Sha256Guid
+  
