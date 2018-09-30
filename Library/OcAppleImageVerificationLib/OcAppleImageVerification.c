@@ -33,6 +33,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/OcCryptoLib.h>
 #include <Library/OcAppleImageVerificationLib.h>
+#include <Library/OcOverflowLib.h>
 #include <Protocol/DebugSupport.h>
 #include <IndustryStandard/PeImage.h>
 #include <Guid/AppleEfiCertificate.h>
@@ -358,7 +359,7 @@ GetApplePeImageSignature (
     //
     // Check for overflow
     //           
-    if (__builtin_uadd_overflow (CertInfo->CertOffset, CertInfo->CertSize, &Result)) {
+    if (OcOverflowAddU32 (CertInfo->CertOffset, CertInfo->CertSize, &Result)) {
       DEBUG ((DEBUG_WARN, "CertificateInfo causes overflow\n"));
       return EFI_INVALID_PARAMETER;
     }
