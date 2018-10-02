@@ -44,7 +44,7 @@ Sha1Transform (
   UINT32 A, B, C, D, E, Index1, Index2, T, M[80];
 
   for (Index1 = 0, Index2 = 0; Index1 < 16; ++Index1, Index2 += 4) {
-    M[Index1] = (Data[Index2] << 24) + (Data[Index2 + 1] << 16) 
+    M[Index1] = (Data[Index2] << 24) + (Data[Index2 + 1] << 16)
                 + (Data[Index2 + 2] << 8) + (Data[Index2 + 3]);
   }
 

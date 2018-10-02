@@ -62,7 +62,7 @@ Md5Transform (
   // on output (in md5_final()).
   //
   for (Index1 = 0, Index2 = 0; Index1 < 16; ++Index1, Index2 += 4) {
-    M[Index1] = (Data[Index2]) + (Data[Index2 + 1] << 8) 
+    M[Index1] = (Data[Index2]) + (Data[Index2 + 1] << 8)
                 + (Data[Index2 + 2] << 16) + (Data[Index2 + 3] << 24);
   }
   A = Ctx->State[0];

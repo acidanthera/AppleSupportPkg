@@ -20,7 +20,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define APPLE_IMAGE_CODEC_H
 
 //
-// Efi Graphics Image
+// Efi Graphics Image custom structure
 //
 typedef struct {
   INTN            Width;

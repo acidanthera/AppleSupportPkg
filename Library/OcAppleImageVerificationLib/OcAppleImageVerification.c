@@ -356,12 +356,12 @@ GetApplePeImageSignature (
     //
     // Extract APPLE_EFI_CERTIFICATE_INFO
     //
-    CertInfo = (APPLE_EFI_CERTIFICATE_INFO *) 
+    CertInfo = (APPLE_EFI_CERTIFICATE_INFO *)
                       ((UINT8 *) Image + Context->SecDir->VirtualAddress);
 
     //
     // Check for overflow
-    //           
+    //
     if (OcOverflowAddU32 (CertInfo->CertOffset, CertInfo->CertSize, &Result)) {
       DEBUG ((DEBUG_WARN, "CertificateInfo causes overflow\n"));
       return EFI_INVALID_PARAMETER;

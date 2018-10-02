@@ -75,8 +75,8 @@ FreeEfiGraphicsImage (
 STATIC
 EG_IMAGE *
 DecodePngImage (
-  UINT8  *FileData,
-  UINTN  FileDataLength
+  UINT8  *PngBuffer,
+  UINTN  Size
   )
 {
   EFI_STATUS        Status;
@@ -94,8 +94,8 @@ DecodePngImage (
   // Decode PNG image
   //
   Status = DecodePng (
-            FileData,
-            FileDataLength,
+            PngBuffer,
+            Size,
             &Data,
             &Width,
             &Height,
@@ -105,6 +105,7 @@ DecodePngImage (
   if (EFI_ERROR (Status)) {
     return NULL;
   }
+
   //
   // Create efi graphics image
   //

@@ -1,6 +1,6 @@
 /** @file
 
-OcPngLib
+OcPngLib - library with PNG decoder functions
 
 Copyright (c) 2018, savvas
 
@@ -16,17 +16,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 #include <Base.h>
-#include <Uefi.h>
 #include <Library/DebugLib.h>
-#include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiLib.h>
 #include "lodepng.h"
 
 /**
@@ -66,15 +57,16 @@ GetPngDims (
             &State,
             Buffer,
             Size
-            ); 
-  
+            );
+
   lodepng_state_cleanup (&State);
 
   if (Error) {
+    DEBUG ((DEBUG_WARN, "OcPngLib: Error while getting image dimensions from PNG header\n"));
     return EFI_INVALID_PARAMETER;
-  } else {
-    return EFI_SUCCESS;
   }
+
+  return EFI_SUCCESS;
 }
 
 /**
@@ -97,7 +89,7 @@ DecodePng (
   IN   UINT8   *Buffer,
   IN   UINTN   Size,
   OUT  UINT8   **RawData,
-  OUT  UINT32  *Width, 
+  OUT  UINT32  *Width,
   OUT  UINT32  *Height,
   OUT  UINT32  *HasAlphaType OPTIONAL
   )
@@ -125,6 +117,7 @@ DecodePng (
 
   if (Error) {
     lodepng_state_cleanup (&State);
+    DEBUG ((DEBUG_WARN, "OcPngLib: Error while decoding PNG image\n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -133,7 +126,7 @@ DecodePng (
     // Extract color information
     //
     Color = &State.info_png.color;
-  
+
     //
     // Check alpha layer existence
     //

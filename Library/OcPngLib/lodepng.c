@@ -2,6 +2,7 @@
 LodePNG version 20180910
 
 Copyright (c) 2018 savvas
+Copyright (c) 2018 vit9696
 Copyright (c) 2016 Nikolaj Schlej
 Copyright (c) 2005-2018 Lode Vandevenne
 

@@ -1,6 +1,6 @@
 /** @file
 
-OcCryptoLib
+OcPngLib - library with PNG decoder functions
 
 Copyright (c) 2018, savvas
 
@@ -59,7 +59,7 @@ DecodePng (
   IN   UINT8   *Buffer,
   IN   UINTN   Size,
   OUT  UINT8   **RawData,
-  OUT  UINT32  *Width, 
+  OUT  UINT32  *Width,
   OUT  UINT32  *Height,
   OUT  UINT32  *HasAlphaType OPTIONAL
   );

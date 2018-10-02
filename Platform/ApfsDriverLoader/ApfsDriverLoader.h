@@ -26,10 +26,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 //
 #define APFS_CSB_SIGNATURE  SIGNATURE_32 ('N', 'X', 'S', 'B')
 #define APFS_CSB_MAX_FILE_SYSTEMS  100
-#define APFS_CSB_EPH_INFO_COUNT  4 
-#define APFS_CSB_EPH_MIN_BLOCK_COUNT  8 
-#define APFS_CSB_MAX_FILE_SYSTEM_EPH_STRUCTS  4 
-#define APFS_CSB_TX_MIN_CHECKPOINT_COUNT  4 
+#define APFS_CSB_EPH_INFO_COUNT  4
+#define APFS_CSB_EPH_MIN_BLOCK_COUNT  8
+#define APFS_CSB_MAX_FILE_SYSTEM_EPH_STRUCTS  4
+#define APFS_CSB_TX_MIN_CHECKPOINT_COUNT  4
 #define APFS_CSB_EPH_INFO_VERSION_1  1
 #define APFS_CSB_NUM_COUNTERS  32
 
@@ -98,7 +98,7 @@ typedef struct APFS_BLOCK_HEADER_
   //
   UINT64             ObjectOid;
   //
-  // The identifier of the most recent transaction that this object 
+  // The identifier of the most recent transaction that this object
   // was modified in.
   //
   UINT64             ObjectXid;
@@ -306,7 +306,7 @@ typedef struct APFS_EFI_BOOT_RECORD_
   UINT32             NumOfExtents;
   //
   // Reserved
-  // Populate this field with 0 when you create a new instance, 
+  // Populate this field with 0 when you create a new instance,
   // and preserve its value when you modify an existing instance.
   //
   UINT64             Reserved[16];

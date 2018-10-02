@@ -76,7 +76,7 @@ SanitizeApplePeImage (
 EFI_STATUS
 GetApplePeImageSignature (
   VOID                                *Image,
-  UINTN                               ImageSize,  
+  UINTN                               ImageSize,
   APPLE_PE_COFF_LOADER_IMAGE_CONTEXT  *Context,
   APPLE_SIGNATURE_CONTEXT             *SignatureContext
   );
