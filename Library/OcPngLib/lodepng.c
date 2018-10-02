@@ -1,5 +1,5 @@
 /*
-LodePNG version 20180819
+LodePNG version 20180910
 
 Copyright (c) 2018 savvas
 Copyright (c) 2016 Nikolaj Schlej
@@ -121,7 +121,7 @@ void* lodepng_realloc(void* ptr, size_t new_size) {
 #pragma warning( disable : 4996 ) /*VS does not like fopen, but fopen_s is not standard C so unusable here*/
 #endif /*_MSC_VER */
 
-const char* LODEPNG_VERSION_STRING = "20180819";
+const char* LODEPNG_VERSION_STRING = "20180910";
 
 /*
 This source file is built up in the following large parts. The code sections
@@ -305,8 +305,7 @@ static unsigned uivector_resizev(uivector* p, size_t size, unsigned value)
   }
   else
   {
-    for(i = oldsize; i < size; ++i) p->data[i] = value;
-  }
+  for(i = oldsize; i < size; ++i) p->data[i] = value;
   return 1;
 }
 
@@ -2593,14 +2592,46 @@ void lodepng_chunk_generate_crc(unsigned char* chunk)
 
 unsigned char* lodepng_chunk_next(unsigned char* chunk)
 {
-  unsigned total_chunk_length = lodepng_chunk_length(chunk) + 12;
-  return chunk + total_chunk_length;
+  if(chunk[0] == 0x89 && chunk[1] == 0x50 && chunk[2] == 0x4e && chunk[3] == 0x47
+    && chunk[4] == 0x0d && chunk[5] == 0x0a && chunk[6] == 0x1a && chunk[7] == 0x0a) {
+    /* Is PNG magic header at start of PNG file. Jump to first actual chunk. */
+    return chunk + 8;
+  } else {
+    unsigned total_chunk_length = lodepng_chunk_length(chunk) + 12;
+    return chunk + total_chunk_length;
+  }
 }
 
 const unsigned char* lodepng_chunk_next_const(const unsigned char* chunk)
 {
-  unsigned total_chunk_length = lodepng_chunk_length(chunk) + 12;
-  return chunk + total_chunk_length;
+  if(chunk[0] == 0x89 && chunk[1] == 0x50 && chunk[2] == 0x4e && chunk[3] == 0x47
+    && chunk[4] == 0x0d && chunk[5] == 0x0a && chunk[6] == 0x1a && chunk[7] == 0x0a) {
+    /* Is PNG magic header at start of PNG file. Jump to first actual chunk. */
+    return chunk + 8;
+  } else {
+    unsigned total_chunk_length = lodepng_chunk_length(chunk) + 12;
+    return chunk + total_chunk_length;
+  }
+}
+
+unsigned char* lodepng_chunk_find(unsigned char* chunk, const unsigned char* end, const char type[5])
+{
+  for(;;)
+  {
+    if(chunk + 12 >= end) return 0;
+    if(lodepng_chunk_type_equals(chunk, type)) return chunk;
+    chunk = lodepng_chunk_next(chunk);
+  }
+}
+
+const unsigned char* lodepng_chunk_find_const(const unsigned char* chunk, const unsigned char* end, const char type[5])
+{
+  for(;;)
+  {
+    if(chunk + 12 >= end) return 0;
+    if(lodepng_chunk_type_equals(chunk, type)) return chunk;
+    chunk = lodepng_chunk_next_const(chunk);
+  }
 }
 
 unsigned lodepng_chunk_append(unsigned char** out, size_t* outlength, const unsigned char* chunk)
@@ -2722,6 +2753,15 @@ unsigned lodepng_color_mode_copy(LodePNGColorMode* dest, const LodePNGColorMode*
   return 0;
 }
 
+LodePNGColorMode lodepng_color_mode_make(LodePNGColorType colortype, unsigned bitdepth)
+{
+  LodePNGColorMode result;
+  lodepng_color_mode_init(&result);
+  result.colortype = colortype;
+  result.bitdepth = bitdepth;
+  return result;
+}
+
 static int lodepng_color_mode_equal(const LodePNGColorMode* a, const LodePNGColorMode* b)
 {
   size_t i;
@@ -2741,20 +2781,6 @@ static int lodepng_color_mode_equal(const LodePNGColorMode* a, const LodePNGColo
   }
   return 1;
 }
-
-#ifdef LODEPNG_COMPILE_ENCODER
-#ifdef LODEPNG_COMPILE_ANCILLARY_CHUNKS
-/* Makes a temporary LodePNGColorMode that does not need cleanup (no palette) */
-static LodePNGColorMode lodepng_color_mode_make(LodePNGColorType colortype, unsigned bitdepth)
-{
-  LodePNGColorMode result;
-  lodepng_color_mode_init(&result);
-  result.colortype = colortype;
-  result.bitdepth = bitdepth;
-  return result;
-}
-#endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
-#endif /*LODEPNG_COMPILE_ENCODER*/
 
 void lodepng_palette_clear(LodePNGColorMode* info)
 {
@@ -2784,9 +2810,9 @@ unsigned lodepng_palette_add(LodePNGColorMode* info,
   return 0;
 }
 
+/*calculate bits per pixel out of colortype and bitdepth*/
 unsigned lodepng_get_bpp(const LodePNGColorMode* info)
 {
-  /*calculate bits per pixel out of colortype and bitdepth*/
   return lodepng_get_bpp_lct(info->colortype, info->bitdepth);
 }
 
@@ -3741,7 +3767,7 @@ unsigned lodepng_convert_rgb(
     const LodePNGColorMode* mode_out, const LodePNGColorMode* mode_in)
 {
   unsigned r = 0, g = 0, b = 0;
-  unsigned mul = 65535 / ((1 << mode_in->bitdepth) - 1); /*65535, 21845, 4369, 257, 1*/
+  unsigned mul = 65535 / ((1u << mode_in->bitdepth) - 1u); /*65535, 21845, 4369, 257, 1*/
   unsigned shift = 16 - mode_out->bitdepth;
 
   if(mode_in->colortype == LCT_GREY || mode_in->colortype == LCT_GREY_ALPHA)
@@ -3757,9 +3783,9 @@ unsigned lodepng_convert_rgb(
   else if(mode_in->colortype == LCT_PALETTE)
   {
     if(r_in >= mode_in->palettesize) return 82;
-    r = mode_in->palette[r_in * 4 + 0] * 257;
-    g = mode_in->palette[r_in * 4 + 1] * 257;
-    b = mode_in->palette[r_in * 4 + 2] * 257;
+    r = mode_in->palette[r_in * 4 + 0] * 257u;
+    g = mode_in->palette[r_in * 4 + 1] * 257u;
+    b = mode_in->palette[r_in * 4 + 2] * 257u;
   }
   else
   {
@@ -3836,7 +3862,7 @@ static unsigned getValueRequiredBits(unsigned char value)
   return 8;
 }
 
-/*profile must already have been inited with mode.
+/*profile must already have been inited.
 It's ok to set some parameters of profile to done already.*/
 unsigned lodepng_get_color_profile(LodePNGColorProfile* profile,
                                    const unsigned char* in, unsigned w, unsigned h,
@@ -3855,7 +3881,7 @@ unsigned lodepng_get_color_profile(LodePNGColorProfile* profile,
   unsigned bits_done = (profile->bits == 1 && bpp == 1) ? 1 : 0;
   unsigned sixteen = 0; /* whether the input image is 16 bit */
   unsigned maxnumcolors = 257;
-  if(bpp <= 8) maxnumcolors = LODEPNG_MIN(257, profile->numcolors + (1 << bpp));
+  if(bpp <= 8) maxnumcolors = LODEPNG_MIN(257, profile->numcolors + (1u << bpp));
 
   profile->numpixels += numpixels;
 
@@ -4235,6 +4261,7 @@ static void Adam7_getpassvalues(unsigned passw[7], unsigned passh[7], size_t fil
 unsigned lodepng_inspect(unsigned* w, unsigned* h, LodePNGState* state,
                          const unsigned char* in, size_t insize)
 {
+  unsigned width, height;
   LodePNGInfo* info = &state->info_png;
   if(insize == 0 || in == 0)
   {
@@ -4246,6 +4273,7 @@ unsigned lodepng_inspect(unsigned* w, unsigned* h, LodePNGState* state,
   }
 
   /*when decoding a new PNG image, make sure all parameters created after previous decoding are reset*/
+  /* TODO: remove this. One should use a new LodePNGState for new sessions */
   lodepng_info_cleanup(info);
   lodepng_info_init(info);
 
@@ -4264,18 +4292,21 @@ unsigned lodepng_inspect(unsigned* w, unsigned* h, LodePNGState* state,
   }
 
   /*read the values given in the header*/
-  *w = lodepng_read32bitInt(&in[16]);
-  *h = lodepng_read32bitInt(&in[20]);
+  width = lodepng_read32bitInt(&in[16]);
+  height = lodepng_read32bitInt(&in[20]);
   info->color.bitdepth = in[24];
   info->color.colortype = (LodePNGColorType)in[25];
   info->compression_method = in[26];
   info->filter_method = in[27];
   info->interlace_method = in[28];
 
-  if(*w == 0 || *h == 0)
+  if(width == 0 || height == 0)
   {
     CERROR_RETURN_ERROR(state->error, 93);
   }
+
+  if(w) *w = width;
+  if(h) *h = height;
 
   if(!state->decoder.ignore_crc)
   {
@@ -4622,6 +4653,7 @@ static unsigned readChunk_bKGD(LodePNGInfo* info, const unsigned char* data, siz
     /*error: this chunk must be 2 bytes for greyscale image*/
     if(chunkLength != 2) return 44;
 
+    /*the values are truncated to bitdepth in the PNG file*/
     info->background_defined = 1;
     info->background_r = info->background_g = info->background_b = 256u * data[0] + data[1];
   }
@@ -4630,6 +4662,7 @@ static unsigned readChunk_bKGD(LodePNGInfo* info, const unsigned char* data, siz
     /*error: this chunk must be 6 bytes for greyscale image*/
     if(chunkLength != 6) return 45;
 
+    /*the values are truncated to bitdepth in the PNG file*/
     info->background_defined = 1;
     info->background_r = 256u * data[0] + data[1];
     info->background_g = 256u * data[2] + data[3];
@@ -4934,6 +4967,85 @@ static unsigned readChunk_iCCP(LodePNGInfo* info, const LodePNGDecompressSetting
   return error;
 }
 #endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
+
+unsigned lodepng_inspect_chunk(LodePNGState* state, size_t pos,
+                               const unsigned char* in, size_t insize)
+{
+  const unsigned char* chunk = in + pos;
+  unsigned chunkLength;
+  const unsigned char* data;
+  unsigned unhandled = 0;
+  unsigned error = 0;
+
+  if (pos + 4 > insize) return 30;
+  chunkLength = lodepng_chunk_length(chunk);
+  if(chunkLength > 2147483647) return 63;
+  data = lodepng_chunk_data_const(chunk);
+  if(data + chunkLength + 4 > in + insize) return 30;
+
+  if(lodepng_chunk_type_equals(chunk, "PLTE"))
+  {
+    error = readChunk_PLTE(&state->info_png.color, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "tRNS"))
+  {
+    error = readChunk_tRNS(&state->info_png.color, data, chunkLength);
+  }
+#ifdef LODEPNG_COMPILE_ANCILLARY_CHUNKS
+  else if(lodepng_chunk_type_equals(chunk, "bKGD"))
+  {
+    error = readChunk_bKGD(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "tEXt"))
+  {
+    error = readChunk_tEXt(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "zTXt"))
+  {
+    error = readChunk_zTXt(&state->info_png, &state->decoder.zlibsettings, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "iTXt"))
+  {
+    error = readChunk_iTXt(&state->info_png, &state->decoder.zlibsettings, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "tIME"))
+  {
+    error = readChunk_tIME(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "pHYs"))
+  {
+    error = readChunk_pHYs(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "gAMA"))
+  {
+    error = readChunk_gAMA(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "cHRM"))
+  {
+    error = readChunk_cHRM(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "sRGB"))
+  {
+    error = readChunk_sRGB(&state->info_png, data, chunkLength);
+  }
+  else if(lodepng_chunk_type_equals(chunk, "iCCP"))
+  {
+    error = readChunk_iCCP(&state->info_png, &state->decoder.zlibsettings, data, chunkLength);
+  }
+#endif /*LODEPNG_COMPILE_ANCILLARY_CHUNKS*/
+  else
+  {
+    /* unhandled chunk is ok (is not an error) */
+    unhandled = 1;
+  }
+
+  if(!error && !unhandled && !state->decoder.ignore_crc)
+  {
+    if(lodepng_chunk_check_crc(chunk)) return 57; /*invalid CRC*/
+  }
+
+  return error;
+}
 
 /*read a PNG, the result will be in the same color type as the PNG (hence "generic")*/
 static void decodeGeneric(unsigned char** out, unsigned* w, unsigned* h,
