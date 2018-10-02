@@ -35,8 +35,9 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /*****************************************************************************/
 /* Includes:                                                                 */
 /*****************************************************************************/
-// #include <stdint.h>
-// #include <string.h> // CBC mode, for memset
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h> // CBC mode, for memset
 #include "aes.h"
 
 /*****************************************************************************/
@@ -186,7 +187,7 @@ static void KeyExpansion(uint8_t* RoundKey, const uint8_t* Key)
         tempa[0] = tempa[1];
         tempa[1] = tempa[2];
         tempa[2] = tempa[3];
-        tempa[3] = k;
+        tempa[3] = (uint8_t) k;
       }
 
       // SubWord() is a function that takes a four-byte input word and 
@@ -240,7 +241,7 @@ void AES_ctx_set_iv(struct AES_ctx* ctx, const uint8_t* iv)
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-static void AddRoundKey(uint8_t round,state_t* state,uint8_t* RoundKey)
+static void AddRoundKey(uint8_t round,state_t* state, const uint8_t* RoundKey)
 {
   uint8_t i,j;
   for (i = 0; i < 4; ++i)
@@ -299,7 +300,7 @@ static void ShiftRows(state_t* state)
 
 static uint8_t xtime(uint8_t x)
 {
-  return ((x<<1) ^ (((x>>7) & 1) * 0x1b));
+  return (uint8_t) (((uint32_t) x << 1u) ^ ((((uint32_t)x >> 7u) & 1u) * 0x1bu));
 }
 
 // MixColumns function mixes the columns of the state matrix
@@ -310,7 +311,7 @@ static void MixColumns(state_t* state)
   for (i = 0; i < 4; ++i)
   {  
     t   = (*state)[i][0];
-    Tmp = (*state)[i][0] ^ (*state)[i][1] ^ (*state)[i][2] ^ (*state)[i][3] ;
+    Tmp = (uint8_t)((uint32_t)((*state)[i][0]) ^ (uint32_t)((*state)[i][1]) ^ (uint32_t)((*state)[i][2]) ^ (uint32_t)((*state)[i][3]));
     Tm  = (*state)[i][0] ^ (*state)[i][1] ; Tm = xtime(Tm);  (*state)[i][0] ^= Tm ^ Tmp ;
     Tm  = (*state)[i][1] ^ (*state)[i][2] ; Tm = xtime(Tm);  (*state)[i][1] ^= Tm ^ Tmp ;
     Tm  = (*state)[i][2] ^ (*state)[i][3] ; Tm = xtime(Tm);  (*state)[i][2] ^= Tm ^ Tmp ;
@@ -333,11 +334,11 @@ static uint8_t Multiply(uint8_t x, uint8_t y)
   }
 #else
 #define Multiply(x, y)                                \
-      (  ((y & 1) * x) ^                              \
-      ((y>>1 & 1) * xtime(x)) ^                       \
-      ((y>>2 & 1) * xtime(xtime(x))) ^                \
-      ((y>>3 & 1) * xtime(xtime(xtime(x)))) ^         \
-      ((y>>4 & 1) * xtime(xtime(xtime(xtime(x))))))   \
+      (  (((y) & 1u) * (x)) ^                              \
+      (((y)>>1u & 1u) * xtime(x)) ^                       \
+      (((y)>>2u & 1u) * xtime(xtime(x))) ^                \
+      (((y)>>3u & 1u) * xtime(xtime(xtime(x)))) ^         \
+      (((y)>>4u & 1u) * xtime(xtime(xtime(xtime(x))))))   \
 
 #endif
 
@@ -355,10 +356,10 @@ static void InvMixColumns(state_t* state)
     c = (*state)[i][2];
     d = (*state)[i][3];
 
-    (*state)[i][0] = Multiply(a, 0x0e) ^ Multiply(b, 0x0b) ^ Multiply(c, 0x0d) ^ Multiply(d, 0x09);
-    (*state)[i][1] = Multiply(a, 0x09) ^ Multiply(b, 0x0e) ^ Multiply(c, 0x0b) ^ Multiply(d, 0x0d);
-    (*state)[i][2] = Multiply(a, 0x0d) ^ Multiply(b, 0x09) ^ Multiply(c, 0x0e) ^ Multiply(d, 0x0b);
-    (*state)[i][3] = Multiply(a, 0x0b) ^ Multiply(b, 0x0d) ^ Multiply(c, 0x09) ^ Multiply(d, 0x0e);
+    (*state)[i][0] = (uint8_t) ((uint32_t) Multiply(a, 0x0eu) ^ (uint32_t) Multiply(b, 0x0bu) ^ (uint32_t) Multiply(c, 0x0du) ^ (uint32_t) Multiply(d, 0x09u));
+    (*state)[i][1] = (uint8_t) ((uint32_t) Multiply(a, 0x09u) ^ (uint32_t) Multiply(b, 0x0eu) ^ (uint32_t) Multiply(c, 0x0bu) ^ (uint32_t) Multiply(d, 0x0du));
+    (*state)[i][2] = (uint8_t) ((uint32_t) Multiply(a, 0x0du) ^ (uint32_t) Multiply(b, 0x09u) ^ (uint32_t) Multiply(c, 0x0eu) ^ (uint32_t) Multiply(d, 0x0bu));
+    (*state)[i][3] = (uint8_t) ((uint32_t) Multiply(a, 0x0bu) ^ (uint32_t) Multiply(b, 0x0du) ^ (uint32_t) Multiply(c, 0x09u) ^ (uint32_t) Multiply(d, 0x0eu));
   }
 }
 
@@ -486,7 +487,7 @@ void AES_ECB_decrypt(struct AES_ctx* ctx,const uint8_t* buf)
 #if defined(CBC) && (CBC == 1)
 
 
-static void XorWithIv(uint8_t* buf, uint8_t* Iv)
+static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
 {
   uint8_t i;
   for (i = 0; i < AES_BLOCKLEN; ++i) // The block in AES is always 128bit no matter the key size
