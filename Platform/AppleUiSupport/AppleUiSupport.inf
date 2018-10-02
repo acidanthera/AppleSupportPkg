@@ -79,7 +79,6 @@
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
   AppleImageCodec/AppleImageCodec.c
-  AppleImageCodec/AppleImageCodec.h
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c

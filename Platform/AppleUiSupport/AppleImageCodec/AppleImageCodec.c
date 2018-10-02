@@ -23,120 +23,13 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/OcOverflowLib.h>
 #include <Library/OcPngLib.h>
 
 #include <Protocol/UgaDraw.h>
 #include <Protocol/AppleImageCodec.h>
 
-#include "AppleImageCodec.h"
-
-STATIC
-EG_IMAGE *
-CreateEfiGraphicsImage (
-  INTN     Width,
-  INTN     Height,
-  BOOLEAN  HasAlpha
-  )
-{
-  EG_IMAGE  *NewImage = NULL;
-
-  NewImage = (EG_IMAGE *) AllocateZeroPool (sizeof (EG_IMAGE));
-  if (NewImage == NULL) {
-    return NULL;
-  }
-
-  NewImage->PixelData = (EFI_UGA_PIXEL *) AllocateZeroPool (
-    (UINTN) (Width * Height * sizeof (EFI_UGA_PIXEL))
-    );
-  if (NewImage->PixelData == NULL) {
-      FreePool (NewImage);
-      return NULL;
-  }
-
-  NewImage->Width = Width;
-  NewImage->Height = Height;
-  NewImage->HasAlpha = HasAlpha;
-  return NewImage;
-}
-
-STATIC
-VOID
-FreeEfiGraphicsImage (
-  EG_IMAGE  *Image
-  )
-{
-  if (Image != NULL) {
-    if (Image->PixelData != NULL) {
-      FreePool (Image->PixelData);
-      Image->PixelData = NULL;
-    }
-    FreePool (Image);
-  }
-}
-
-STATIC
-EG_IMAGE *
-DecodePngImage (
-  UINT8  *PngBuffer,
-  UINTN  Size
-  )
-{
-  EFI_STATUS        Status;
-  EG_IMAGE          *NewImage    = NULL;
-  EFI_UGA_PIXEL     *Pixel       = NULL;
-  UINT8             *Data        = NULL;
-  UINT8             *DataPtr     = NULL;
-  INTN              X            = 0;
-  INTN              Y            = 0;
-  UINT32            Width        = 0;
-  UINT32            Height       = 0;
-  UINT32            HasAlphaType = 0;
-
-  //
-  // Decode PNG image
-  //
-  Status = DecodePng (
-            PngBuffer,
-            Size,
-            &Data,
-            &Width,
-            &Height,
-            &HasAlphaType
-            );
-
-  if (EFI_ERROR (Status)) {
-    return NULL;
-  }
-
-  //
-  // Create efi graphics image
-  //
-  NewImage = CreateEfiGraphicsImage (
-    Width,
-    Height,
-    (BOOLEAN) HasAlphaType
-    );
-
-  if (NewImage == NULL) {
-    FreePng (Data);
-    return NULL;
-  }
-
-  DataPtr = Data;
-  Pixel = (EFI_UGA_PIXEL*) NewImage->PixelData;
-  for (Y = 0; Y < NewImage->Height; Y++) {
-    for (X = 0; X < NewImage->Width; X++) {
-      Pixel->Red = *DataPtr++;
-      Pixel->Green = *DataPtr++;
-      Pixel->Blue = *DataPtr++;
-      Pixel->Reserved = 0xFF - *DataPtr++;
-      Pixel++;
-    }
-  }
-
-  FreePng (Data);
-  return NewImage;
-}
+STATIC CONST UINT8 mPngHeader[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 
 STATIC
 EFI_STATUS
@@ -146,12 +39,11 @@ RecognizeImageData (
   IN  UINTN  ImageSize
   )
 {
-  EFI_STATUS  Status          = EFI_INVALID_PARAMETER;
-  BOOLEAN     IsValidPngImage = FALSE;
-  UINT8       PngHeader[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+  BOOLEAN     IsValidPngImage;
+  EFI_STATUS  Status = EFI_INVALID_PARAMETER;
 
-  if (ImageBuffer != NULL && ImageSize >= 8) {
-    IsValidPngImage = CompareMem (ImageBuffer, PngHeader, 8) == 0;
+  if (ImageBuffer != NULL && ImageSize >= sizeof (mPngHeader)) {
+    IsValidPngImage = CompareMem (ImageBuffer, mPngHeader, sizeof (mPngHeader)) == 0;
     if (IsValidPngImage) {
       Status = EFI_SUCCESS;
     }
@@ -170,18 +62,15 @@ GetImageDims (
   OUT UINT32  *ImageHeight
   )
 {
-  EG_IMAGE  *Image = NULL;
+  EFI_STATUS  Status;
 
-  Image = DecodePngImage ((UINT8*) ImageBuffer, ImageSize);
-  if (Image == NULL) {
-    return EFI_UNSUPPORTED;
+  Status = GetPngDims (ImageBuffer, ImageSize, ImageWidth, ImageHeight);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "Failed to obtain image dimensions for image\n"));
   }
 
-  *ImageWidth = (UINT32) Image->Width;
-  *ImageHeight = (UINT32) Image->Height;
-
-  FreeEfiGraphicsImage (Image);
-  return EFI_SUCCESS;
+  return Status;
 }
 
 STATIC
@@ -194,34 +83,57 @@ DecodeImageData (
   OUT UINTN          *RawImageDataSize
   )
 {
-  EFI_STATUS  Status  = 0;
-  EG_IMAGE    *Image  = NULL;
+  UINT32          X;
+  UINT32          Y;
+  VOID            *Data;
+  UINT32          Width;
+  UINT32          Height;
+  UINT8           *DataWalker;
+  EFI_UGA_PIXEL   *Pixel;
+  EFI_STATUS      Status;
 
   if (!RawImageData || !RawImageDataSize) {
     return EFI_INVALID_PARAMETER;
   }
 
-  Image = DecodePngImage ((UINT8*) ImageBuffer, ImageSize);
-  if (Image == NULL) {
+  Status = DecodePng (
+            ImageBuffer,
+            ImageSize,
+            &Data,
+            &Width,
+            &Height,
+            NULL
+            );
+
+  if (EFI_ERROR (Status)) {
     return EFI_UNSUPPORTED;
   }
 
-  *RawImageDataSize = (UINT32) (
-    Image->Width
-    * Image->Height
-    * sizeof(EFI_UGA_PIXEL)
-    );
-
-  Status = gBS->AllocatePool (
-    EfiBootServicesData,
-    *RawImageDataSize,
-    (VOID **)RawImageData
-    );
-  if (!EFI_ERROR (Status)) {
-    gBS->CopyMem (*RawImageData, (VOID*)Image->PixelData, *RawImageDataSize);
+  if (OcOverflowTriMulUN (Width, Height, sizeof(EFI_UGA_PIXEL), RawImageDataSize)) {
+    FreePng (Data);
+    return EFI_UNSUPPORTED;
   }
 
-  FreeEfiGraphicsImage (Image);
+  *RawImageData = (EFI_UGA_PIXEL *) AllocatePool (*RawImageDataSize);
+
+  if (RawImageData == NULL) {
+    FreePng (Data);
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  DataWalker = (UINT8 *) Data;
+  Pixel      = *RawImageData;
+  for (Y = 0; Y < Height; Y++) {
+    for (X = 0; X < Width; X++) {
+      Pixel->Red = *DataWalker++;
+      Pixel->Green = *DataWalker++;
+      Pixel->Blue = *DataWalker++;
+      Pixel->Reserved = 0xFF - *DataWalker++;
+      Pixel++;
+    }
+  }
+
+  FreePng (Data);
   return EFI_SUCCESS;
 }
 
@@ -235,13 +147,14 @@ GetImageDimsVersion (
   UINT32            *Height
   )
 {
-  EFI_STATUS Status = EFI_INVALID_PARAMETER;
+  EFI_STATUS  Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && Height && Width) {
     Status = EFI_UNSUPPORTED;
     if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
       Status = GetImageDims (Buffer, BufferSize, Width, Height);
     }
   }
+
   return Status;
 }
 
@@ -255,13 +168,14 @@ DecodeImageDataVersion (
   UINTN              *RawImageDataSize
   )
 {
-  EFI_STATUS Status = EFI_INVALID_PARAMETER;
+  EFI_STATUS  Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && RawImageData && RawImageDataSize) {
     Status = EFI_UNSUPPORTED;
     if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
       Status = DecodeImageData (Buffer, BufferSize, RawImageData, RawImageDataSize);
     }
   }
+
   return Status;
 }
 

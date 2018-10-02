@@ -33,10 +33,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 EFI_STATUS
 GetPngDims (
-  IN  UINT8   *Buffer,
-  IN  UINTN   Size,
-  OUT UINT32  *Width,
-  OUT UINT32  *Height
+  IN  VOID     *Buffer,
+  IN  UINTN    Size,
+  OUT UINT32   *Width,
+  OUT UINT32   *Height
   );
 
 /**
@@ -56,12 +56,12 @@ GetPngDims (
 **/
 EFI_STATUS
 DecodePng (
-  IN   UINT8   *Buffer,
-  IN   UINTN   Size,
-  OUT  UINT8   **RawData,
-  OUT  UINT32  *Width,
-  OUT  UINT32  *Height,
-  OUT  UINT32  *HasAlphaType OPTIONAL
+  IN   VOID     *Buffer,
+  IN   UINTN    Size,
+  OUT  VOID     **RawData,
+  OUT  UINT32   *Width,
+  OUT  UINT32   *Height,
+  OUT  BOOLEAN  *HasAlphaType OPTIONAL
   );
 
 /**
@@ -71,7 +71,7 @@ DecodePng (
 **/
 VOID
 FreePng (
-  VOID *Buffer
+  IN  VOID      *Buffer
   );
 
 #endif

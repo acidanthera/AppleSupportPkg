@@ -34,14 +34,16 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 EFI_STATUS
 GetPngDims (
-  IN  UINT8   *Buffer,
+  IN  VOID    *Buffer,
   IN  UINTN   Size,
   OUT UINT32  *Width,
   OUT UINT32  *Height
   )
 {
   LodePNGState  State;
-  UINT32        Error        = 0;
+  unsigned      Error;
+  unsigned      W;
+  unsigned      H;
 
   //
   // Init state
@@ -51,13 +53,7 @@ GetPngDims (
   //
   // Reads header and resets other parameters in state->info_png
   //
-  Error = lodepng_inspect (
-            Width,
-            Height,
-            &State,
-            Buffer,
-            Size
-            );
+  Error = lodepng_inspect (&W, &H, &State, Buffer, Size);
 
   lodepng_state_cleanup (&State);
 
@@ -65,6 +61,9 @@ GetPngDims (
     DEBUG ((DEBUG_WARN, "OcPngLib: Error while getting image dimensions from PNG header\n"));
     return EFI_INVALID_PARAMETER;
   }
+
+  *Width = W;
+  *Height = H;
 
   return EFI_SUCCESS;
 }
@@ -86,17 +85,18 @@ GetPngDims (
 **/
 EFI_STATUS
 DecodePng (
-  IN   UINT8   *Buffer,
+  IN   VOID    *Buffer,
   IN   UINTN   Size,
-  OUT  UINT8   **RawData,
+  OUT  VOID    **RawData,
   OUT  UINT32  *Width,
   OUT  UINT32  *Height,
-  OUT  UINT32  *HasAlphaType OPTIONAL
+  OUT  BOOLEAN *HasAlphaType OPTIONAL
   )
 {
   LodePNGState      State;
-  LodePNGColorMode  *Color       = NULL;
-  UINT32            Error        = 0;
+  unsigned          Error;
+  unsigned          W;
+  unsigned          H;
 
   //
   // Init lodepng state
@@ -106,14 +106,7 @@ DecodePng (
   //
   // It should return 0 on success
   //
-  Error = lodepng_decode (
-    RawData,
-    Width,
-    Height,
-    &State,
-    Buffer,
-    Size
-    );
+  Error = lodepng_decode ((unsigned char **) RawData, &W, &H, &State, Buffer, Size);
 
   if (Error) {
     lodepng_state_cleanup (&State);
@@ -121,16 +114,14 @@ DecodePng (
     return EFI_INVALID_PARAMETER;
   }
 
-  if (HasAlphaType != NULL) {
-    //
-    // Extract color information
-    //
-    Color = &State.info_png.color;
+  *Width = W;
+  *Height = H;
 
+  if (HasAlphaType != NULL) {
     //
     // Check alpha layer existence
     //
-    *HasAlphaType = lodepng_is_alpha_type (Color);
+    *HasAlphaType = lodepng_is_alpha_type (&State.info_png.color) == 1;
   }
 
   //
@@ -149,7 +140,7 @@ DecodePng (
 **/
 VOID
 FreePng (
-  VOID *Buffer
+  IN VOID  *Buffer
   )
 {
   lodepng_free (Buffer);

@@ -40,8 +40,8 @@ const int32_t _fltused = 0;
 
 // Internal C function implementations
 static inline void* memcpy(void* dst, void* src, size_t size) {
-    gBS->CopyMem(dst, src, size);
-    return dst;
+  gBS->CopyMem(dst, src, size);
+  return dst;
 }
 
 static inline void* memset(void* dst, int c, size_t n) {
@@ -272,41 +272,13 @@ static unsigned uivector_resizev(uivector* p, size_t size, unsigned value)
   if(!uivector_resize(p, size)) return 0;
   if(value == 0)
   {
-    /*
-    In case somebody wonders why this code is written like that, be aware
-    that it is not a stupid optimisation but a fix to MSVC linkage with /GL.
-
-    When building UEFI drivers functions like memset are not available,
-    and one has to explicitly use workarounds like gBS->SetMem.
-    Sometimes compilers may optimise code by implicitly inserting library
-    calls like memset. MSVC is special, because unlike other compilers
-    supporting freestanding environments (e.g. -nostdlib, -ffreestanding)
-    even with /NODEFAULTLIB and /DRIVER arguments it continues to insert
-    memset calls.
-
-    When doing so, unlike ld64 or gold, MSVC linker only reports the relevant
-    object file without providing at least the function name where the
-    insertion of an undefined symbol has happened. Under normal circumstances
-    this would not be a problem, as you can always use DUMPBIN (or any other
-    tool supporting COFF) and find the relevant function. However, this is not
-    the case when building with /GL. This flag postpones code generation,
-    making each .obj file only contain MSIL code, which cannot be handled by
-    any tool I could find. For M$ DUMPBIN it is officially unsupported, and
-    tools like IDA, radare2, LLVM binutils, monodis just fail misrably.
-
-    The code below is a rare example that links fine without /GL, but fails
-    when /GL is used. The only way I could find to "quickly" detect places
-    like this is to define a global memset symbol (instead of static inline),
-    and wait for C2268: function' is a compiler predefined library helper.
-    Library helpers are not supported with /GL; compile object file 'file'
-    without /GL. This error fortunately includes a line number.
-    */
+    /*fixes implicit memset generation by MSVC in UEFI mode*/
     if (size > oldsize)
       memset(p->data + oldsize, 0, (size - oldsize) * sizeof(p->data[0]));
   }
   else
   {
-  for(i = oldsize; i < size; ++i) p->data[i] = value;
+    for(i = oldsize; i < size; ++i) p->data[i] = value;
   }
   return 1;
 }
