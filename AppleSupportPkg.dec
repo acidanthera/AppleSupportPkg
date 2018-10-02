@@ -32,18 +32,7 @@
   OcCryptoLib|Include/Library/OcCryptoLib.h
 
   ##  @libraryclass
+  OcOverflowLib|Include/Library/OcOverflowLib.h
+
+  ##  @libraryclass
   OcAppleImageVerificationLib|Include/Library/OcAppleImageVerificationLib.h
-
-[Guids]
-  # Include/Guid/AppleEfiSignature.h
-  gAppleEfiCertificateGuid                      = { 0x45E7BC51, 0x913C, 0x42AC, { 0x96, 0xA2, 0x10, 0x71, 0x2F, 0xFB, 0xEB, 0xA7 }}
-
-[Protocols]
-  # Inlude/Protocol/ApfsBdsSupportProtocol.h
-  gApfsUnsupportedBdsProtocolGuid               = { 0xA196A7CA, 0x14C6, 0x11E7, { 0xB9, 0x06, 0xB8, 0xE8, 0x56, 0x2C, 0xBA, 0xFA }}
-
-  # Include/Protocol/ApfsEfiBootRecordInfo.h
-  gApfsEfiBootRecordInfoProtocolGuid            = { 0x03B8D751, 0xA02F, 0x4FF8, { 0x9B, 0x1A, 0x55, 0x24, 0xAF, 0xA3, 0x94, 0x5F }}
-
-  # Include/Protocol/AppleLoadImage.h
-  gAppleLoadImageProtocolGuid                   = { 0x6C6148A4, 0x97B8, 0x429C, { 0x95, 0x5E, 0x41, 0x03, 0xE8, 0xAC, 0xA0, 0xFA }}

@@ -28,6 +28,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  EfiPkg/EfiPkg.dec
   AppleSupportPkg/AppleSupportPkg.dec
 
 [Protocols]

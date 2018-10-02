@@ -238,7 +238,7 @@ GetImageDimsVersion (
   EFI_STATUS Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && Height && Width) {
     Status = EFI_UNSUPPORTED;
-    if (Version <= 1) {
+    if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
       Status = GetImageDims (Buffer, BufferSize, Width, Height);
     }
   }
@@ -258,7 +258,7 @@ DecodeImageDataVersion (
   EFI_STATUS Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && RawImageData && RawImageDataSize) {
     Status = EFI_UNSUPPORTED;
-    if (Version <= 1) {
+    if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
       Status = DecodeImageData (Buffer, BufferSize, RawImageData, RawImageDataSize);
     }
   }
@@ -269,10 +269,8 @@ DecodeImageDataVersion (
 // Image codec protocol instance.
 //
 STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
-  // Version
-  0x20000,
-  // FileExt
-  0,
+  APPLE_IMAGE_CODEC_PROTOCOL_REVISION,
+  APPLE_IMAGE_CODEC_PROTOCOL_ANY_EXTENSION,
   RecognizeImageData,
   GetImageDims,
   DecodeImageData,

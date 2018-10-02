@@ -33,6 +33,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  EfiPkg/EfiPkg.dec
   AppleSupportPkg/AppleSupportPkg.dec
 
 [LibraryClasses]

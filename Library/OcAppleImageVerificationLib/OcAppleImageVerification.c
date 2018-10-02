@@ -36,7 +36,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcOverflowLib.h>
 #include <Protocol/DebugSupport.h>
 #include <IndustryStandard/PeImage.h>
-#include <Guid/AppleEfiCertificate.h>
+#include <Guid/AppleCertificate.h>
 #include "ApplePublicKeyDb.h"
 
 UINT16
@@ -392,7 +392,7 @@ GetApplePeImageSignature (
     //
     // Verify certificate type
     //
-    if (Cert->CertType != APPLE_CERT_TYPE_EFI_GUID) {
+    if (Cert->CertType != APPLE_EFI_CERTIFICATE_TYPE) {
       DEBUG ((DEBUG_WARN, "Unknown certificate type\n"));
       return EFI_UNSUPPORTED;
     }

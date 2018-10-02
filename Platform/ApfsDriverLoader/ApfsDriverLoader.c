@@ -576,7 +576,7 @@ ApfsDriverLoaderSupported (
         //
         // Verify GPT entry GUID
         //
-        if (CompareGuid (&ApplePartitionInfo->PartitionType,
+        if (CompareGuid ((EFI_GUID *) ApplePartitionInfo->PartitionType,
                          &gAppleApfsPartitionTypeGuid)) {
           return EFI_UNSUPPORTED;
         }
