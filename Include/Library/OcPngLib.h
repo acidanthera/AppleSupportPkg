@@ -1,6 +1,6 @@
 /** @file
 
-OcPngLib
+OcCryptoLib
 
 Copyright (c) 2018, savvas
 
@@ -15,19 +15,9 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
-#include <Base.h>
-#include <Uefi.h>
-#include <Library/DebugLib.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiLib.h>
-#include "lodepng.h"
+
+#ifndef OC_PNG_LIB_H
+#define OC_PNG_LIB_H
 
 /**
   Retrieves PNG image dimensions
@@ -47,35 +37,7 @@ GetPngDims (
   IN  UINTN   Size,
   OUT UINT32  *Width,
   OUT UINT32  *Height
-  )
-{
-  LodePNGState  State;
-  UINT32        Error        = 0;
-
-  //
-  // Init state
-  //
-  lodepng_state_init (&State);
-
-  //
-  // Reads header and resets other parameters in state->info_png
-  //
-  Error = lodepng_inspect (
-            Width,
-            Height,
-            &State,
-            Buffer,
-            Size
-            ); 
-  
-  lodepng_state_cleanup (&State);
-
-  if (Error) {
-    return EFI_INVALID_PARAMETER;
-  } else {
-    return EFI_SUCCESS;
-  }
-}
+  );
 
 /**
   Decodes PNG image into raw pixel buffer
@@ -100,54 +62,7 @@ DecodePng (
   OUT  UINT32  *Width, 
   OUT  UINT32  *Height,
   OUT  UINT32  *HasAlphaType OPTIONAL
-  )
-{
-  LodePNGState      State;
-  LodePNGColorMode  *Color       = NULL;
-  UINT32            Error        = 0;
-
-  //
-  // Init lodepng state
-  //
-  lodepng_state_init (&State);
-
-  //
-  // It should return 0 on success
-  //
-  Error = lodepng_decode (
-    RawData,
-    Width,
-    Height,
-    &State,
-    Buffer,
-    Size
-    );
-
-  if (Error) {
-    lodepng_state_cleanup (&State);
-    return EFI_INVALID_PARAMETER;
-  }
-
-  if (HasAlphaType != NULL) {
-    //
-    // Extract color information
-    //
-    Color = &State.info_png.color;
-  
-    //
-    // Check alpha layer existence
-    //
-    *HasAlphaType = lodepng_is_alpha_type (Color);
-  }
-
-  //
-  // Cleanup state
-  //
-  lodepng_state_cleanup (&State);
-
-  return EFI_SUCCESS;
-
-}
+  );
 
 /**
   Frees image buffer
@@ -157,7 +72,6 @@ DecodePng (
 VOID
 FreePng (
   VOID *Buffer
-  )
-{
-  lodepng_free (Buffer);
-}
+  );
+
+#endif

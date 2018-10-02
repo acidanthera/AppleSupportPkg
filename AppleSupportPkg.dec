@@ -26,6 +26,9 @@
 
 [LibraryClasses]
   ##  @libraryclass
+  OcPngLib|Include/Library/OcPngLib.h
+
+  ##  @libraryclass
   OcCryptoLib|Include/Library/OcCryptoLib.h
 
   ##  @libraryclass

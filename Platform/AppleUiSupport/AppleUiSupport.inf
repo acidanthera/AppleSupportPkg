@@ -34,6 +34,7 @@
   IntelFrameworkPkg/IntelFrameworkPkg.dec
 
 [LibraryClasses]
+  OcPngLib
   BaseLib
   UefiLib
   BaseMemoryLib
@@ -79,8 +80,6 @@
   AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
   AppleImageCodec/AppleImageCodec.c
   AppleImageCodec/AppleImageCodec.h
-  AppleImageCodec/lodepng.c
-  AppleImageCodec/lodepng.h
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c

@@ -24,9 +24,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/UgaDraw.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/OcPngLib.h>
 #include <Protocol/AppleImageCodecProtocol.h>
 #include "AppleImageCodec.h"
-#include "lodepng.h"
 
 STATIC
 EG_IMAGE *
@@ -79,53 +79,35 @@ DecodePngImage (
   UINTN  FileDataLength
   )
 {
-  LodePNGState      State;
+  EFI_STATUS        Status;
   EG_IMAGE          *NewImage    = NULL;
   EFI_UGA_PIXEL     *Pixel       = NULL;
   UINT8             *Data        = NULL;
   UINT8             *DataPtr     = NULL;
   INTN              X            = 0;
   INTN              Y            = 0;
-  unsigned          Width        = 0;
-  unsigned          Height       = 0;
-  unsigned          Error        = 0;
-  unsigned          HasAlphaType = 0;
-  LodePNGColorMode  *Color       = NULL;
+  UINT32            Width        = 0;
+  UINT32            Height       = 0;
+  UINT32            HasAlphaType = 0;
 
   //
-  // Init lodepng state
+  // Decode PNG image
   //
-  lodepng_state_init (&State);
+  Status = DecodePng (
+            FileData,
+            FileDataLength,
+            &Data,
+            &Width,
+            &Height,
+            &HasAlphaType
+            );
 
-  //
-  // It should return 0 on success
-  //
-  Error = lodepng_decode (
-    &Data,
-    &Width,
-    &Height,
-    &State,
-    FileData,
-    FileDataLength
-    );
-
-  if (Error) {
-    lodepng_state_cleanup (&State);
+  if (EFI_ERROR (Status)) {
     return NULL;
   }
-
   //
-  // Extract color information
+  // Create efi graphics image
   //
-  Color = &State.info_png.color;
-
-  //
-  // Check existence of alpha layer
-  //
-  HasAlphaType = lodepng_is_alpha_type (Color);
-
-  lodepng_state_cleanup(&State);
-
   NewImage = CreateEfiGraphicsImage (
     Width,
     Height,
@@ -133,7 +115,7 @@ DecodePngImage (
     );
 
   if (NewImage == NULL) {
-    lodepng_free (Data);
+    FreePng (Data);
     return NULL;
   }
 
@@ -149,7 +131,7 @@ DecodePngImage (
     }
   }
 
-  lodepng_free (Data);
+  FreePng (Data);
   return NewImage;
 }
 

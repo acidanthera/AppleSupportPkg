@@ -306,6 +306,7 @@ static unsigned uivector_resizev(uivector* p, size_t size, unsigned value)
   else
   {
   for(i = oldsize; i < size; ++i) p->data[i] = value;
+  }
   return 1;
 }
 
