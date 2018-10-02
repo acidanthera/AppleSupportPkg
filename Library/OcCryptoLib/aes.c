@@ -15,7 +15,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 #include <Uefi.h>
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
-#include "aes.h"
+#include "Aes.h"
 
 //
 // The number of columns comprising a state in AES. This is a CONSTant in AES. Value=4
@@ -121,114 +121,129 @@ STATIC CONST UINT8 Rcon[11] = {
 //
 // Private functions:
 //
-#define getSBoxValue(num) (Sbox[(num)])
+#define GetSboxValue(num) (Sbox[(num)])
 #define getSBoxInvert(num) (RsBox[(num)])
 
 //
-// This function produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states.
+// This function produces Nb(Nr+1) round keys. The round keys are used in each
+// round to decrypt the states.
 //
 STATIC
 VOID
 KeyExpansion (
-  UINT8* RoundKey,
-  CONST UINT8* Key
+  UINT8*        RoundKey,
+  CONST UINT8*  Key
   )
 {
-  unsigned i, j, k;
-  UINT8 tempa[4]; // Used for the column/row operations
+  UINT32 Index, J, K;
+  UINT8 TempA[4]; // Used for the column/row operations
 
+  //
   // The first round key is the key itself.
-  for (i = 0; i < Nk; ++i)
+  //
+  for (Index = 0; Index < Nk; ++Index)
   {
-    RoundKey[(i * 4) + 0] = Key[(i * 4) + 0];
-    RoundKey[(i * 4) + 1] = Key[(i * 4) + 1];
-    RoundKey[(i * 4) + 2] = Key[(i * 4) + 2];
-    RoundKey[(i * 4) + 3] = Key[(i * 4) + 3];
+    RoundKey[(Index * 4) + 0] = Key[(Index * 4) + 0];
+    RoundKey[(Index * 4) + 1] = Key[(Index * 4) + 1];
+    RoundKey[(Index * 4) + 2] = Key[(Index * 4) + 2];
+    RoundKey[(Index * 4) + 3] = Key[(Index * 4) + 3];
   }
 
+  //
   // All other round keys are found from the previous round keys.
-  for (i = Nk; i < Nb * (Nr + 1); ++i)
+  //
+  for (Index = Nk; Index < Nb * (Nr + 1); ++Index)
   {
     {
-      k = (i - 1) * 4;
-      tempa[0] = RoundKey[k + 0];
-      tempa[1] = RoundKey[k + 1];
-      tempa[2] = RoundKey[k + 2];
-      tempa[3] = RoundKey[k + 3];
+      K = (Index - 1) * 4;
+      TempA[0] = RoundKey[K + 0];
+      TempA[1] = RoundKey[K + 1];
+      TempA[2] = RoundKey[K + 2];
+      TempA[3] = RoundKey[K + 3];
 
     }
 
-    if (i % Nk == 0)
+    if (Index % Nk == 0)
     {
+      //
       // This function shifts the 4 bytes in a word to the left once.
       // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
+      //
 
+      //
       // Function RotWord()
+      //
       {
-        k = tempa[0];
-        tempa[0] = tempa[1];
-        tempa[1] = tempa[2];
-        tempa[2] = tempa[3];
-        tempa[3] = (UINT8) k;
+        K = TempA[0];
+        TempA[0] = TempA[1];
+        TempA[1] = TempA[2];
+        TempA[2] = TempA[3];
+        TempA[3] = (UINT8) K;
       }
-
+      //
       // SubWord() is a function that takes a four-byte input word and
       // applies the S-box to each of the four bytes to produce an output word.
+      //
 
+      //
       // Function Subword()
+      //
       {
-        tempa[0] = getSBoxValue(tempa[0]);
-        tempa[1] = getSBoxValue(tempa[1]);
-        tempa[2] = getSBoxValue(tempa[2]);
-        tempa[3] = getSBoxValue(tempa[3]);
+        TempA[0] = GetSboxValue (TempA[0]);
+        TempA[1] = GetSboxValue (TempA[1]);
+        TempA[2] = GetSboxValue (TempA[2]);
+        TempA[3] = GetSboxValue (TempA[3]);
       }
 
-      tempa[0] = tempa[0] ^ Rcon[i / Nk];
+      TempA[0] = TempA[0] ^ Rcon[Index / Nk];
     }
 #if defined(AES256) && (AES256 == 1)
-    if (i % Nk == 4)
+    if (Index % Nk == 4)
     {
+      //
       // Function Subword()
+      //
       {
-        tempa[0] = getSBoxValue(tempa[0]);
-        tempa[1] = getSBoxValue(tempa[1]);
-        tempa[2] = getSBoxValue(tempa[2]);
-        tempa[3] = getSBoxValue(tempa[3]);
+        TempA[0] = GetSboxValue (TempA[0]);
+        TempA[1] = GetSboxValue (TempA[1]);
+        TempA[2] = GetSboxValue (TempA[2]);
+        TempA[3] = GetSboxValue (TempA[3]);
       }
     }
 #endif
-    j = i * 4; k = (i - Nk) * 4;
-    RoundKey[j + 0] = RoundKey[k + 0] ^ tempa[0];
-    RoundKey[j + 1] = RoundKey[k + 1] ^ tempa[1];
-    RoundKey[j + 2] = RoundKey[k + 2] ^ tempa[2];
-    RoundKey[j + 3] = RoundKey[k + 3] ^ tempa[3];
+    J = Index * 4; K = (Index - Nk) * 4;
+    RoundKey[J + 0] = RoundKey[K + 0] ^ TempA[0];
+    RoundKey[J + 1] = RoundKey[K + 1] ^ TempA[1];
+    RoundKey[J + 2] = RoundKey[K + 2] ^ TempA[2];
+    RoundKey[J + 3] = RoundKey[K + 3] ^ TempA[3];
   }
 }
 
 VOID
-AES_init_ctx (
-  struct AES_ctx* ctx,
-  CONST UINT8* key
+AesInitCtx (
+  struct AES_ctx*  Context,
+  CONST UINT8*     Key
   )
 {
-  KeyExpansion(ctx->RoundKey, key);
+  KeyExpansion (Context->RoundKey, Key);
 }
 
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
 VOID
-AES_init_ctx_iv (
+AesInitCtxIV (
   struct AES_ctx* ctx,
   CONST UINT8* key,
   CONST UINT8* iv
   )
 {
-  KeyExpansion(ctx->RoundKey, key);
+  KeyExpansion (ctx->RoundKey, key);
   CopyMem (ctx->Iv, iv, AES_BLOCKLEN);
 }
+
 VOID
-AES_ctx_set_iv (
-  struct AES_ctx* ctx,
-  CONST UINT8* iv
+AesCtxSetIV (
+  struct AES_ctx*  ctx,
+  CONST UINT8*     iv
   )
 {
   CopyMem (ctx->Iv, iv, AES_BLOCKLEN);
@@ -239,7 +254,8 @@ AES_ctx_set_iv (
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
 //
-STATIC VOID
+STATIC 
+VOID
 AddRoundKey (
   UINT8 round,
   state_t* state,
@@ -260,7 +276,8 @@ AddRoundKey (
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
 //
-STATIC VOID
+STATIC 
+VOID
 SubBytes (
   state_t* state
   )
@@ -270,7 +287,7 @@ SubBytes (
   {
     for (j = 0; j < 4; ++j)
     {
-      (*state)[j][i] = getSBoxValue((*state)[j][i]);
+      (*state)[j][i] = GetSboxValue((*state)[j][i]);
     }
   }
 }
@@ -280,7 +297,8 @@ SubBytes (
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
 //
-STATIC VOID
+STATIC 
+VOID
 ShiftRows (
   state_t* state
   )
@@ -311,7 +329,8 @@ ShiftRows (
   (*state)[1][3] = temp;
 }
 
-STATIC UINT8
+STATIC 
+UINT8
 xtime (
   UINT8 x
   )
@@ -322,7 +341,8 @@ xtime (
 //
 // MixColumns function mixes the columns of the state matrix
 //
-STATIC VOID
+STATIC 
+VOID
 MixColumns (
   state_t* state
   )
@@ -356,7 +376,8 @@ MixColumns (
 //       See https://github.com/kokke/tiny-AES-c/pull/34
 //
 #if MULTIPLY_AS_A_FUNCTION
-STATIC UINT8
+STATIC 
+UINT8
 Multiply (
   UINT8 x,
   UINT8 y
@@ -381,7 +402,8 @@ Multiply (
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the inexperienced.
 // Please use the references to gain more information.
-STATIC VOID
+STATIC 
+VOID
 InvMixColumns (
   state_t* state
   )
