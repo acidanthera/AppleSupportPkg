@@ -15,6 +15,7 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
+
 /*********************************************************************
 * Filename:   md5.c
 * Author:     Brad Conte (brad AT bradconte.com)
@@ -25,6 +26,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
            * http://tools.ietf.org/html/rfc1321
           This implementation uses little endian byte order.
 *********************************************************************/
+
 #include <Library/BaseMemoryLib.h>
 #include <Library/OcCryptoLib.h>
 
@@ -43,16 +45,11 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
                             A = B + ROTLEFT(A,S); } while (0)
 #define II(A,B,C,D,M,S,T) do { A += I(B,C,D) + M + T; \
                             A = B + ROTLEFT(A,S); } while (0)
-//
-// MD5 outputs a 16 byte digest
-//
-#define MD5_BLOCK_SIZE 16
-
 VOID
 Md5Transform (
-	MD5_CONTEXT  *Ctx,
-	CONST UINT8  *Data
-	)
+  MD5_CONTEXT  *Ctx,
+  CONST UINT8  *Data
+  )
 {
   UINT32 A, B, C, D, M[16], Index1, Index2;
 
@@ -146,8 +143,8 @@ Md5Transform (
 
 VOID
 Md5Init (
-	MD5_CONTEXT  *Ctx
-	)
+  MD5_CONTEXT  *Ctx
+  )
 {
   Ctx->DataLen = 0;
   Ctx->BitLen = 0;
@@ -159,10 +156,10 @@ Md5Init (
 
 VOID
 Md5Update (
-	MD5_CONTEXT  *Ctx,
-	CONST UINT8  *Data,
-	UINTN        Len
-	)
+  MD5_CONTEXT  *Ctx,
+  CONST UINT8  *Data,
+  UINTN        Len
+  )
 {
   UINTN Index;
 
@@ -179,9 +176,9 @@ Md5Update (
 
 VOID
 Md5Final (
-	MD5_CONTEXT  *Ctx,
-	UINT8        *Hash
-	)
+  MD5_CONTEXT  *Ctx,
+  UINT8        *Hash
+  )
 {
   UINTN Index = Ctx->DataLen;
 
@@ -193,7 +190,7 @@ Md5Final (
     ZeroMem (Ctx->Data + Index, 56-Index);
   } else if (Ctx->DataLen >= 56) {
     Ctx->Data[Index++] = 0x80;
-		ZeroMem (Ctx->Data + Index, 64-Index);
+    ZeroMem (Ctx->Data + Index, 64-Index);
     Md5Transform (Ctx, Ctx->Data);
     ZeroMem (Ctx->Data, 56);
   }
@@ -226,14 +223,14 @@ Md5Final (
 
 VOID
 Md5 (
-	UINT8  *Hash,
-	UINT8  *Data,
-	UINTN  Len
-	)
+  UINT8  *Hash,
+  UINT8  *Data,
+  UINTN  Len
+  )
 {
-	MD5_CONTEXT Ctx;
+  MD5_CONTEXT Ctx;
 
-	Md5Init (&Ctx);
-	Md5Update (&Ctx, Data, Len);
-	Md5Final (&Ctx,Hash);
+  Md5Init (&Ctx);
+  Md5Update (&Ctx, Data, Len);
+  Md5Final (&Ctx,Hash);
 }

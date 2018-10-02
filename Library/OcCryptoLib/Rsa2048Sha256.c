@@ -15,6 +15,7 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
+
 /**
   Copyright (c) 2014 The Chromium OS Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
@@ -23,17 +24,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
   Implementation of RSA signature verification which uses a pre-processed key
   for computation.
 **/
+
 #include <Library/BaseMemoryLib.h>
 #include <Library/OcCryptoLib.h>
-
-#define SHA256_DIGEST_SIZE 32
-
-//
-// Default to 2048-bit key length
-//
-#define CONFIG_RSA_KEY_SIZE 2048
-#define RSANUMBYTES ((CONFIG_RSA_KEY_SIZE) / 8)
-#define RSANUMWORDS (RSANUMBYTES / sizeof (UINT32))
 
 /**
   PKCS#1 padding (from the RSA PKCS#1 v2.1 standard)
@@ -51,7 +44,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
  **/
 #define PKCS_PAD_SIZE (RSANUMBYTES - SHA256_DIGEST_SIZE)
 
-STATIC  UINT8 Sha256Tail[] = {
+STATIC  UINT8 mSha256Tail[] = {
   0x00, 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60,
   0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
   0x05, 0x00, 0x04, 0x20
@@ -278,12 +271,12 @@ CheckPadding (
   //
   // Then 0xff bytes until the tail
   //
-  for (Index = 0; Index < PKCS_PAD_SIZE - sizeof (Sha256Tail) - 2; Index++)
+  for (Index = 0; Index < PKCS_PAD_SIZE - sizeof (mSha256Tail) - 2; Index++)
     Result |= *Ptr++ ^ 0xff;
   //
   // Check the tail
   //
-  Result |= CompareMem (Ptr, Sha256Tail, sizeof (Sha256Tail));
+  Result |= CompareMem (Ptr, mSha256Tail, sizeof (mSha256Tail));
   return Result != 0;
 }
 
@@ -291,18 +284,18 @@ CheckPadding (
   Verify a SHA256WithRSA PKCS#1 v1.5 signature against an expected
   SHA256 hash.
 
-  @param Key  RSA public key
+  @param Key         RSA public key
   @param Signature   RSA signature
-  @param Sha  SHA-256 digest of the content to verify
+  @param Sha256      SHA-256 digest of the content to verify
   @param Workbuf32   Work buffer; caller must verify this is
-        3 x RSANUMWORDS elements long.
-  @return 0 on failure, 1 on success.
+                     3 x RSANUMWORDS elements long.
+  @return FALSE on failure, TRUE on success.
  **/
-INTN
+BOOLEAN
 RsaVerify (
   RSA_PUBLIC_KEY  *Key,
   UINT8           *Signature,
-  UINT8           *Sha,
+  UINT8           *Sha256,
   UINT32          *Workbuf32
   )
 {
@@ -322,18 +315,18 @@ RsaVerify (
   // Check the PKCS#1 padding
   //
   if (CheckPadding (Buf) != 0) {
-    return 0;
+    return FALSE;
   }
 
   //
   // Check the digest
   //
-  if (CompareMem (Buf + PKCS_PAD_SIZE, Sha, SHA256_DIGEST_SIZE) != 0) {
-    return 0;
+  if (CompareMem (Buf + PKCS_PAD_SIZE, Sha256, SHA256_DIGEST_SIZE) != 0) {
+    return FALSE;
   }
 
   //
   // All checked out OK
   //
-  return 1;
+  return TRUE;
 }

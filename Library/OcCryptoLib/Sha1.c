@@ -15,6 +15,7 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
+
 /*********************************************************************
 * Filename:   sha1.c
 * Author:     Brad Conte (brad AT bradconte.com)
@@ -25,15 +26,11 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
                * http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf
               This implementation uses little endian byte order.
 *********************************************************************/
+
 #include <Library/BaseMemoryLib.h>
 #include <Library/OcCryptoLib.h>
 
 #define ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
-
-//
-// SHA1 outputs a 20 byte digest
-//
-#define SHA1_BLOCK_SIZE 20
 
 VOID
 Sha1Transform (
