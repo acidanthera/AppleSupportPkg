@@ -36,7 +36,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
 #include <Protocol/ApfsEfiBootRecordInfo.h>
-#include <Protocol/NullTextOutputProtocol.h>
+#include <Protocol/NullTextOutput.h>
 #include "ApfsDriverLoader.h"
 #include "EfiComponentName.h"
 
@@ -920,47 +920,38 @@ ApfsDriverLoaderStart (
                                 );
 
     //
-    // Check bounds
+    // Adjust buffer size
     //
-    if (EfiBootRecordBlock->EfiFileLen <= EfiFileCurrentExtentSize) {
-      //
-      // Adjust buffer size
-      //
-      EfiFileBuffer = ReallocatePool (
-                        CurPos,
-                        CurPos + EfiFileCurrentExtentSize,
-                        EfiFileBuffer
-                        );
+    EfiFileBuffer = ReallocatePool (
+                      CurPos,
+                      CurPos + EfiFileCurrentExtentSize,
+                      EfiFileBuffer
+                      );
 
-      if (EfiFileBuffer == NULL) {
-        return EFI_OUT_OF_RESOURCES;
-      }
-
-      //
-      // Read current extent
-      //
-      Status = ReadDisk (
-        DiskIo,
-        DiskIo2,
-        MediaId,
-        EfiFileCurrentExtentOffset,
-        EfiFileCurrentExtentSize,
-        EfiFileBuffer + CurPos
-        );
-
-      if (EFI_ERROR (Status)) {
-        return EFI_DEVICE_ERROR;
-      }
-      //
-      // Sum size for buffer offset
-      //
-      CurPos += EfiFileCurrentExtentSize;
-    } else {
-      //
-      // CHECKME: May be return?
-      //
-      break;
+    if (EfiFileBuffer == NULL) {
+      return EFI_OUT_OF_RESOURCES;
     }
+
+    //
+    // Read current extent
+    //
+    Status = ReadDisk (
+      DiskIo,
+      DiskIo2,
+      MediaId,
+      EfiFileCurrentExtentOffset,
+      EfiFileCurrentExtentSize,
+      EfiFileBuffer + CurPos
+      );
+
+    if (EFI_ERROR (Status)) {
+      return EFI_DEVICE_ERROR;
+    }
+    //
+    // Sum size for buffer offset
+    //
+    CurPos += EfiFileCurrentExtentSize;
+    
   }
 
   //

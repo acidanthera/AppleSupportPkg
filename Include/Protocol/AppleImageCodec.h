@@ -15,29 +15,38 @@
 #ifndef APPLE_IMAGE_CODEC_H_
 #define APPLE_IMAGE_CODEC_H_
 
-#define APPLE_IMAGE_CODEC_PROTOCOL_GUID\
-  { 0x0DFCE9F6, 0xC4E3, 0x45EE, {0xA0, 0x6A, 0xA8, 0x61, 0x3B, 0x98, 0xA5, 0x07 } }
+#define APPLE_IMAGE_CODEC_PROTOCOL_GUID               \
+  { 0x0DFCE9F6, 0xC4E3, 0x45EE,                       \
+    {0xA0, 0x6A, 0xA8, 0x61, 0x3B, 0x98, 0xA5, 0x07 } }
 
-typedef EFI_STATUS (EFIAPI* RECOGNIZE_IMAGE_DATA) (
+typedef
+EFI_STATUS
+(EFIAPI* RECOGNIZE_IMAGE_DATA) (
   VOID   *ImageBuffer,
   UINTN  ImageSize
   );
 
-typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS) (
+typedef
+EFI_STATUS 
+(EFIAPI* GET_IMAGE_DIMS) (
   VOID    *ImageBuffer,
   UINTN   ImageSize,
   UINT32  *ImageWidth,
   UINT32  *ImageHeight
   );
 
-typedef EFI_STATUS (EFIAPI* DECODE_IMAGE_DATA) (
+typedef
+EFI_STATUS
+(EFIAPI* DECODE_IMAGE_DATA) (
   VOID           *ImageBuffer,
   UINTN          ImageSize,
   EFI_UGA_PIXEL  **RawImageData,
   UINTN          *RawImageDataSize
   );
 
-typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS_VER) (
+typedef 
+EFI_STATUS 
+(EFIAPI* GET_IMAGE_DIMS_VER) (
   VOID    *ImageBuffer,
   UINTN   ImageSize,
   UINTN   Version,
@@ -45,7 +54,9 @@ typedef EFI_STATUS (EFIAPI* GET_IMAGE_DIMS_VER) (
   UINT32  *ImageHeight
   );
 
-typedef EFI_STATUS (EFIAPI* DECODE_IMAGE_DATA_VER) (
+typedef
+EFI_STATUS
+(EFIAPI* DECODE_IMAGE_DATA_VER) (
   VOID           *ImageBuffer,
   UINTN          ImageSize,
   UINTN          Version,
@@ -53,7 +64,7 @@ typedef EFI_STATUS (EFIAPI* DECODE_IMAGE_DATA_VER) (
   UINTN          *RawImageDataSize
   );
 
-typedef struct _APPLE_IMAGE_CODEC_PROTOCOL
+typedef struct APPLE_IMAGE_CODEC_PROTOCOL_
 {
   UINT64                 Version;
   UINTN                  FileExt;
