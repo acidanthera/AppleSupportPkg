@@ -18,7 +18,7 @@ memcpy(void * __restrict s1, const void * __restrict s2, size_t n)
 }
 
 #define CBC 1
-#define ECB 0
-#define CTR 0
+//#define ECB 0
+#define CTR 1
 
 #endif //_AES_EFI_H_
