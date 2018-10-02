@@ -138,6 +138,9 @@ BuildPeContext (
       DEBUG ((DEBUG_WARN, "Image header too small\n"));
       return EFI_INVALID_PARAMETER;
     }
+    //
+    // FIXME: if > ? check it
+    //
 
     //
     // Check image header aligment
