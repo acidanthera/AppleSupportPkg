@@ -30,6 +30,7 @@
   MdeModulePkg/MdeModulePkg.dec
   EfiPkg/EfiPkg.dec
   AppleSupportPkg/AppleSupportPkg.dec
+  OcSupportPkg/OcSupportPkg.dec
 
 [Protocols]
   gEfiLoadedImageProtocolGuid             ## PROTOCOL CONSUMES

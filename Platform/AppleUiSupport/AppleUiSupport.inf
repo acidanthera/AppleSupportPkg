@@ -32,6 +32,7 @@
   EfiMiscPkg/EfiMiscPkg.dec
   MdeModulePkg/MdeModulePkg.dec
   IntelFrameworkPkg/IntelFrameworkPkg.dec
+  OcSupportPkg/OcSupportPkg.dec
 
 [LibraryClasses]
   OcPngLib

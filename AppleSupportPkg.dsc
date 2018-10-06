@@ -49,10 +49,10 @@
   UefiRuntimeServicesTableLib|MdePkg/Library/UefiRuntimeServicesTableLib/UefiRuntimeServicesTableLib.inf
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
   IoLib|MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
-  OcAppleImageVerificationLib|AppleSupportPkg/Library/OcAppleImageVerificationLib/OcAppleImageVerificationLib.inf
-  OcCryptoLib|AppleSupportPkg/Library/OcCryptoLib/OcCryptoLib.inf
-  OcOverflowLib|AppleSupportPkg/Library/OcOverflowLib/OcOverflowLib.inf
-  OcPngLib|AppleSupportPkg/Library/OcPngLib/OcPngLib.inf
+  OcAppleImageVerificationLib|OcSupportPkg/Library/OcAppleImageVerificationLib/OcAppleImageVerificationLib.inf
+  OcCryptoLib|OcSupportPkg/Library/OcCryptoLib/OcCryptoLib.inf
+  OcOverflowLib|OcSupportPkg/Library/OcOverflowLib/OcOverflowLib.inf
+  OcPngLib|OcSupportPkg/Library/OcPngLib/OcPngLib.inf
   AppleEventLib|AppleSupportPkg/Library/AppleEventLib/AppleEventLib.inf
   CacheMaintenanceLib|MdePkg/Library/BaseCacheMaintenanceLib/BaseCacheMaintenanceLib.inf
   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
@@ -61,9 +61,6 @@
   PeCoffExtraActionLib|MdePkg/Library/BasePeCoffExtraActionLibNull/BasePeCoffExtraActionLibNull.inf
 
 [Components]
-  AppleSupportPkg/Library/OcCryptoLib/OcCryptoLib.inf
-  AppleSupportPkg/Library/OcPngLib/OcPngLib.inf
-  AppleSupportPkg/Library/OcAppleImageVerificationLib/OcAppleImageVerificationLib.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf

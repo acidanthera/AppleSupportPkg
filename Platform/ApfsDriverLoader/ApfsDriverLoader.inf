@@ -36,6 +36,7 @@
   MdePkg/MdePkg.dec
   IntelFrameworkModulePkg/IntelFrameworkModulePkg.dec
   EfiPkg/EfiPkg.dec
+  OcSupportPkg/OcSupportPkg.dec
 
 [LibraryClasses]
   UefiRuntimeServicesTableLib
