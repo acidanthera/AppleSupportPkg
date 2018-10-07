@@ -29,7 +29,6 @@
   AppleSupportPkg/AppleSupportPkg.dec
   MdePkg/MdePkg.dec
   EfiPkg/EfiPkg.dec
-  EfiMiscPkg/EfiMiscPkg.dec
   MdeModulePkg/MdeModulePkg.dec
   IntelFrameworkPkg/IntelFrameworkPkg.dec
   OcSupportPkg/OcSupportPkg.dec
