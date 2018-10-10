@@ -396,10 +396,10 @@ RegisterMemoryProfileImage (
 //
 // AIL: Disable performance lib.
 //
-#define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { } while (0)
-#define PERF_LOAD_IMAGE_END(ModuleHandle) do { } while (0)
-#define PERF_START_IMAGE_BEGIN(ModuleHandle) do { } while (0)
-#define PERF_START_IMAGE_END(ModuleHandle) do { } while (0)
+#define PERF_LOAD_IMAGE_BEGIN(ModuleHandle) do { (VOID)ModuleHandle; } while (0)
+#define PERF_LOAD_IMAGE_END(ModuleHandle) do { (VOID)ModuleHandle; } while (0)
+#define PERF_START_IMAGE_BEGIN(ModuleHandle) do { (VOID)ModuleHandle; } while (0)
+#define PERF_START_IMAGE_END(ModuleHandle) do { (VOID)ModuleHandle; } while (0)
 
 //
 // AIL: Currently we do not protect EFI_SYSTEM_TABLE, like DxeCore does.
@@ -1136,7 +1136,6 @@ CoreLoadImageCommon (
   EFI_DEVICE_PATH_PROTOCOL   *InputFilePath;
   EFI_DEVICE_PATH_PROTOCOL   *Node;
   UINTN                      FilePathSize;
-  BOOLEAN                    ImageIsFromFv;
   BOOLEAN                    ImageIsFromLoadFile;
   EFI_TPL                    gEfiCurrentTpl;
 
@@ -1172,7 +1171,6 @@ CoreLoadImageCommon (
   DeviceHandle     = NULL;
   Status           = EFI_SUCCESS;
   AuthenticationStatus = 0;
-  ImageIsFromFv        = FALSE;
   ImageIsFromLoadFile  = FALSE;
 
   //
@@ -1197,26 +1195,22 @@ CoreLoadImageCommon (
 
     //
     // Try to get the image device handle by checking the match protocol.
+    // AIL: ImageIsFromFv has been removed for it is unused.
     //
     Node   = NULL;
-    Status = CoreLocateDevicePath (&gEfiFirmwareVolume2ProtocolGuid, &HandleFilePath, &DeviceHandle);
-    if (!EFI_ERROR (Status)) {
-      ImageIsFromFv = TRUE;
-    } else {
-      HandleFilePath = FilePath;
-      Status = CoreLocateDevicePath (&gEfiSimpleFileSystemProtocolGuid, &HandleFilePath, &DeviceHandle);
+    HandleFilePath = FilePath;
+    Status = CoreLocateDevicePath (&gEfiSimpleFileSystemProtocolGuid, &HandleFilePath, &DeviceHandle);
+    if (EFI_ERROR (Status)) {
+      if (!BootPolicy) {
+        HandleFilePath = FilePath;
+        Status = CoreLocateDevicePath (&gEfiLoadFile2ProtocolGuid, &HandleFilePath, &DeviceHandle);
+      }
       if (EFI_ERROR (Status)) {
-        if (!BootPolicy) {
-          HandleFilePath = FilePath;
-          Status = CoreLocateDevicePath (&gEfiLoadFile2ProtocolGuid, &HandleFilePath, &DeviceHandle);
-        }
-        if (EFI_ERROR (Status)) {
-          HandleFilePath = FilePath;
-          Status = CoreLocateDevicePath (&gEfiLoadFileProtocolGuid, &HandleFilePath, &DeviceHandle);
-          if (!EFI_ERROR (Status)) {
-            ImageIsFromLoadFile = TRUE;
-            Node = HandleFilePath;
-          }
+        HandleFilePath = FilePath;
+        Status = CoreLocateDevicePath (&gEfiLoadFileProtocolGuid, &HandleFilePath, &DeviceHandle);
+        if (!EFI_ERROR (Status)) {
+          ImageIsFromLoadFile = TRUE;
+          Node = HandleFilePath;
         }
       }
     }
