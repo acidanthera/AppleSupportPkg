@@ -647,7 +647,7 @@ ApfsDriverLoaderStart (
   APFS_EFI_BOOT_RECORD              *EfiBootRecordBlock          = NULL;
   APFS_CSB                          *ContainerSuperBlock         = NULL;
   UINT64                            EfiFileCurrentExtentOffset   = 0;
-  VOID                              *EfiFileBuffer               = NULL;
+  UINT8                             *EfiFileBuffer               = NULL;
   UINTN                             EfiFileCurrentExtentSize     = 0;
   APFS_DRIVER_INFO_PRIVATE_DATA     *Private                     = NULL;
   APFS_EFIBOOTRECORD_LOCATION_INFO  *EfiBootRecordLocationInfo   = NULL;
