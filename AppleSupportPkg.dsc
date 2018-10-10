@@ -1,5 +1,6 @@
 ## @file
 # Copyright (c) 2017-2018, savvas
+# Copyright (c) 2018, Download-Fritz
 #
 # All rights reserved.<BR>
 #
@@ -35,6 +36,7 @@
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
 !endif
   DebugPrintErrorLevelLib|MdePkg/Library/BaseDebugPrintErrorLevelLib/BaseDebugPrintErrorLevelLib.inf
+  ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf 
   PrintLib|MdePkg/Library/BasePrintLib/BasePrintLib.inf
   DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
   UefiHiiServicesLib|MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.inf
@@ -64,6 +66,7 @@
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
+  AppleSupportPkg/Platform/AppleUsbKbDxe/UsbKbDxe.inf
 
 [PcdsFixedAtBuild]
 !if $(TARGET) == DEBUG
