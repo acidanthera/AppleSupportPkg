@@ -219,7 +219,7 @@ CoreRestoreTpl (
   IN EFI_TPL      OldTpl
   )
 {
-  return gBS->RestoreTPL (OldTpl);
+  gBS->RestoreTPL (OldTpl);
 }
 
 STATIC
