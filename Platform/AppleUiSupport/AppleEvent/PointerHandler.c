@@ -639,7 +639,6 @@ InternalSimplePointerPollNotifyFunction (
   INT64                       MovementY;
   INT64                       MovementX;
   DIMENSION                   NewPosition;
-  INTN                        Result;
   APPLE_EVENT_INFORMATION     *Information;
   APPLE_EVENT_DATA            EventData;
 
@@ -725,13 +724,8 @@ InternalSimplePointerPollNotifyFunction (
           NewPosition.Vertical = 0;
         }
 
-        Result = CompareMem (
-                   &mCursorPosition,
-                   &NewPosition,
-                   sizeof (mCursorPosition)
-                   );
-
-        if (Result != 0) {
+        if ((mCursorPosition.Horizontal != NewPosition.Horizontal)
+         || (mCursorPosition.Vertical != NewPosition.Vertical)) {
           CopyMem (
             &mCursorPosition,
             &NewPosition,
