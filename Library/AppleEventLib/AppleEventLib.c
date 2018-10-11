@@ -2,7 +2,7 @@
 
 AppleEventLib
 
-Copyright (c) 2018, CupertinoNet
+Copyright (c) 2018, Download-Fritz
 
 All rights reserved.
 

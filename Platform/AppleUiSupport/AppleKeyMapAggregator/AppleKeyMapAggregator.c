@@ -2,7 +2,7 @@
 
 AppleKeyMapAggregator
 
-Copyright (c) 2018, CupertinoNet
+Copyright (c) 2018, vit9696
 
 All rights reserved.
 
