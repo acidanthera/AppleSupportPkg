@@ -82,7 +82,7 @@ typedef struct {
   UINTN              KeyCodeBufferLength;
   UINTN              NumberOfKeyCodes;
   APPLE_MODIFIER_MAP Modifiers;
-  APPLE_KEY_CODE     KeyCodes;
+  APPLE_KEY_CODE     KeyCodes[];
 } APPLE_KEY_STROKES_INFO;
 
 // InternalGetKeyStrokesByIndex
@@ -199,7 +199,7 @@ InternalGetKeyStrokes (
     DbModifiers |= KeyStrokesInfo->Modifiers;
 
     for (Index = 0; Index < KeyStrokesInfo->NumberOfKeyCodes; ++Index) {
-      Key = (&KeyStrokesInfo->KeyCodes)[Index];
+      Key = KeyStrokesInfo->KeyCodes[Index];
 
       for (Index2 = 0; Index2 < DbNumberOfKeyCodestrokes; ++Index2) {
         if (KeyMapAggregatorData->KeyCodeBuffer[Index2] == Key) {
@@ -496,7 +496,7 @@ InternalSetKeyStrokeBufferKeys (
       KeyStrokesInfo->Modifiers        = Modifiers;
 
       CopyMem (
-        (VOID *)&(&KeyStrokesInfo->KeyCodes)[0],
+        (VOID *)&KeyStrokesInfo->KeyCodes[0],
         (VOID *)KeyCodes,
         (NumberOfKeyCodes * sizeof (*KeyCodes))
         );
