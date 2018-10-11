@@ -596,7 +596,7 @@ typedef struct {
 ///
 typedef struct {
     uint16_t  Hint;
-    uint8_t   Name[1];
+    uint8_t   Name;
 } EFI_IMAGE_IMPORT_BY_NAME;
 
 ///
@@ -725,7 +725,7 @@ typedef struct {
 ///
 typedef struct {
     uint16_t  Length;
-    uint16_t  String[1];
+    uint16_t  String;
 } EFI_IMAGE_RESOURCE_DIRECTORY_STRING;
 
 ///
