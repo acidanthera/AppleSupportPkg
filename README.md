@@ -29,7 +29,7 @@ This library provides Apple's crypto signature algorithm for EFI binaries.
 
 ## Credits
 - [cugu](https://github.com/cugu) for awesome research according APFS structure
-- [CupertinoNet](https://github.com/CupertinoNet) and [Download-Fritz](https://github.com/Download-Fritz) for Apple EFI reverse-engineering
+- [Download-Fritz](https://github.com/Download-Fritz) for Apple EFI reverse-engineering
 - [vit9696](https://github.com/vit9696) for codereview and support in the development
 - [Chromium OS project](https://github.com/chromium) for Rsa2048Sha256 signature verification implementation
 - [Brad Conte](https://github.com/B-Con) for Sha256 implementation

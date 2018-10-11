@@ -2,7 +2,7 @@ AppleSupport Changelog
 ======================
 
 #### v2.0.4
-- Implemented a complete port of AppleEvent (thx CupertinoNet for the base)
+- Implemented a complete port of AppleEvent (thx Download-Fritz for the base)
 - Reduced mouse polling timer to fix booting issues on some Dell laptops
 
 #### v2.0.3
