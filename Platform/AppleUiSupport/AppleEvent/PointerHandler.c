@@ -32,6 +32,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/TimerLib.h>
 
 #include "AppleEventInternal.h"
 
@@ -641,6 +642,9 @@ InternalSimplePointerPollNotifyFunction (
   DIMENSION                   NewPosition;
   APPLE_EVENT_INFORMATION     *Information;
   APPLE_EVENT_DATA            EventData;
+  UINT64                      StartTime;
+  UINT64                      EndTime;
+
 
   // DEBUG ((EFI_D_ERROR, "InternalSimplePointerPollNotifyFunction\n"));
 
@@ -656,6 +660,8 @@ InternalSimplePointerPollNotifyFunction (
 
   if (mNumberOfPointerProtocols > 0) {
     CommonStatus = EFI_NOT_READY;
+
+    StartTime = GetPerformanceCounter ();
 
     for (Index = 0; Index < mNumberOfPointerProtocols; ++Index) {
       Instance      = &mPointerProtocols[Index];
@@ -745,6 +751,27 @@ InternalSimplePointerPollNotifyFunction (
 
     InternalHandleButtonInteraction (CommonStatus, &mLeftButtonInfo, Modifiers);
     InternalHandleButtonInteraction (CommonStatus, &mRightButtonInfo, Modifiers);
+
+    //
+    // This code is here to workaround very slow mouse polling performance on some computers,
+    // like most of Dell laptops (one of the worst examples is Dell Latitude 3330 with ~50 ms).
+    // Even if we try all the hacks we could make this code approximately only twice faster,
+    // which is still far from enough. The event system on these laptops is pretty broken,
+    // and even adding gBS->CheckEvent prior to GetState almost does not reduce the time spent.
+    //
+    EndTime = GetPerformanceCounter ();
+    if (EndTime > StartTime) {
+      EndTime = GetTimeInNanoSecond (EndTime - StartTime);
+
+      DEBUG ((EFI_D_VERBOSE, "Pointer poll done in %Lu ns within %Lu ns event.\n",
+        EndTime, POINTER_POLL_FREQUENCY * 100ULL));
+
+      if (EndTime > POINTER_POLL_FREQUENCY * 100ULL) {
+        DEBUG ((EFI_D_VERBOSE, "Pointer poll done in %Lu ns exceeds %Lu ns event, aborting!\n",
+          EndTime, POINTER_POLL_FREQUENCY * 100ULL));
+        CommonStatus = EFI_UNSUPPORTED;
+      }
+    }
   }
 
   if (EFI_ERROR (CommonStatus)) {

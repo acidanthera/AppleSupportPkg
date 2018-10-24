@@ -45,6 +45,7 @@
   AppleEventLib
   OcCryptoLib
   OcOverflowLib
+  OcTimerLib
 
 [Guids]
   gAppleVendorVariableGuid            ## GUID CONSUMES

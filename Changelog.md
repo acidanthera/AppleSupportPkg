@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.0.5
+- Disable mouse polling when it does not fit the timer window
+
 #### v2.0.4
 - Implemented a complete port of AppleEvent (thx Download-Fritz for the base)
 - Reduced mouse polling timer to fix booting issues on some Dell laptops

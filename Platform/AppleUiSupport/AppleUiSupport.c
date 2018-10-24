@@ -18,6 +18,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Uefi.h>
 #include <Library/UefiLib.h>
 #include <Library/DebugLib.h>
+#include <Library/TimerLib.h>
 #include "AppleUiSupport.h"
 #include <AppleSupportPkgVersion.h>
 
