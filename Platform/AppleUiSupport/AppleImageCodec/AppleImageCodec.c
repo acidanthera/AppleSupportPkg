@@ -116,7 +116,7 @@ DecodeImageData (
 
   *RawImageData = (EFI_UGA_PIXEL *) AllocatePool (*RawImageDataSize);
 
-  if (RawImageData == NULL) {
+  if (*RawImageData == NULL) {
     FreePng (Data);
     return EFI_OUT_OF_RESOURCES;
   }

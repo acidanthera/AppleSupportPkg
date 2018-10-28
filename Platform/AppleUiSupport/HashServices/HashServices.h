@@ -7,6 +7,9 @@
  * Author: Joel Höner <athre0z@zyantific.com>
  */
 
+#ifndef HASH_SERVICES_H
+#define HASH_SERVICES_H
+
 #include <Library/OcCryptoLib.h>
 #include <Protocol/ServiceBinding.h>
 #include <Protocol/Hash.h>
@@ -62,3 +65,5 @@ HSDestroyChild (
   IN EFI_SERVICE_BINDING_PROTOCOL *This,
   IN EFI_HANDLE                   ChildHandle
   );
+
+#endif // HASH_SERVICES_H
