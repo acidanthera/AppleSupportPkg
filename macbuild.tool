@@ -46,6 +46,7 @@ package() {
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
   cp AppleImageLoader.efi tmp/Drivers/ || exit 1
   cp AppleUiSupport.efi tmp/Drivers/   || exit 1
+  cp UsbKbDxe.efi tmp/Drivers/         || exit 1
   pushd tmp || exit 1
   zip -qry ../"AppleSupport-v${ver}-${2}.zip" * || exit 1
   popd || exit 1

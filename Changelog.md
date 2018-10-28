@@ -3,6 +3,7 @@ AppleSupport Changelog
 
 #### v2.0.5
 - Disable mouse polling when it does not fit the timer window
+- Include AppleEvent-compatible UsbKbDxe driver in the package
 
 #### v2.0.4
 - Implemented a complete port of AppleEvent (thx Download-Fritz for the base)
