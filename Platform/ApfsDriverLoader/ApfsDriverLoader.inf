@@ -49,6 +49,7 @@
   DebugLib
   PcdLib
   OcAppleImageVerificationLib
+  OcMiscLib
 
 [Guids]
   gAppleApfsPartitionTypeGuid                     ## GUID CONSUMES

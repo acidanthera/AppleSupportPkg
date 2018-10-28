@@ -36,7 +36,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/PartitionInfo.h>
 #include <Protocol/ApplePartitionInfo.h>
 #include <Protocol/ApfsEfiBootRecordInfo.h>
-#include <Protocol/NullTextOutput.h>
+#include <Library/OcMiscLib.h>
 #include "ApfsDriverLoader.h"
 #include "EfiComponentName.h"
 
@@ -168,25 +168,10 @@ StartApfsDriver (
   //
   // Patch verbose
   //
-  NewSystemTable = (EFI_SYSTEM_TABLE *) AllocateZeroPool (gST->Hdr.HeaderSize);
+  NewSystemTable = AllocateNullTextOutSystemTable (gST);
 
   if (NewSystemTable == NULL) {
       return EFI_OUT_OF_RESOURCES;
-  }
-
-  CopyMem ((VOID *) NewSystemTable, gST, gST->Hdr.HeaderSize);
-  NewSystemTable->ConOut = &mNullTextOutputProtocol;
-  NewSystemTable->Hdr.CRC32 = 0;
-
-  Status = gBS->CalculateCrc32 (
-    NewSystemTable,
-    NewSystemTable->Hdr.HeaderSize,
-    &NewSystemTable->Hdr.CRC32
-    );
-
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Failed to calculated new system table CRC32 with Status: %r\n", Status));
-    return Status;
   }
 
   LoadedApfsDrvImage->SystemTable = NewSystemTable;
