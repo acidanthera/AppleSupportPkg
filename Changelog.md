@@ -4,6 +4,11 @@ AppleSupport Changelog
 #### v2.0.5
 - Disable mouse polling when it does not fit the timer window
 - Include AppleEvent-compatible UsbKbDxe driver in the package
+- Support extracting APFS driver from the extentents as defined by the spec
+- Fix Apple image signature verification failure on multiple platforms
+- Temporary remove AppleImageLoader from the package (till it gains Secure Boot compat)
+
+**WARNING**: Apple image signature verification implementation is not prone to untrusted input as of yet.
 
 #### v2.0.4
 - Implemented a complete port of AppleEvent (thx Download-Fritz for the base)

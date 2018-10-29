@@ -44,7 +44,8 @@ package() {
   mkdir -p tmp/Drivers || exit 1
   mkdir -p tmp/Tools || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/ || exit 1
-  cp AppleImageLoader.efi tmp/Drivers/ || exit 1
+  # FIXME: return this back once we fix UEFI Secure Boot compatible Apple image loading.
+  # cp AppleImageLoader.efi tmp/Drivers/ || exit 1
   cp AppleUiSupport.efi tmp/Drivers/   || exit 1
   cp UsbKbDxe.efi tmp/Drivers/         || exit 1
   pushd tmp || exit 1
