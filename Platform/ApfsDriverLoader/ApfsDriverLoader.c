@@ -262,6 +262,8 @@ LegacyApfsContainerScan (
   EFI_DISK_IO2_PROTOCOL       *DiskIo2            = NULL;
   EFI_PARTITION_ENTRY         *ApfsGptEntry       = NULL;
 
+  DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Entrypoint\n"));
+
   //
   // Open I/O protocols
   //
@@ -287,6 +289,7 @@ LegacyApfsContainerScan (
       );
 
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: BlockIO protocol not present\n"));
       return EFI_UNSUPPORTED;
     }
   }
@@ -312,6 +315,7 @@ LegacyApfsContainerScan (
       );
 
     if (EFI_ERROR (Status)){
+      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: DiskIO protocol not present\n"));
       return EFI_UNSUPPORTED;
     }
   }
@@ -326,9 +330,10 @@ LegacyApfsContainerScan (
       return EFI_UNSUPPORTED;
     }
 
-
-  Block = AllocateZeroPool ((UINTN)BlockSize);
+  DEBUG ((DEBUG_WARN, "BlockSize: %lu", BlockSize));
+  Block = AllocateZeroPool ((UINTN) BlockSize);
   if (Block == NULL) {
+    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Allocation error %r\n", Status));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -346,6 +351,7 @@ LegacyApfsContainerScan (
 
   if (EFI_ERROR (Status)) {
     FreePool (Block);
+    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ReadDisk1 Error %r\n", Status));
     return EFI_DEVICE_ERROR;
   }
 
@@ -370,10 +376,12 @@ LegacyApfsContainerScan (
     FreePool (Block);
     Block = AllocateZeroPool (PartitionNumber * PartitionEntrySize);
     if (Block == NULL) {
+      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Allocation error %r\n", Status));
       return EFI_OUT_OF_RESOURCES;
     }
   } else {
     FreePool (Block);
+    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Block device not supported%r\n", Status));
     return EFI_UNSUPPORTED;
   }
 
@@ -388,6 +396,7 @@ LegacyApfsContainerScan (
 
   if (EFI_ERROR (Status)) {
     FreePool (Block);
+    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ReadDisk2 Error %r\n", Status));
     return EFI_DEVICE_ERROR;
   }
 
@@ -408,6 +417,7 @@ LegacyApfsContainerScan (
 
   if (ApfsGptEntry == NULL)  {
     FreePool (Block);
+    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ApfsGptEntry is null\n", Status));
     return EFI_UNSUPPORTED;
   }
   LegacyBaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
