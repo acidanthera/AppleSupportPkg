@@ -23,7 +23,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
-#include <Library/OcOverflowLib.h>
+#include <Library/OcGuardLib.h>
 #include <Library/OcPngLib.h>
 
 #include <Protocol/UgaDraw.h>

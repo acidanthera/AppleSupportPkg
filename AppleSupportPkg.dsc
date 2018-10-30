@@ -55,7 +55,7 @@
   IoLib|MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
   OcAppleImageVerificationLib|OcSupportPkg/Library/OcAppleImageVerificationLib/OcAppleImageVerificationLib.inf
   OcCryptoLib|OcSupportPkg/Library/OcCryptoLib/OcCryptoLib.inf
-  OcOverflowLib|OcSupportPkg/Library/OcOverflowLib/OcOverflowLib.inf
+  OcGuardLib|OcSupportPkg/Library/OcGuardLib/OcGuardLib.inf
   OcPngLib|OcSupportPkg/Library/OcPngLib/OcPngLib.inf
   AppleEventLib|AppleSupportPkg/Library/AppleEventLib/AppleEventLib.inf
   CacheMaintenanceLib|MdePkg/Library/BaseCacheMaintenanceLib/BaseCacheMaintenanceLib.inf
