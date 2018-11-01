@@ -42,8 +42,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/BaseLib.h>
 
 // POINTER_POLL_FREQUENCY
-// Apple has 2 ms here, but this causes a UI freeze on Dell XPS 13 9360
-#define POINTER_POLL_FREQUENCY  EFI_TIMER_PERIOD_MILLISECONDS (20)
+#define POINTER_POLL_FREQUENCY  EFI_TIMER_PERIOD_MILLISECONDS (2)
+#define MAX_POINTER_POLL_FREQUENCY  EFI_TIMER_PERIOD_MILLISECONDS (80)
 
 // MAXIMUM_DOUBLE_CLICK_SPEED
 /// (EFI_TIMER_PERIOD_MILLISECONDS (748) / POINTER_POLL_FREQUENCY)
@@ -89,6 +89,9 @@ STATIC UINTN mNumberOfPointerProtocols = 0;
 
 // mSimplePointerPollEvent
 STATIC EFI_EVENT mSimplePointerPollEvent = NULL;
+
+// mSimplePointerPollTime
+STATIC UINT64 mSimplePointerPollTime;
 
 // mUiScale
 STATIC UINT8 mUiScale = 1;
@@ -645,6 +648,7 @@ InternalSimplePointerPollNotifyFunction (
   UINT64                      StartTime;
   UINT64                      EndTime;
 
+  StartTime = GetPerformanceCounter ();
 
   // DEBUG ((EFI_D_ERROR, "InternalSimplePointerPollNotifyFunction\n"));
 
@@ -660,8 +664,6 @@ InternalSimplePointerPollNotifyFunction (
 
   if (mNumberOfPointerProtocols > 0) {
     CommonStatus = EFI_NOT_READY;
-
-    StartTime = GetPerformanceCounter ();
 
     for (Index = 0; Index < mNumberOfPointerProtocols; ++Index) {
       Instance      = &mPointerProtocols[Index];
@@ -751,27 +753,6 @@ InternalSimplePointerPollNotifyFunction (
 
     InternalHandleButtonInteraction (CommonStatus, &mLeftButtonInfo, Modifiers);
     InternalHandleButtonInteraction (CommonStatus, &mRightButtonInfo, Modifiers);
-
-    //
-    // This code is here to workaround very slow mouse polling performance on some computers,
-    // like most of Dell laptops (one of the worst examples is Dell Latitude 3330 with ~50 ms).
-    // Even if we try all the hacks we could make this code approximately only twice faster,
-    // which is still far from enough. The event system on these laptops is pretty broken,
-    // and even adding gBS->CheckEvent prior to GetState almost does not reduce the time spent.
-    //
-    EndTime = GetPerformanceCounter ();
-    if (EndTime > StartTime) {
-      EndTime = GetTimeInNanoSecond (EndTime - StartTime);
-
-      DEBUG ((EFI_D_VERBOSE, "Pointer poll done in %Lu ns within %Lu ns event.\n",
-        EndTime, POINTER_POLL_FREQUENCY * 100ULL));
-
-      if (EndTime > POINTER_POLL_FREQUENCY * 100ULL) {
-        DEBUG ((EFI_D_VERBOSE, "Pointer poll done in %Lu ns exceeds %Lu ns event, aborting!\n",
-          EndTime, POINTER_POLL_FREQUENCY * 100ULL));
-        CommonStatus = EFI_UNSUPPORTED;
-      }
-    }
   }
 
   if (EFI_ERROR (CommonStatus)) {
@@ -793,6 +774,29 @@ InternalSimplePointerPollNotifyFunction (
 
     if (Information != NULL) {
       EventAddEventToQueue (Information);
+    }
+  }
+
+  //
+  // This code is here to workaround very slow mouse polling performance on some computers,
+  // like most of Dell laptops (one of the worst examples is Dell Latitude 3330 with ~50 ms).
+  // Even if we try all the hacks we could make this code approximately only twice faster,
+  // which is still far from enough. The event system on these laptops is pretty broken,
+  // and even adding gBS->CheckEvent prior to GetState almost does not reduce the time spent.
+  //
+  if (mSimplePointerPollEvent != NULL && mSimplePointerPollTime < MAX_POINTER_POLL_FREQUENCY) {
+    EndTime = GetPerformanceCounter ();
+    if (StartTime > EndTime) {
+      EndTime = StartTime;
+    }
+    EndTime = GetTimeInNanoSecond (EndTime - StartTime);
+    // Maximum time allowed in this function is half the interval plus some margin (0.55 * 100ns)
+    if (EndTime > mSimplePointerPollTime * 55ULL) {
+      mSimplePointerPollTime = EndTime / 50ULL;
+      if (mSimplePointerPollTime > MAX_POINTER_POLL_FREQUENCY) {
+        mSimplePointerPollTime = MAX_POINTER_POLL_FREQUENCY;
+      }
+      gBS->SetTimer (mSimplePointerPollEvent, TimerPeriodic, mSimplePointerPollTime);
     }
   }
 }
@@ -834,10 +838,11 @@ EventCreateSimplePointerPollEvent (
   InternalGetScreenResolution ();
   ZeroMem (&mCursorPosition, sizeof (mCursorPosition));
 
+  mSimplePointerPollTime = POINTER_POLL_FREQUENCY;
   mSimplePointerPollEvent = EventLibCreateNotifyTimerEvent (
                               InternalSimplePointerPollNotifyFunction,
                               NULL,
-                              POINTER_POLL_FREQUENCY,
+                              mSimplePointerPollTime,
                               TRUE
                               );
 

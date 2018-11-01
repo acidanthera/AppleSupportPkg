@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.0.6
+- Dynamically increase mouse polling speed to accomodate for platform specifics (thx jan4321)
+
 #### v2.0.5
 - Disable mouse polling when it does not fit the timer window
 - Include AppleEvent-compatible UsbKbDxe driver in the package
