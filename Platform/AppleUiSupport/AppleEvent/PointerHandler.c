@@ -143,7 +143,7 @@ InternalRegisterSimplePointerInterface (
   SIMPLE_POINTER_INSTANCE *Instance;
   UINTN                   Index;
 
-  // DEBUG ((EFI_D_INFO, "InternalRegisterSimplePointerInterface\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalRegisterSimplePointerInterface\n"));
 
   Instance = AllocateZeroPool (
                (mNumberOfPointerProtocols + 1) * sizeof (*Instance)
@@ -183,7 +183,7 @@ EventSimplePointerDesctructor (
   VOID
   )
 {
-  // DEBUG ((EFI_D_INFO, "EventSimplePointerDesctructor\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventSimplePointerDesctructor\n"));
 
   if (mPointerProtocols != NULL) {
     FreePool ((VOID *)mPointerProtocols);
@@ -213,7 +213,7 @@ InternalRemoveUninstalledInstances (
   SIMPLE_POINTER_INSTANCE *NewInstances;
   UINTN                   NumberOfMatches;
 
-  // DEBUG ((EFI_D_ERROR, "InternalRemoveUninstalledInstances\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalRemoveUninstalledInstances\n"));
 
   OrgInstances    = *InstancesPtr;
 
@@ -305,7 +305,7 @@ InternalSimplePointerInstallNotifyFunction (
   UINTN                       Index;
   EFI_SIMPLE_POINTER_PROTOCOL *SimplePointer;
 
-  // DEBUG ((EFI_D_INFO, "InternalSimplePointerInstallNotifyFunction\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalSimplePointerInstallNotifyFunction\n"));
 
   if (Event != NULL) {
     Status = gBS->LocateHandleBuffer (
@@ -350,7 +350,7 @@ EventCreateSimplePointerInstallNotifyEvent (
 {
   EFI_STATUS Status;
 
-  // DEBUG ((EFI_D_INFO, "EventCreateSimplePointerInstallNotifyEvent\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventCreateSimplePointerInstallNotifyEvent\n"));
 
   Status = gBS->CreateEvent (
                   EVT_NOTIFY_SIGNAL,
@@ -385,7 +385,7 @@ EventCloseSimplePointerInstallNotifyEvent (
   VOID
   )
 {
-  // DEBUG ((EFI_D_INFO, "EventCloseSimplePointerInstallNotifyEvent\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventCloseSimplePointerInstallNotifyEvent\n"));
 
   if (mSimplePointerInstallNotifyEvent != NULL) {
     gBS->CloseEvent (mSimplePointerInstallNotifyEvent);
@@ -408,7 +408,7 @@ InternalGetScreenResolution (
   UINT32                               ColorDepth;
   UINT32                               RefreshRate;
 
-  // DEBUG ((EFI_D_INFO, "InternalGetScreenResolution\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalGetScreenResolution\n"));
 
   Status = gBS->HandleProtocol (
                   gST->ConsoleOutHandle,
@@ -481,7 +481,7 @@ InternalGetUiScaleData (
   INTN  Value;
   INT64 Factor;
 
-  // DEBUG ((EFI_D_INFO, "InternalGetUiScaleData\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalGetUiScaleData\n"));
 
   AbsoluteValue = ABS(Movement);
   Value         = HighBitSet64 ((UINT64) (AbsoluteValue));
@@ -508,7 +508,7 @@ InternalCreatePointerEventQueueInformation (
   UINT32           FinalEventType;
   APPLE_EVENT_DATA EventData;
 
-  // DEBUG ((EFI_D_INFO, "InternalCreatePointerEventQueueInformation\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalCreatePointerEventQueueInformation\n"));
 
   FinalEventType = APPLE_EVENT_TYPE_MOUSE_MOVED;
 
@@ -544,7 +544,7 @@ InternalHandleButtonInteraction (
   INT32                   VerticalMovement;
   APPLE_EVENT_TYPE        EventType;
 
-  // DEBUG ((EFI_D_ERROR, "InternalHandleButtonInteraction\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalHandleButtonInteraction\n"));
 
   if (!EFI_ERROR (PointerStatus)) {
     if (!Pointer->PreviousButton) {
@@ -650,7 +650,7 @@ InternalSimplePointerPollNotifyFunction (
 
   StartTime = GetPerformanceCounter ();
 
-  // DEBUG ((EFI_D_ERROR, "InternalSimplePointerPollNotifyFunction\n"));
+  DEBUG ((DEBUG_VERBOSE, "InternalSimplePointerPollNotifyFunction\n"));
 
   Modifiers = InternalGetModifierStrokes ();
 
@@ -811,7 +811,7 @@ EventCreateSimplePointerPollEvent (
   UINTN       DataSize;
   UINTN       Index;
 
-  // DEBUG ((EFI_D_INFO, "EventCreateSimplePointerPollEvent\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventCreateSimplePointerPollEvent\n"));
 
   DataSize = sizeof (mUiScale);
 
@@ -866,7 +866,7 @@ EventCancelSimplePointerPollEvent (
   VOID
   )
 {
-  // DEBUG ((EFI_D_INFO, "EventCancelSimplePointerPollEvent\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventCancelSimplePointerPollEvent\n"));
 
   EventLibCancelEvent (mSimplePointerPollEvent);
 
@@ -881,7 +881,7 @@ EventSetCursorPositionImpl (
 {
   EFI_STATUS Status;
 
-  // DEBUG ((EFI_D_INFO, "EventSetCursorPositionImpl\n"));
+  DEBUG ((DEBUG_VERBOSE, "EventSetCursorPositionImpl\n"));
 
   if (!mScreenResolutionSet) {
     Status = InternalGetScreenResolution ();

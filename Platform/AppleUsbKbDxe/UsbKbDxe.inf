@@ -59,6 +59,7 @@
   MdeModulePkg/MdeModulePkg.dec
   AppleSupportPkg/AppleSupportPkg.dec
   EfiPkg/EfiPkg.dec
+  OcSupportPkg/OcSupportPkg.dec
 
 [LibraryClasses]
   MemoryAllocationLib
@@ -72,6 +73,7 @@
   PcdLib
   UefiUsbLib
   HiiLib
+  OcGuardLib
 
 [Guids]
   #

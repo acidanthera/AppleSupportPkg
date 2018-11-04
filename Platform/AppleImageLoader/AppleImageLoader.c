@@ -51,7 +51,7 @@ ParseAppleEfiFatBinary (
   // Cause when image loaded from memory
   //
   if (SourceSize < sizeof (APPLE_EFI_FAT_HEADER)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed binary\n"));
+    DEBUG ((DEBUG_INFO, "AppleImageLoader: Malformed binary\n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -64,16 +64,16 @@ ParseAppleEfiFatBinary (
   // Verify magic number
   //
   if (Hdr->Magic != APPLE_EFI_FAT_MAGIC) {
-    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
+    DEBUG ((DEBUG_INFO, "AppleImageLoader: Binary isn't AppleEfiFat\n"));
     return EFI_UNSUPPORTED;
   }
-  DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: FatBinary matched\n"));
+  DEBUG ((DEBUG_INFO, "AppleImageLoader: FatBinary matched\n"));
   SizeOfBinary = sizeof (APPLE_EFI_FAT_HEADER)
                   + sizeof (APPLE_EFI_FAT_ARCH_HEADER)
                     * Hdr->NumArchs;
 
   if (SizeOfBinary > SourceSize) {
-    DEBUG ((DEBUG_VERBOSE, "AppleImageLoader: Malformed AppleEfiFat header\n"));
+    DEBUG ((DEBUG_INFO, "AppleImageLoader: Malformed AppleEfiFat header\n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -89,10 +89,10 @@ ParseAppleEfiFatBinary (
 #elif defined(MDE_CPU_X64)
     if (Hdr->Archs[Index].CpuType == CPUYPE_X86_64) {
 #else
-#error "Undefined Platform"
+#error "Unsupported Platform"
 #endif
       DEBUG ((
-        DEBUG_VERBOSE,
+        DEBUG_INFO,
         "AppleImageLoader: ApplePeImage at offset %u\n",
         Hdr->Archs[Index].Offset
         ));
@@ -105,14 +105,14 @@ ParseAppleEfiFatBinary (
         || SourceSize < ((UINT64) Hdr->Archs[Index].Offset
                         + Hdr->Archs[Index].Size)) {
         DEBUG ((
-          DEBUG_VERBOSE,
+          DEBUG_INFO,
           "AppleImageLoader: Wrong offset of Image or it's size\n"
           ));
         return EFI_INVALID_PARAMETER;
       }
 
       DEBUG ((
-        DEBUG_VERBOSE,
+        DEBUG_INFO,
         "AppleImageLoader: ApplePeImage size %u\n",
         Hdr->Archs[Index].Size
         ));
@@ -392,7 +392,7 @@ AppleImageLoaderEntryPoint (
   //APPLE_LOAD_IMAGE_PROTOCOL     *AppleLoadImageInterface = NULL;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "Starting AppleImageLoader ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
@@ -415,13 +415,13 @@ AppleImageLoaderEntryPoint (
       );
     if (EFI_ERROR (Status)) {
       DEBUG ((
-        DEBUG_VERBOSE,
+        DEBUG_INFO,
         "AppleLoadImage install failed with Status: %r\n",
         Status
         ));
     }
   } else {
-    DEBUG ((DEBUG_VERBOSE, "AppleLoadImage already present\n"));
+    DEBUG ((DEBUG_INFO, "AppleLoadImage already present\n"));
   }
   */
 

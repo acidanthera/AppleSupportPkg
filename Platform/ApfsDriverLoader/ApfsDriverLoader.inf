@@ -50,6 +50,7 @@
   PcdLib
   OcAppleImageVerificationLib
   OcMiscLib
+  OcGuardLib
 
 [Guids]
   gAppleApfsPartitionTypeGuid                     ## GUID CONSUMES

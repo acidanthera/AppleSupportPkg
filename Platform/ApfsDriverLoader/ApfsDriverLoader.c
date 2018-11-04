@@ -109,7 +109,7 @@ StartApfsDriver (
     return EFI_UNSUPPORTED;
   }
 
-  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
+  DEBUG ((DEBUG_INFO, "Loading apfs.efi from memory!\n"));
 
   //
   // Try to retrieve DevicePath
@@ -121,20 +121,20 @@ StartApfsDriver (
     );
 
   if (EFI_ERROR (Status)) {
-      ParentDevicePath = NULL;
-      DEBUG ((DEBUG_WARN, "ApfsDriver DevicePath not present\n"));
+    ParentDevicePath = NULL;
+    DEBUG ((DEBUG_INFO, "ApfsDriver DevicePath not present\n"));
   }
 
-  DEBUG ((DEBUG_WARN, "ImageSize before verification: %lu\n", EfiFileSize));
+  DEBUG ((DEBUG_INFO, "ImageSize before verification: %lu\n", EfiFileSize));
 
-  DEBUG ((DEBUG_WARN, "Verifying binary signature\n"));
+  DEBUG ((DEBUG_INFO, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     EfiFileBuffer,
     &EfiFileSize,
     NULL
     );
 
-  DEBUG ((DEBUG_WARN, "New ImageSize after verification: %lu\n", EfiFileSize));
+  DEBUG ((DEBUG_INFO, "New ImageSize after verification: %lu\n", EfiFileSize));
 
   if (!EFI_ERROR (Status)) {
     Status = gBS->LoadImage (
@@ -660,7 +660,7 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
    }
 
-  DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
+  DEBUG ((DEBUG_INFO, "Apfs Container found.\n"));
 
   //
   // Open I/O protocols
@@ -749,8 +749,8 @@ ApfsDriverLoaderStart (
   //
   // Verify ObjectOid and ObjectType
   //
-  DEBUG ((DEBUG_VERBOSE, "ObjectId: %04x\n", ContainerSuperBlock->BlockHeader.ObjectOid ));
-  DEBUG ((DEBUG_VERBOSE, "ObjectType: %04x\n", ContainerSuperBlock->BlockHeader.ObjectType ));
+  DEBUG ((DEBUG_INFO, "ObjectId: %04x\n", ContainerSuperBlock->BlockHeader.ObjectOid ));
+  DEBUG ((DEBUG_INFO, "ObjectType: %04x\n", ContainerSuperBlock->BlockHeader.ObjectType ));
   if (ContainerSuperBlock->BlockHeader.ObjectOid != 1
       || ContainerSuperBlock->BlockHeader.ObjectType != 0x80000001) {
     return EFI_UNSUPPORTED;
@@ -759,8 +759,8 @@ ApfsDriverLoaderStart (
   //
   // Verify ContainerSuperblock magic.
   //
-  DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->Magic));
-  DEBUG ((DEBUG_VERBOSE, "Should be: %04x\n", APFS_CSB_SIGNATURE));
+  DEBUG ((DEBUG_INFO, "CsbMagic: %04x\n", ContainerSuperBlock->Magic));
+  DEBUG ((DEBUG_INFO, "Should be: %04x\n", APFS_CSB_SIGNATURE));
 
   if (ContainerSuperBlock->Magic != APFS_CSB_SIGNATURE) {
     FreePool (ApfsBlock);
@@ -773,12 +773,12 @@ ApfsDriverLoaderStart (
   ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "Container Blocksize: %u bytes\n",
     ApfsBlockSize
     ));
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "ContainerSuperblock checksum: %08llx \n",
     ContainerSuperBlock->BlockHeader.Checksum
     ));
@@ -789,7 +789,7 @@ ApfsDriverLoaderStart (
   EfiBootRecordBlockPtr = ContainerSuperBlock->EfiBootRecordBlock;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "EfiBootRecord located at: %llu block\n",
     EfiBootRecordBlockPtr
     ));
@@ -841,7 +841,7 @@ ApfsDriverLoaderStart (
                               + LegacyBaseOffset;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "EfiBootRecordBlock offset: %08llx \n",
      EfiBootRecordBlockOffset
      ));
@@ -878,7 +878,7 @@ ApfsDriverLoaderStart (
   }
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "EfiBootRecordBlock checksum: %08llx\n",
     EfiBootRecordBlock->BlockHeader.Checksum
     ));
@@ -888,7 +888,7 @@ ApfsDriverLoaderStart (
   //        EFI embedded driver could be defragmented across whole container
   //
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "EFI embedded driver extents number %llu\n",
     EfiBootRecordBlock->NumOfExtents
     ));
@@ -898,7 +898,7 @@ ApfsDriverLoaderStart (
   //
   for (Index = 0; Index < EfiBootRecordBlock->NumOfExtents; Index++) {
     DEBUG ((
-        DEBUG_VERBOSE,
+        DEBUG_INFO,
         "EFI embedded driver extent located at: %llu block\n with size %llu\n",
         EfiBootRecordBlock->RecordExtents[Index].StartPhysicalAddr,
         EfiBootRecordBlock->RecordExtents[Index].BlockCount
@@ -1163,7 +1163,7 @@ ApfsDriverLoaderInit (
   VOID                                *PartitionInfoInterface = NULL;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "Starting ApfsDriverLoader ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
@@ -1194,7 +1194,7 @@ ApfsDriverLoaderInit (
 
   if (EFI_ERROR(Status)) {
     DEBUG ((
-      DEBUG_VERBOSE,
+      DEBUG_INFO,
       "No partition info protocol, using Legacy scan\n"
       ));
     LegacyScan = TRUE;

@@ -67,7 +67,7 @@ GetImageDims (
   Status = GetPngDims (ImageBuffer, ImageSize, ImageWidth, ImageHeight);
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "Failed to obtain image dimensions for image\n"));
+    DEBUG ((DEBUG_INFO, "Failed to obtain image dimensions for image\n"));
   }
 
   return Status;

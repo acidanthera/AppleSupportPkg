@@ -55,6 +55,7 @@
   BaseMemoryLib
   MemoryAllocationLib
   PcdLib
+  OcGuardLib
 
 [Sources]
   AppleImageLoader.c

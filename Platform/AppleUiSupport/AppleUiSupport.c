@@ -35,44 +35,44 @@ AppleUiSupportEntrypoint (
   EFI_STATUS            Status;
 
   DEBUG ((
-    DEBUG_VERBOSE,
+    DEBUG_INFO,
     "Starting AppleUiSupport ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
 
   Status = InitializeAppleImageCodec (ImageHandle, SystemTable);
-  if (EFI_ERROR(Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleImageCodec install failure, Status = %r\n", Status));
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleImageCodec install failure, Status = %r\n", Status));
   }
 
   Status = InitializeUserInterfaceTheme (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleUserInterfaceTheme install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleUserInterfaceTheme install failure - %r\n", Status));
   }
 
   Status = InitializeUnicodeCollationEng (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: UnicodeCollation install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: UnicodeCollation install failure - %r\n", Status));
   }
 
   Status = InitializeHashServices (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: HashServices install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: HashServices install failure - %r\n", Status));
   }
 
   Status = InitializeAppleKeyMapAggregator (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleKeyMapAggregator install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleKeyMapAggregator install failure - %r\n", Status));
   }
 
   Status = InitializeAppleEvent (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleEvent install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleEvent install failure - %r\n", Status));
   }
 
   Status = InitializeFirmwareVolumeInject (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_VERBOSE, "AppleUiSupport: AppleFirmwareVolume install failure - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleFirmwareVolume install failure - %r\n", Status));
   }
 
   return Status;

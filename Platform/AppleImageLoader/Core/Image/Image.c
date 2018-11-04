@@ -575,8 +575,8 @@ CoreLoadPeImage (
       // The PE/COFF loader can support loading image types that can be executed.
       // If we loaded an image type that we can not execute return EFI_UNSUPORTED.
       //
-      DEBUG ((EFI_D_ERROR, "Image type %s can't be loaded ", GetMachineTypeName(Image->ImageContext.Machine)));
-      DEBUG ((EFI_D_ERROR, "on %s UEFI system.\n", GetMachineTypeName(mDxeCoreImageMachineType)));
+      DEBUG ((DEBUG_WARN, "Image type %s can't be loaded ", GetMachineTypeName(Image->ImageContext.Machine)));
+      DEBUG ((DEBUG_WARN, "on %s UEFI system.\n", GetMachineTypeName(mDxeCoreImageMachineType)));
       return EFI_UNSUPPORTED;
     }
   }
@@ -741,7 +741,7 @@ CoreLoadPeImage (
     //
     Status = EFI_NOT_FOUND;
     if (EFI_ERROR(Status) || Image->Ebc == NULL) {
-      DEBUG ((DEBUG_LOAD | DEBUG_ERROR, "CoreLoadPeImage: There is no EBC interpreter for an EBC image.\n"));
+      DEBUG ((DEBUG_WARN, "CoreLoadPeImage: There is no EBC interpreter for an EBC image.\n"));
       goto Done;
     }
   }
@@ -1159,7 +1159,7 @@ CoreLoadImageCommon (
 
   ParentImage = CoreLoadedImageInfo (ParentImageHandle);
   if (ParentImage == NULL) {
-    DEBUG((DEBUG_LOAD|DEBUG_ERROR, "LoadImageEx: Parent handle not an image handle\n"));
+    DEBUG((DEBUG_LOAD|DEBUG_WARN, "LoadImageEx: Parent handle not an image handle\n"));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -1557,8 +1557,8 @@ CoreStartImage (
     // Do not ASSERT here, because image might be loaded via EFI_IMAGE_MACHINE_CROSS_TYPE_SUPPORTED
     // But it can not be started.
     //
-    DEBUG ((EFI_D_ERROR, "Image type %s can't be started ", GetMachineTypeName(Image->Machine)));
-    DEBUG ((EFI_D_ERROR, "on %s UEFI system.\n", GetMachineTypeName(mDxeCoreImageMachineType)));
+    DEBUG ((DEBUG_WARN, "Image type %s can't be started ", GetMachineTypeName(Image->Machine)));
+    DEBUG ((DEBUG_WARN, "on %s UEFI system.\n", GetMachineTypeName(mDxeCoreImageMachineType)));
     return EFI_UNSUPPORTED;
   }
 
@@ -1623,7 +1623,7 @@ CoreStartImage (
     //
     DEBUG_CODE_BEGIN ();
       if (EFI_ERROR (Image->Status)) {
-        DEBUG ((DEBUG_ERROR, "Error: Image at %11p start failed: %r\n", Image->Info.ImageBase, Image->Status));
+        DEBUG ((DEBUG_WARN, "Error: Image at %11p start failed: %r\n", Image->Info.ImageBase, Image->Status));
       }
     DEBUG_CODE_END ();
 
@@ -1771,7 +1771,7 @@ CoreExit (
   // Image has been started, verify this image can exit
   //
   if (Image != mCurrentImage) {
-    DEBUG ((DEBUG_LOAD|DEBUG_ERROR, "Exit: Image is not exitable image\n"));
+    DEBUG ((DEBUG_LOAD|DEBUG_WARN, "Exit: Image is not exitable image\n"));
     Status = EFI_INVALID_PARAMETER;
     goto Done;
   }
