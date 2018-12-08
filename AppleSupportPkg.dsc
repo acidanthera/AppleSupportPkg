@@ -78,7 +78,7 @@
   gEfiMdePkgTokenSpaceGuid.PcdFixedDebugPrintErrorLevel|0x80000042
 !else
   # DEBUG_PRINT_ENABLED
-  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|2
+  # gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|2
   # DEBUG_ERROR | DEBUG_WARN
   gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000002
   gEfiMdePkgTokenSpaceGuid.PcdFixedDebugPrintErrorLevel|0x80000002
