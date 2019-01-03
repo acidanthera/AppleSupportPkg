@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 #include <Library/BaseLib.h>
 #include <Library/UefiLib.h>
+#include <Library/OcGuardLib.h>
 
 CHAR8 mEngUpperMap[MAP_TABLE_SIZE];
 CHAR8 mEngLowerMap[MAP_TABLE_SIZE];
@@ -136,15 +137,8 @@ InitializeUnicodeCollationEng (
   // Workaround by appending the other language to the list of supported ones.
   //
   if (!OverwroteLang && AsciiStrnCmp (PlatformLang, "en", 2)) {
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201100L
-    //
-    // Broken VERIFY_SIZE_OF is implemented as an extern, and neither lets one to check both cases
-    // (due to variable redeclaration), nor allows the use in a .c file (due to unused variable warnings).
-    // Using a standard _Static_assert, which is normally available.
-    //
-    _Static_assert (sizeof (UnicodeLanguages) == 6 && sizeof (UnicodeLanguages[0]) == 1,
+    OC_INLINE_STATIC_ASSERT (sizeof (UnicodeLanguages) == 6 && sizeof (UnicodeLanguages[0]) == 1,
       "UnicodeLanguages must contain one extra language");
-#endif
     UnicodeLanguages[2] = ';';
     UnicodeLanguages[3] = PlatformLang[0];
     UnicodeLanguages[4] = PlatformLang[1];
