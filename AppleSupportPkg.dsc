@@ -61,6 +61,8 @@
   PeCoffExtraActionLib|MdePkg/Library/BasePeCoffExtraActionLibNull/BasePeCoffExtraActionLibNull.inf
   OcTimerLib|OcSupportPkg/Library/OcTimerLib/OcTimerLib.inf
   OcMiscLib|OcSupportPkg/Library/OcMiscLib/OcMiscLib.inf
+  OcDevicePathLib|OcSupportPkg/Library/OcDevicePathLib/OcDevicePathLib.inf
+  OcDevicePropertyLib|OcSupportPkg/Library/OcDevicePropertyLib/OcDevicePropertyLib.inf
 
 [Components]
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
@@ -88,11 +90,12 @@
   # While there are no PCDs as of now, there at least are some custom macros.
   DEFINE APPLESUPPORTPKG_BUILD_OPTIONS_GEN = -D DISABLE_NEW_DEPRECATED_INTERFACES $(APPLESUPPORTPKG_BUILD_OPTIONS)
 
-  INTEL:DEBUG_*_*_CC_FLAGS   = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
-  INTEL:RELEASE_*_*_CC_FLAGS = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
   GCC:DEBUG_*_*_CC_FLAGS     = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
+  GCC:NOOPT_*_*_CC_FLAGS     = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
   GCC:RELEASE_*_*_CC_FLAGS   = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
   MSFT:DEBUG_*_*_CC_FLAGS    = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
+  MSFT:NOOPT_*_*_CC_FLAGS    = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
   MSFT:RELEASE_*_*_CC_FLAGS  = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
-  XCODE:RELEASE_*_*_CC_FLAGS = -flto $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
   XCODE:DEBUG_*_*_CC_FLAGS   = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
+  XCODE:NOOPT_*_*_CC_FLAGS   = $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
+  XCODE:RELEASE_*_*_CC_FLAGS = -flto $(APPLESUPPORTPKG_BUILD_OPTIONS_GEN)
