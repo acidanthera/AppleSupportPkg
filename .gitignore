@@ -3,4 +3,5 @@ UDK
 Binaries
 Tools/EfiResTool/EfiResTool
 Tools/AppleEfiSignTool/AppleEfiSignTool
+Tools/readlabel/readlabel
 *.o
