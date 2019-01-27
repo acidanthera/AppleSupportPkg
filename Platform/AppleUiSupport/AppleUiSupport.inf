@@ -59,7 +59,7 @@
 [Protocols]
   gEfiFirmwareVolumeProtocolGuid      ## PROTOCOL PRODUCES
   gEfiFirmwareVolume2ProtocolGuid     ## PROTOCOL PRODUCES
-  gAppleImageCodecProtocolGuid        ## PROTOCOL PRODUCES
+  gAppleImageConversionProtocolGuid   ## PROTOCOL PRODUCES
   gEfiUserInterfaceThemeProtocolGuid  ## PROTOCOL PRODUCES
   gEfiUnicodeCollation2ProtocolGuid   ## PROTOCOL CONSUMES
   gEfiHashServiceBindingProtocolGuid  ## PROTOCOL CONSUMES
@@ -80,7 +80,7 @@
   AppleEvent/AppleKeyMap.c
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
-  AppleImageCodec/AppleImageCodec.c
+  AppleImageConversion/AppleImageConversion.c
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c

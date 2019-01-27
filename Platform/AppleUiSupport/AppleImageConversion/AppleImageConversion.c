@@ -1,6 +1,6 @@
 /** @file
 
-AppleImageCodec protocol
+AppleImageConversion protocol
 
 Copyright (C) 2018 savvas. All rights reserved.<BR>
 Portions copyright (C) 2016 slice. All rights reserved.<BR>
@@ -27,7 +27,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcPngLib.h>
 
 #include <Protocol/UgaDraw.h>
-#include <Protocol/AppleImageCodec.h>
+#include <Protocol/AppleImageConversion.h>
 
 STATIC CONST UINT8 mPngHeader[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 
@@ -150,7 +150,7 @@ GetImageDimsVersion (
   EFI_STATUS  Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && Height && Width) {
     Status = EFI_UNSUPPORTED;
-    if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
+    if (Version <= APPLE_IMAGE_CONVERSION_PROTOCOL_INTERFACE_V1) {
       Status = GetImageDims (Buffer, BufferSize, Width, Height);
     }
   }
@@ -171,7 +171,7 @@ DecodeImageDataVersion (
   EFI_STATUS  Status = EFI_INVALID_PARAMETER;
   if (Buffer && BufferSize && Version && RawImageData && RawImageDataSize) {
     Status = EFI_UNSUPPORTED;
-    if (Version <= APPLE_IMAGE_CODEC_PROTOCOL_INTERFACE_V1) {
+    if (Version <= APPLE_IMAGE_CONVERSION_PROTOCOL_INTERFACE_V1) {
       Status = DecodeImageData (Buffer, BufferSize, RawImageData, RawImageDataSize);
     }
   }
@@ -182,9 +182,9 @@ DecodeImageDataVersion (
 //
 // Image codec protocol instance.
 //
-STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
-  APPLE_IMAGE_CODEC_PROTOCOL_REVISION,
-  APPLE_IMAGE_CODEC_PROTOCOL_ANY_EXTENSION,
+STATIC APPLE_IMAGE_CONVERSION_PROTOCOL gAppleImageConversion = {
+  APPLE_IMAGE_CONVERSION_PROTOCOL_REVISION,
+  APPLE_IMAGE_CONVERSION_PROTOCOL_ANY_EXTENSION,
   RecognizeImageData,
   GetImageDims,
   DecodeImageData,
@@ -193,7 +193,7 @@ STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
 };
 
 /**
-  InitializeAppleImageCodec
+  InitializeAppleImageConversion
 
   @param[in] ImageHandle  The firmware allocated handle for the EFI image.
   @param[in] SystemTable  A pointer to the EFI System Table.
@@ -203,19 +203,19 @@ STATIC APPLE_IMAGE_CODEC_PROTOCOL gAppleImageCodec = {
 **/
 EFI_STATUS
 EFIAPI
-InitializeAppleImageCodec (
+InitializeAppleImageConversion (
   IN EFI_HANDLE           ImageHandle,
   IN EFI_SYSTEM_TABLE     *SystemTable
 )
 {
-  EFI_STATUS                  Status;
-  EFI_HANDLE                  NewHandle                 = NULL;
-  APPLE_IMAGE_CODEC_PROTOCOL  *AppleImageCodecInterface = NULL;
+  EFI_STATUS                       Status;
+  EFI_HANDLE                       NewHandle                 = NULL;
+  APPLE_IMAGE_CONVERSION_PROTOCOL  *AppleImageConversionInterface = NULL;
 
   Status = gBS->LocateProtocol (
-    &gAppleImageCodecProtocolGuid,
+    &gAppleImageConversionProtocolGuid,
     NULL,
-    (VOID **)&AppleImageCodecInterface
+    (VOID **)&AppleImageConversionInterface
     );
 
   if (EFI_ERROR (Status)) {
@@ -225,8 +225,8 @@ InitializeAppleImageCodec (
     //
     Status = gBS->InstallMultipleProtocolInterfaces (
       &NewHandle,
-      &gAppleImageCodecProtocolGuid,
-      &gAppleImageCodec,
+      &gAppleImageConversionProtocolGuid,
+      &gAppleImageConversion,
       NULL
       );
   } else {

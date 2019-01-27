@@ -40,9 +40,9 @@ AppleUiSupportEntrypoint (
     APPLE_SUPPORT_VERSION
     ));
 
-  Status = InitializeAppleImageCodec (ImageHandle, SystemTable);
+  Status = InitializeAppleImageConversion (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleImageCodec install failure, Status = %r\n", Status));
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleImageConversion install failure, Status = %r\n", Status));
   }
 
   Status = InitializeUserInterfaceTheme (ImageHandle, SystemTable);
