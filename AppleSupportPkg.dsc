@@ -72,6 +72,7 @@
 
 [PcdsFixedAtBuild]
   gEfiMdePkgTokenSpaceGuid.PcdMaximumAsciiStringLength|0
+  gEfiMdePkgTokenSpaceGuid.PcdUefiLibMaxPrintBufferSize|1024
 !if $(TARGET) == DEBUG
   # DEBUG_ASSERT_ENABLED | DEBUG_PRINT_ENABLED | DEBUG_CODE_ENABLED | CLEAR_MEMORY_ENABLED | ASSERT_DEADLOOP_ENABLED
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x2f
