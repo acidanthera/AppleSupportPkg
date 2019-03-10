@@ -40,6 +40,11 @@ AppleUiSupportEntrypoint (
     APPLE_SUPPORT_VERSION
     ));
 
+  Status = InitializeConsoleControl (ImageHandle, SystemTable);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "AppleUiSupport: ConsoleControl install failure - %r\n", Status));
+  }
+
   Status = InitializeAppleImageConversion (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleImageConversion install failure, Status = %r\n", Status));

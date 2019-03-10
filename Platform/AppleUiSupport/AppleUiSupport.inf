@@ -81,6 +81,7 @@
   AppleKeyMapAggregator/AppleKeyMapAggregator.c
   AppleUserInterfaceTheme/AppleUserInterfaceTheme.c
   AppleImageConversion/AppleImageConversion.c
+  ConsoleControl/ConsoleControl.c
   FirmwareVolumeInject/FirmwareVolumeInject.c
   FirmwareVolumeInject/FirmwareVolumeInject.h
   FirmwareVolumeInject/FvOnFv2Thunk.c

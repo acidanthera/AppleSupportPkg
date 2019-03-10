@@ -18,9 +18,13 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef APPLE_UI_SUPPORT_H
 #define APPLE_UI_SUPPORT_H
 
-//
-// Function prototypes
-//
+EFI_STATUS
+EFIAPI
+InitializeConsoleControl (
+  IN EFI_HANDLE           ImageHandle,
+  IN EFI_SYSTEM_TABLE     *SystemTable
+  );
+
 EFI_STATUS
 EFIAPI
 InitializeFirmwareVolumeInject (
