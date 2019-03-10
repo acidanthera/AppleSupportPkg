@@ -90,6 +90,7 @@ InitializeConsoleControl (
 {
   EFI_STATUS                    Status;
   EFI_CONSOLE_CONTROL_PROTOCOL  *ConsoleControl;
+  EFI_HANDLE                    NewHandle;
 
   Status = gBS->LocateProtocol (
     &gEfiConsoleControlProtocolGuid,
@@ -104,8 +105,9 @@ InitializeConsoleControl (
     return Status;
   }
 
+  NewHandle = NULL;
   Status = gBS->InstallMultipleProtocolInterfaces (
-    ImageHandle,
+    &NewHandle,
     &gEfiConsoleControlProtocolGuid,
     &mConsoleControlProtocol,
     NULL
