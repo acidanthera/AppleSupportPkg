@@ -105,11 +105,11 @@ StartApfsDriver (
   if (EfiFileBuffer == NULL
     || EfiFileSize == 0
     || EfiFileSize > (UINT32) 0xFFFFFFFFULL) {
-    DEBUG ((DEBUG_WARN, "Broken apfs.efi\n"));
+    DEBUG ((DEBUG_VERBOSE, "Broken apfs.efi\n"));
     return EFI_UNSUPPORTED;
   }
 
-  DEBUG ((DEBUG_INFO, "Loading apfs.efi from memory!\n"));
+  DEBUG ((DEBUG_VERBOSE, "Loading apfs.efi from memory!\n"));
 
   //
   // Try to retrieve DevicePath
@@ -122,19 +122,19 @@ StartApfsDriver (
 
   if (EFI_ERROR (Status)) {
     ParentDevicePath = NULL;
-    DEBUG ((DEBUG_INFO, "ApfsDriver DevicePath not present\n"));
+    DEBUG ((DEBUG_VERBOSE, "ApfsDriver DevicePath not present\n"));
   }
 
-  DEBUG ((DEBUG_INFO, "ImageSize before verification: %lu\n", EfiFileSize));
+  DEBUG ((DEBUG_VERBOSE, "ImageSize before verification: %lu\n", EfiFileSize));
 
-  DEBUG ((DEBUG_INFO, "Verifying binary signature\n"));
+  DEBUG ((DEBUG_VERBOSE, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     EfiFileBuffer,
     &EfiFileSize,
     NULL
     );
 
-  DEBUG ((DEBUG_INFO, "New ImageSize after verification: %lu\n", EfiFileSize));
+  DEBUG ((DEBUG_VERBOSE, "New ImageSize after verification: %lu\n", EfiFileSize));
 
   if (!EFI_ERROR (Status)) {
     Status = gBS->LoadImage (
@@ -146,11 +146,11 @@ StartApfsDriver (
       &ImageHandle
       );
       if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_WARN, "Load image failed with Status: %r\n", Status));
+        DEBUG ((DEBUG_VERBOSE, "Load image failed with Status: %r\n", Status));
         return Status;
       }
     } else {
-      DEBUG ((DEBUG_WARN, "SECURITY VIOLATION!!! Binary modified!\n"));
+      DEBUG ((DEBUG_ERROR, "EfiFile signature invalid\n"));
       return Status;
     }
 
@@ -161,7 +161,7 @@ StartApfsDriver (
     );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Failed to Handle LoadedImage Protool with Status: %r\n", Status));
+    DEBUG ((DEBUG_VERBOSE, "Failed to Handle LoadedImage Protool with Status: %r\n", Status));
     return Status;
   }
 
@@ -183,7 +183,7 @@ StartApfsDriver (
     );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "Failed to start ApfsDriver with Status: %r\n", Status));
+    DEBUG ((DEBUG_ERROR, "Failed to start ApfsDriver with Status: %r\n", Status));
 
     //
     // Unload ApfsDriver image from memory
@@ -262,7 +262,7 @@ LegacyApfsContainerScan (
   EFI_DISK_IO2_PROTOCOL       *DiskIo2            = NULL;
   EFI_PARTITION_ENTRY         *ApfsGptEntry       = NULL;
 
-  DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Entrypoint\n"));
+  DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: Entrypoint\n"));
 
   //
   // Open I/O protocols
@@ -289,7 +289,7 @@ LegacyApfsContainerScan (
       );
 
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: BlockIO protocol not present\n"));
+      DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: BlockIO protocol not present\n"));
       return EFI_UNSUPPORTED;
     }
   }
@@ -315,7 +315,7 @@ LegacyApfsContainerScan (
       );
 
     if (EFI_ERROR (Status)){
-      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: DiskIO protocol not present\n"));
+      DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: DiskIO protocol not present\n"));
       return EFI_UNSUPPORTED;
     }
   }
@@ -330,10 +330,10 @@ LegacyApfsContainerScan (
       return EFI_UNSUPPORTED;
     }
 
-  DEBUG ((DEBUG_WARN, "BlockSize: %lu", BlockSize));
+  DEBUG ((DEBUG_VERBOSE, "BlockSize: %lu", BlockSize));
   Block = AllocateZeroPool ((UINTN) BlockSize);
   if (Block == NULL) {
-    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Allocation error %r\n", Status));
+    DEBUG ((DEBUG_ERROR, "LegacyApfsContainerScan: Allocation error %r\n", Status));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -351,7 +351,7 @@ LegacyApfsContainerScan (
 
   if (EFI_ERROR (Status)) {
     FreePool (Block);
-    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ReadDisk1 Error %r\n", Status));
+    DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: ReadDisk1 Error %r\n", Status));
     return EFI_DEVICE_ERROR;
   }
 
@@ -376,12 +376,12 @@ LegacyApfsContainerScan (
     FreePool (Block);
     Block = AllocateZeroPool (PartitionNumber * PartitionEntrySize);
     if (Block == NULL) {
-      DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Allocation error %r\n", Status));
+      DEBUG ((DEBUG_ERROR, "LegacyApfsContainerScan: Allocation error %r\n", Status));
       return EFI_OUT_OF_RESOURCES;
     }
   } else {
     FreePool (Block);
-    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: Block device not supported%r\n", Status));
+    DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: Block device not supported%r\n", Status));
     return EFI_UNSUPPORTED;
   }
 
@@ -396,7 +396,7 @@ LegacyApfsContainerScan (
 
   if (EFI_ERROR (Status)) {
     FreePool (Block);
-    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ReadDisk2 Error %r\n", Status));
+    DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: ReadDisk2 Error %r\n", Status));
     return EFI_DEVICE_ERROR;
   }
 
@@ -417,7 +417,7 @@ LegacyApfsContainerScan (
 
   if (ApfsGptEntry == NULL)  {
     FreePool (Block);
-    DEBUG ((DEBUG_WARN, "LegacyApfsContainerScan: ApfsGptEntry is null\n", Status));
+    DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: ApfsGptEntry is null\n", Status));
     return EFI_UNSUPPORTED;
   }
   LegacyBaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, BlockSize);
@@ -660,7 +660,7 @@ ApfsDriverLoaderStart (
     return EFI_UNSUPPORTED;
    }
 
-  DEBUG ((DEBUG_INFO, "Apfs Container found.\n"));
+  DEBUG ((DEBUG_VERBOSE, "Apfs Container found.\n"));
 
   //
   // Open I/O protocols
@@ -749,8 +749,8 @@ ApfsDriverLoaderStart (
   //
   // Verify ObjectOid and ObjectType
   //
-  DEBUG ((DEBUG_INFO, "ObjectId: %04x\n", ContainerSuperBlock->BlockHeader.ObjectOid ));
-  DEBUG ((DEBUG_INFO, "ObjectType: %04x\n", ContainerSuperBlock->BlockHeader.ObjectType ));
+  DEBUG ((DEBUG_VERBOSE, "ObjectId: %04x\n", ContainerSuperBlock->BlockHeader.ObjectOid ));
+  DEBUG ((DEBUG_VERBOSE, "ObjectType: %04x\n", ContainerSuperBlock->BlockHeader.ObjectType ));
   if (ContainerSuperBlock->BlockHeader.ObjectOid != 1
       || ContainerSuperBlock->BlockHeader.ObjectType != 0x80000001) {
     return EFI_UNSUPPORTED;
@@ -759,8 +759,8 @@ ApfsDriverLoaderStart (
   //
   // Verify ContainerSuperblock magic.
   //
-  DEBUG ((DEBUG_INFO, "CsbMagic: %04x\n", ContainerSuperBlock->Magic));
-  DEBUG ((DEBUG_INFO, "Should be: %04x\n", APFS_CSB_SIGNATURE));
+  DEBUG ((DEBUG_VERBOSE, "CsbMagic: %04x\n", ContainerSuperBlock->Magic));
+  DEBUG ((DEBUG_VERBOSE, "Should be: %04x\n", APFS_CSB_SIGNATURE));
 
   if (ContainerSuperBlock->Magic != APFS_CSB_SIGNATURE) {
     FreePool (ApfsBlock);
@@ -773,12 +773,12 @@ ApfsDriverLoaderStart (
   ApfsBlockSize = ContainerSuperBlock->BlockSize;
 
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "Container Blocksize: %u bytes\n",
     ApfsBlockSize
     ));
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "ContainerSuperblock checksum: %08llx \n",
     ContainerSuperBlock->BlockHeader.Checksum
     ));
@@ -841,7 +841,7 @@ ApfsDriverLoaderStart (
                               + LegacyBaseOffset;
 
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "EfiBootRecordBlock offset: %08llx \n",
      EfiBootRecordBlockOffset
      ));
@@ -878,7 +878,7 @@ ApfsDriverLoaderStart (
   }
 
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "EfiBootRecordBlock checksum: %08llx\n",
     EfiBootRecordBlock->BlockHeader.Checksum
     ));
@@ -888,7 +888,7 @@ ApfsDriverLoaderStart (
   //        EFI embedded driver could be defragmented across whole container
   //
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "EFI embedded driver extents number %llu\n",
     EfiBootRecordBlock->NumOfExtents
     ));
@@ -898,7 +898,7 @@ ApfsDriverLoaderStart (
   //
   for (Index = 0; Index < EfiBootRecordBlock->NumOfExtents; Index++) {
     DEBUG ((
-        DEBUG_INFO,
+        DEBUG_VERBOSE,
         "EFI embedded driver extent located at: %llu block\n with size %llu\n",
         EfiBootRecordBlock->RecordExtents[Index].StartPhysicalAddr,
         EfiBootRecordBlock->RecordExtents[Index].BlockCount
@@ -996,7 +996,7 @@ ApfsDriverLoaderStart (
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
-      DEBUG_WARN,
+      DEBUG_VERBOSE,
       "ApfsEfiBootRecordInfoProtocol install failed with Status %r\n",
       Status
       ));
@@ -1194,7 +1194,7 @@ ApfsDriverLoaderInit (
 
   if (EFI_ERROR(Status)) {
     DEBUG ((
-      DEBUG_INFO,
+      DEBUG_VERBOSE,
       "No partition info protocol, using Legacy scan\n"
       ));
     LegacyScan = TRUE;
