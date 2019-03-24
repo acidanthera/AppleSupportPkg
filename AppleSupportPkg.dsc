@@ -63,6 +63,7 @@
   OcMiscLib|OcSupportPkg/Library/OcMiscLib/OcMiscLib.inf
   OcDevicePathLib|OcSupportPkg/Library/OcDevicePathLib/OcDevicePathLib.inf
   OcDevicePropertyLib|OcSupportPkg/Library/OcDevicePropertyLib/OcDevicePropertyLib.inf
+  OcStringLib|OcSupportPkg/Library/OcStringLib/OcStringLib.inf
 
 [Components]
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
