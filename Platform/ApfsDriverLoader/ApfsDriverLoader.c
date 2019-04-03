@@ -403,7 +403,7 @@ LegacyApfsContainerScan (
   //
   // Analyze partition entries.
   //
-  for (Index = 0; Index < PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
+  for (Index = 0; Index < (UINTN) PartitionEntrySize * PartitionNumber; Index += PartitionEntrySize) {
     EFI_PARTITION_ENTRY *CurrentEntry = (EFI_PARTITION_ENTRY *) (Block + Index);
     if (CompareGuid (&CurrentEntry->PartitionTypeGUID, &gAppleApfsPartitionTypeGuid)) {
       ApfsGptEntry = CurrentEntry;

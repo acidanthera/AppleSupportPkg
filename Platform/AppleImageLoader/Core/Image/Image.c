@@ -978,12 +978,12 @@ CoreUnloadAndCloseImage (
             if (!EFI_ERROR (Status)) {
               for (OpenInfoIndex = 0; OpenInfoIndex < OpenInfoCount; OpenInfoIndex++) {
                 if (OpenInfo[OpenInfoIndex].AgentHandle == Image->Handle) {
-                  Status = CoreCloseProtocol (
-                             HandleBuffer[HandleIndex],
-                             ProtocolGuidArray[ProtocolIndex],
-                             Image->Handle,
-                             OpenInfo[OpenInfoIndex].ControllerHandle
-                             );
+                  CoreCloseProtocol (
+                    HandleBuffer[HandleIndex],
+                    ProtocolGuidArray[ProtocolIndex],
+                    Image->Handle,
+                    OpenInfo[OpenInfoIndex].ControllerHandle
+                    );
                 }
               }
               if (OpenInfo != NULL) {
@@ -1003,17 +1003,17 @@ CoreUnloadAndCloseImage (
 
     CoreRemoveDebugImageInfoEntry (Image->Handle);
 
-    Status = CoreUninstallProtocolInterface (
-               Image->Handle,
-               &gEfiLoadedImageDevicePathProtocolGuid,
-               Image->LoadedImageDevicePath
-               );
+    CoreUninstallProtocolInterface (
+      Image->Handle,
+      &gEfiLoadedImageDevicePathProtocolGuid,
+      Image->LoadedImageDevicePath
+      );
 
-    Status = CoreUninstallProtocolInterface (
-               Image->Handle,
-               &gEfiLoadedImageProtocolGuid,
-               &Image->Info
-               );
+    CoreUninstallProtocolInterface (
+      Image->Handle,
+      &gEfiLoadedImageProtocolGuid,
+      &Image->Info
+      );
 
     if (Image->ImageContext.HiiResourceData != 0) {
       Status = CoreUninstallProtocolInterface (
