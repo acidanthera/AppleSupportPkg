@@ -29,9 +29,8 @@ int check(RSA* key) {
   if (public_exponent != 3 && public_exponent != 65537) {
     fprintf(stderr, "WARNING: Public exponent should be 3 or 65537 (but is %d).\n", public_exponent);
   }
-  if (modulus != 1024 && modulus != 2048 && modulus != 3072 && modulus
-!= 4096
-      && modulus != 8192) {
+  if (modulus != 1024 && modulus != 2048 && modulus != 3072
+    && modulus != 4096 && modulus != 8192) {
     fprintf(stderr, "ERROR: Unknown modulus length = %d.\n", modulus);
     return 0;
   }

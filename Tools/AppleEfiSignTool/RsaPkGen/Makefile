@@ -1,6 +1,6 @@
 CC ?= gcc
-CFLAGS=-c -Wall -Wextra -pedantic -O3 -I/usr/local/opt/openssl/include -lcrypto
-LDFLAGS=-L/usr/local/opt/openssl/lib -lcrypto
+CFLAGS=-c -Wall -Wextra -pedantic -O3 -I/usr/local/opt/openssl/include -I/opt/local/include -lcrypto
+LDFLAGS=-L/usr/local/opt/openssl/lib -L/opt/local/lib -lcrypto
 
 all: RsaTool
 
