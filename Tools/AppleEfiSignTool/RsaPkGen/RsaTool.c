@@ -1,23 +1,18 @@
 /* Copyright (c) 2010 The Chromium OS Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can
-be
+ * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
-/* C port of DumpPublicKey.java from the Android Open source project
-with
- * support for additional RSA key sizes.
-(platform/system/core,git/libmincrypt
+/* C port of DumpPublicKey.java from the Android Open source project with
+ * support for additional RSA key sizes. (platform/system/core,git/libmincrypt
  * /tools/DumpPublicKey.java). Uses the OpenSSL X509 and BIGNUM library.
  */
 #include <openssl/pem.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
+#include <stdio.h>
 #include "openssl_compat.h"
-
 /* Command line tool to extract RSA public keys from X.509 certificates
- * and output a pre-processed version of keys for use by RSA
-verification
+ * and output a pre-processed version of keys for use by RSA verification
  * routines.
  */
 int check(RSA* key) {
@@ -27,14 +22,45 @@ int check(RSA* key) {
   public_exponent = BN_get_word(e);
   modulus = BN_num_bits(n);
   if (public_exponent != 3 && public_exponent != 65537) {
-    fprintf(stderr, "WARNING: Public exponent should be 3 or 65537 (but is %d).\n", public_exponent);
+    fprintf(stderr,
+            "WARNING: Public exponent should be 3 or 65537 (but is %d).\n",
+            public_exponent);
   }
-  if (modulus != 1024 && modulus != 2048 && modulus != 3072
-    && modulus != 4096 && modulus != 8192) {
+  if (modulus != 1024 && modulus != 2048 && modulus != 3072 && modulus != 4096
+      && modulus != 8192) {
     fprintf(stderr, "ERROR: Unknown modulus length = %d.\n", modulus);
     return 0;
   }
   return 1;
+}
+void native_to_big(unsigned char *data, size_t size) {
+  size_t i, tmp = 1;
+  if (*(unsigned char *)&tmp == 1) {
+    fprintf(stderr, "WARNING: Assuming little endian encoding.\n");
+    for (i = 0; i < size / 2; ++i) {
+      tmp     = data[i];
+      data[i] = data[size - i - 1];
+      data[size - i - 1] = tmp;
+    }
+  } else {
+    fprintf(stderr, "WARNING: Assuming big endian encoding.\n");
+  }
+}
+void print_data(void *data, size_t size) {
+  size_t i;
+  static size_t block = 0;
+  if (data == NULL) {
+    if (block > 0)
+      puts("");
+  } else {
+    for (i = 0; i < size; ++i, ++block) {
+      if (block == 12) {
+        puts(",");
+        block = 0;
+      }
+      printf("%s0x%02x", block == 0 ? "" : ", ", ((uint8_t *)data)[i]);
+    }
+  }
 }
 /* Pre-processes and outputs RSA public key to standard out.
  */
@@ -44,15 +70,13 @@ void output(RSA* key) {
   BIGNUM *N = NULL;
   BIGNUM *Big1 = NULL, *Big2 = NULL, *Big32 = NULL, *BigMinus1 = NULL;
   BIGNUM *B = NULL;
-  BIGNUM *N0inv= NULL, *R = NULL, *RR = NULL, *RRTemp = NULL, *NnumBits
-= NULL;
+  BIGNUM *N0inv= NULL, *R = NULL, *RR = NULL, *RRTemp = NULL, *NnumBits = NULL;
   BIGNUM *n = NULL, *rr = NULL;
   BN_CTX *bn_ctx = BN_CTX_new();
   uint32_t n0invout;
   /* Output size of RSA key in 32-bit words */
   nwords = RSA_size(key) / 4;
-  if (-1 == write(1, &nwords, sizeof(nwords)))
-    goto failure;
+  print_data(&nwords, sizeof(nwords));
   /* Initialize BIGNUMs */
   RSA_get0_key(key, &key_n, NULL, NULL);
   N = BN_dup(key_n);
@@ -77,8 +101,7 @@ void output(RSA* key) {
   BN_mod_inverse(N0inv, N, B, bn_ctx);
   BN_sub(N0inv, B, N0inv);
   n0invout = BN_get_word(N0inv);
-  if (-1 == write(1, &n0invout, sizeof(n0invout)))
-    goto failure;
+  print_data(&n0invout, sizeof(n0invout));
   /* Calculate R = 2^(# of key bits) */
   BN_set_word(NnumBits, BN_num_bits(N));
   BN_exp(R, Big2, NnumBits, bn_ctx);
@@ -91,8 +114,7 @@ void output(RSA* key) {
     uint32_t nout;
     BN_mod(n, N, B, bn_ctx); /* n = N mod B */
     nout = BN_get_word(n);
-    if (-1 == write(1, &nout, sizeof(nout)))
-      goto failure;
+    print_data(&nout, sizeof(nout));
     BN_rshift(N, N, 32); /*  N = N/B */
   }
   /* Write R^2 as little endian array of integers. */
@@ -100,11 +122,11 @@ void output(RSA* key) {
     uint32_t rrout;
     BN_mod(rr, RR, B, bn_ctx); /* rr = RR mod B */
     rrout = BN_get_word(rr);
-    if (-1 == write(1, &rrout, sizeof(rrout)))
-      goto failure;
+    print_data(&rrout, sizeof(rrout));
     BN_rshift(RR, RR, 32); /* RR = RR/B */
   }
-failure:
+  /* print terminator */
+  print_data(NULL, 0);
   /* Free BIGNUMs. */
   BN_free(N);
   BN_free(Big1);
@@ -118,31 +140,45 @@ failure:
   BN_free(n);
   BN_free(rr);
 }
+enum {
+  INVALID_MODE,
+  CERT_MODE,
+  PEM_MODE,
+  RAW_MODE
+};
 int main(int argc, char* argv[]) {
-  int cert_mode = 0;
+  int mode = INVALID_MODE;
   FILE* fp;
   X509* cert = NULL;
+  BIGNUM *mod = NULL;
+  BIGNUM *exp = NULL;
   RSA* pubkey = NULL;
   EVP_PKEY* key;
   char *progname;
-  if (argc != 3 || (strcmp(argv[1], "-cert") && strcmp(argv[1],
-"-pub"))) {
+  long size;
+  if (argc == 3) {
+    if (!strcmp(argv[1], "-cert"))
+      mode = CERT_MODE;
+    else if (!strcmp(argv[1], "-pub"))
+      mode = PEM_MODE;
+    else if (!strcmp(argv[1], "-raw"))
+      mode = RAW_MODE;
+  }
+  if (argc != 3 || mode == INVALID_MODE) {
     progname = strrchr(argv[0], '/');
     if (progname)
       progname++;
     else
       progname = argv[0];
-    fprintf(stderr, "Usage: %s <-cert | -pub> <file>\n", progname);
+    fprintf(stderr, "Usage: %s <-cert | -pub | -raw> <file>\n", progname);
     return -1;
   }
-  if (!strcmp(argv[1], "-cert"))
-    cert_mode = 1;
   fp = fopen(argv[2], "r");
   if (!fp) {
     fprintf(stderr, "Couldn't open file %s!\n", argv[2]);
     return -1;
   }
-  if (cert_mode) {
+  if (mode == CERT_MODE) {
     /* Read the certificate */
     if (!PEM_read_X509(fp, &cert, NULL, NULL)) {
       fprintf(stderr, "Couldn't read certificate.\n");
@@ -155,20 +191,54 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "Couldn't convert to a RSA style key.\n");
       goto fail;
     }
-  } else {
+  } else if (mode == PEM_MODE) {
     /* Read the pubkey in .PEM format. */
     if (!(pubkey = PEM_read_RSA_PUBKEY(fp, NULL, NULL, NULL))) {
       fprintf(stderr, "Couldn't read public key file.\n");
       goto fail;
     }
+  } else {
+    /* It is unimportant which exponent is used. */
+    static unsigned char expraw[4] = {0, 0, 0, 3};
+    static unsigned char modraw[1024];
+    if (fseek (fp, 0, SEEK_END) != 0
+      || (size = ftell(fp)) < 0
+      || fseek(fp, 0, SEEK_SET) != 0) {
+      fprintf(stderr, "Couldn't read modulus size.\n");
+      goto fail;
+    }
+    if ((size_t)size > sizeof(modraw)) {
+      fprintf(stderr, "Unsupported modulus size %ld.\n", size);
+      goto fail;
+    }
+    if (fread(modraw, size, 1, fp) != 1) {
+      fprintf(stderr, "Couldn't read modulus number.\n");
+      goto fail;
+    }
+    native_to_big(modraw, (size_t) size);
+    if (!(mod = BN_bin2bn(modraw, (int)size, NULL))) {
+      fprintf(stderr, "Couldn't create modulus number.\n");
+      goto fail;
+    }
+    if (!(exp = BN_bin2bn(expraw, sizeof (expraw), NULL))) {
+      fprintf(stderr, "Couldn't create public exp number.\n");
+      goto fail;
+    }
+    if (!(pubkey = RSA_new()) || !RSA_set0_key(pubkey, mod, exp, NULL)) {
+      fprintf(stderr, "Couldn't create rsa public key.\n");
+      goto fail;
+    }
+    /* RSA context owns its numbers. */
+    mod = exp = NULL;
   }
   if (check(pubkey)) {
     output(pubkey);
   }
 fail:
   X509_free(cert);
+  BN_free(mod);
+  BN_free(exp);
   RSA_free(pubkey);
   fclose(fp);
   return 0;
 }
-

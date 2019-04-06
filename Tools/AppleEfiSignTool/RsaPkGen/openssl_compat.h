@@ -18,6 +18,7 @@
 #define _OPENSSL_COMPAT_H
 
 #include <openssl/opensslv.h>
+#include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -97,7 +98,7 @@ void ssh_OpenSSL_add_all_algorithms(void);
  * @param e                   The @c e parameter
  * @param d                   The @c d parameter
  */
-void
+static inline void
 RSA_get0_key(const RSA *rsa, const BIGNUM **n,
              const BIGNUM **e, const BIGNUM **d)
 {
@@ -113,6 +114,43 @@ RSA_get0_key(const RSA *rsa, const BIGNUM **n,
     {
         *d = rsa ? rsa->d : NULL;
     }
+}
+
+/**
+ * Set the RSA parameters
+ *
+ * @param rsa                 The RSA object
+ * @param n                   The @c n parameter
+ * @param e                   The @c e parameter
+ * @param d                   The @c d parameter
+ * @return                    1 on success, 0 on error
+ */
+static inline int
+RSA_set0_key(RSA *rsa, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+{
+    if ((rsa->n == NULL && n == NULL)
+        || (rsa->e == NULL && e == NULL))
+    {
+        return 0;
+    }
+
+    if (n != NULL)
+    {
+        BN_free(rsa->n);
+        rsa->n = n;
+    }
+    if (e != NULL)
+    {
+        BN_free(rsa->e);
+        rsa->e = e;
+    }
+    if (d != NULL)
+    {
+        BN_free(rsa->d);
+        rsa->d = d;
+    }
+
+    return 1;
 }
 
 #endif /* _OPENSSL_COMPAT_H */
