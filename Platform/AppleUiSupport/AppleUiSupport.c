@@ -80,5 +80,5 @@ AppleUiSupportEntrypoint (
     DEBUG ((DEBUG_INFO, "AppleUiSupport: AppleFirmwareVolume install failure - %r\n", Status));
   }
 
-  return Status;
+  return EFI_SUCCESS;
 }
