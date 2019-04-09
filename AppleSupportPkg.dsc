@@ -65,6 +65,9 @@
   OcDevicePathLib|OcSupportPkg/Library/OcDevicePathLib/OcDevicePathLib.inf
   OcDevicePropertyLib|OcSupportPkg/Library/OcDevicePropertyLib/OcDevicePropertyLib.inf
   OcStringLib|OcSupportPkg/Library/OcStringLib/OcStringLib.inf
+  OcDataHubLib|OcSupportPkg/Library/OcDataHubLib/OcDataHubLib.inf
+  SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
+  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 
 [Components]
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
