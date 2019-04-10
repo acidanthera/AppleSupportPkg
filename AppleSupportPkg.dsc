@@ -54,6 +54,7 @@
   OcCryptoLib|OcSupportPkg/Library/OcCryptoLib/OcCryptoLib.inf
   OcGuardLib|OcSupportPkg/Library/OcGuardLib/OcGuardLib.inf
   OcPngLib|OcSupportPkg/Library/OcPngLib/OcPngLib.inf
+  OcRtcLib|OcSupportPkg/Library/OcRtcLib/OcRtcLib.inf
   AppleEventLib|AppleSupportPkg/Library/AppleEventLib/AppleEventLib.inf
   CacheMaintenanceLib|MdePkg/Library/BaseCacheMaintenanceLib/BaseCacheMaintenanceLib.inf
   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
@@ -74,6 +75,7 @@
   AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
   AppleSupportPkg/Platform/AppleUsbKbDxe/UsbKbDxe.inf
+  AppleSupportPkg/Platform/VirtualSmc/VirtualSmc.inf
 
 [PcdsFixedAtBuild]
   gEfiMdePkgTokenSpaceGuid.PcdMaximumAsciiStringLength|0
