@@ -508,7 +508,7 @@ ExtractAuthentificationKey (
     Payload      = Buffer + sizeof (UINT32) + AES_BLOCK_SIZE;
     PayloadSize  = Size - (sizeof (UINT32) + AES_BLOCK_SIZE);
     AesInitCtxIv (&Context, EncryptKey, InitVector);
-    AESCbcDecryptBuffer (&Context, Payload, PayloadSize);
+    AesCbcDecryptBuffer (&Context, Payload, PayloadSize);
     ZeroMem (&Context, sizeof (Context));
     ZeroMem (EncryptKey, sizeof (EncryptKey));
     RealSize = *(const UINT32 *)Payload;
