@@ -1,0 +1,75 @@
+# $Id: VBoxHfs.inf $
+## @file
+# VBoxHfs - VBox HFS FS driver.
+#
+
+#
+# Copyright (C) 2010-2012 Oracle Corporation
+#
+# This file is part of VirtualBox Open Source Edition (OSE), as
+# available from http://www.virtualbox.org. This file is free software;
+# you can redistribute it and/or modify it under the terms of the GNU
+# General Public License (GPL) as published by the Free Software
+# Foundation, in version 2 as it comes in the "COPYING" file of the
+# VirtualBox OSE distribution. VirtualBox OSE is distributed in the
+# hope that it will be useful, but WITHOUT ANY WARRANTY of any kind.
+#
+
+[Defines]
+  INF_VERSION                = 0x00010005
+  BASE_NAME                  = VBoxHfs
+  FILE_GUID                  = 6E506CC2-65E0-4814-994A-08ECDA046987
+  MODULE_TYPE                = UEFI_DRIVER
+  VERSION_STRING             = 1.0
+
+  ENTRY_POINT                = fsw_efi_main
+#  UNLOAD_IMAGE               = fsw_efi_unload
+
+[Sources]
+  fsw_core.c
+  fsw_efi.c
+  fsw_efi_lib.c
+  fsw_hfs.c
+  fsw_lib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiRuntimeServicesTableLib
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  BaseLib
+  UefiLib
+  UefiDriverEntryPoint
+  DebugLib
+  PcdLib
+  DevicePathLib
+
+[Guids]
+  gEfiFileInfoGuid                      ## SOMETIMES_CONSUMES   ## UNDEFINED
+  gEfiFileSystemInfoGuid                ## SOMETIMES_CONSUMES   ## UNDEFINED
+  gEfiFileSystemVolumeLabelInfoIdGuid   ## SOMETIMES_CONSUMES   ## UNDEFINED
+
+[Protocols]
+  gEfiDiskIoProtocolGuid                ## TO_START
+  gEfiDiskIo2ProtocolGuid               ## TO_START
+  gEfiBlockIoProtocolGuid               ## TO_START
+  gEfiSimpleFileSystemProtocolGuid      ## BY_START
+  gEfiUnicodeCollationProtocolGuid      ## TO_START
+  gEfiUnicodeCollation2ProtocolGuid     ## TO_START
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
+
+[BuildOptions]
+  # FIXME: These need to be reworked! Xcode support is missing, and DEBUG level is confusing.
+  GCC:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
+  INTEL:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
+  MSFT:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
+
+# If FSW_DNODE_CACHE_SIZE undefined or < 1 -- no cache support compiled in
+#
+# -DFSW_DEBUG_LEVEL=3

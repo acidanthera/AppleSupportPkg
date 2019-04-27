@@ -2,3 +2,16 @@
 UDK
 Binaries
 *.o
+*.exe
+*.obj
+*.sln
+*.user
+*.xcworkspace
+*.dSYM
+build
+Debug
+DerivedData
+xcshareddata
+xcuserdata
+xcuserstate
+.vs
