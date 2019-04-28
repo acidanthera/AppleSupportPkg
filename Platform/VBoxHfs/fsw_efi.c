@@ -52,7 +52,7 @@
 
 #include "fsw_efi.h"
 
-#include "fsw_efi_AppleBless.h"
+#include <Guid/AppleBless.h>
 
 #ifndef FSTYPE
 #ifdef VBOX
@@ -70,9 +70,7 @@
 
 #define FSW_EFI_DRIVER_NAME(t) L"Fsw " FSW_EFI_STRINGIFY(t) L" File System Driver"
 
-EFI_GUID gAppleBlessedOsxFolderInfoGuid = APPLE_BLESSED_OSX_FOLDER_INFO_GUID;
-EFI_GUID gAppleBlessedSystemFileInfoGuid = APPLE_BLESSED_SYSTEM_FILE_INFO_GUID;
-EFI_GUID gAppleBlessedSystemFolderInfoGuid = APPLE_BLESSED_SYSTEM_FOLDER_INFO_GUID;
+/** Expands to Apple Bless GUID name given GUID type name. */
 
 #define APPLE_GUID_NAME(xx) gApple ## xx ## Guid
 

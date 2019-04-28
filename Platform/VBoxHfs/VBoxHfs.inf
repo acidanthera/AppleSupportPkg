@@ -26,13 +26,22 @@
 #  UNLOAD_IMAGE               = fsw_efi_unload
 
 [Sources]
+  fsw_base.h
   fsw_core.c
+  fsw_core.h
   fsw_efi.c
+  fsw_efi.h
+  fsw_efi_base.h
   fsw_efi_lib.c
   fsw_hfs.c
+  fsw_hfs.h
   fsw_lib.c
+  fsw_strfunc.h
+  hfs_format.h
+  hfs_unistr.h
 
 [Packages]
+  EfiPkg/EfiPkg.dec
   MdePkg/MdePkg.dec
 
 [LibraryClasses]
@@ -51,6 +60,9 @@
   gEfiFileInfoGuid                      ## SOMETIMES_CONSUMES   ## UNDEFINED
   gEfiFileSystemInfoGuid                ## SOMETIMES_CONSUMES   ## UNDEFINED
   gEfiFileSystemVolumeLabelInfoIdGuid   ## SOMETIMES_CONSUMES   ## UNDEFINED
+  gAppleBlessedOsxFolderInfoGuid        ## SOMETIMES_CONSUMES
+  gAppleBlessedSystemFileInfoGuid       ## SOMETIMES_CONSUMES
+  gAppleBlessedSystemFolderInfoGuid     ## SOMETIMES_CONSUMES
 
 [Protocols]
   gEfiDiskIoProtocolGuid                ## TO_START
