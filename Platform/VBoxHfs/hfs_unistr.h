@@ -29,7 +29,7 @@
 #ifndef __HFS_UNISTR__
 #define __HFS_UNISTR__
 
-#if defined(__APPLE) && !defined(HOST_EFI)
+#if defined(__APPLE) && !defined(EFIAPI)
 #include <sys/types.h>
 #endif
 

@@ -57,12 +57,8 @@
 #include "fsw_base.h"
 
 /** Maximum size for a path, specifically symlink target paths. */
-#ifndef VBOX
-#define FSW_PATH_MAX (4096)
-#else
-/* Too big allocations are handled with alloca() */
+/** Too big allocations are handled with alloca() */
 #define FSW_PATH_MAX (2048)
-#endif
 
 /** Helper macro for token concatenation. */
 #define FSW_CONCAT3(a,b,c) a##b##c

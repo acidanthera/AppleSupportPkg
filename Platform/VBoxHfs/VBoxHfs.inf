@@ -23,7 +23,6 @@
   VERSION_STRING             = 1.0
 
   ENTRY_POINT                = fsw_efi_main
-#  UNLOAD_IMAGE               = fsw_efi_unload
 
 [Sources]
   fsw_base.h
@@ -77,11 +76,10 @@
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
 
 [BuildOptions]
-  # FIXME: These need to be reworked! Xcode support is missing, and DEBUG level is confusing.
-  GCC:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
-  INTEL:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
-  MSFT:*_*_*_CC_FLAGS = -DHOST_EFI -DVBOX -DFSTYPE=hfs -DFSW_DNODE_CACHE_SIZE=0 -DFSW_DEBUG_LEVEL=3
+  GCC:*_*_*_CC_FLAGS = -DFSTYPE=hfs
+  INTEL:*_*_*_CC_FLAGS = -DFSTYPE=hfs
+  MSFT:*_*_*_CC_FLAGS = -DFSTYPE=hfs
+  XCODE:*_*_*_CC_FLAGS = -DFSTYPE=hfs
 
-# If FSW_DNODE_CACHE_SIZE undefined or < 1 -- no cache support compiled in
-#
-# -DFSW_DEBUG_LEVEL=3
+# If FSW_DNODE_CACHE_SIZE is undefined or < 1 -- no cache support compiled in.
+# Use -DFSW_DEBUG_LEVEL=3 to set the debug level to maximum.

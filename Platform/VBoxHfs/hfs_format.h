@@ -28,7 +28,7 @@
 #ifndef __HFS_FORMAT__
 #define __HFS_FORMAT__
 
-#if defined(__APPLE__) && !defined(HOST_EFI)
+#if defined(__APPLE__) && !defined(EFIAPI)
 #include <sys/types.h>
 #include <sys/appleapiopts.h>
 #endif
@@ -777,7 +777,7 @@ enum {
 	kHFSBinaryCompare = 0xBC  /* binary compare (case-sensitive) */
 };
 
-#if defined(__APPLE__) && !defined(HOST_EFI)
+#if defined(__APPLE__) && !defined(EFIAPI)
 #include <uuid/uuid.h>
 
 /* JournalInfoBlock - Structure that describes where our journal lives */

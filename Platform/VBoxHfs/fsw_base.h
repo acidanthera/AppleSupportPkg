@@ -61,7 +61,7 @@
 #endif
 
 
-#ifdef HOST_EFI
+#ifdef EFIAPI
 #include "fsw_efi_base.h"
 #endif
 

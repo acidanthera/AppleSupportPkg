@@ -55,11 +55,7 @@
 #include <Guid/AppleBless.h>
 
 #ifndef FSTYPE
-#ifdef VBOX
 #error FSTYPE must be defined!
-#else
-#define FSTYPE ext2
-#endif
 #endif
 
 /** Helper macro for stringification. */
