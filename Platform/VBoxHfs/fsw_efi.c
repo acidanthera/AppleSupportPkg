@@ -70,10 +70,6 @@
 
 #define FSW_EFI_DRIVER_NAME(t) L"Fsw " FSW_EFI_STRINGIFY(t) L" File System Driver"
 
-/** Expands to Apple Bless GUID name given GUID type name. */
-
-#define APPLE_GUID_NAME(xx) gApple ## xx ## Guid
-
 // ----------------------------------------
 
 // function prototypes
@@ -296,7 +292,7 @@ fsw_efi_DriverBinding_Supported (
   EFI_DISK_IO_PROTOCOL *DiskIo;
 
   Status =
-    BS->OpenProtocol (ControllerHandle, &PROTO_NAME (DiskIoProtocol),
+    gBS->OpenProtocol (ControllerHandle, &gEfiDiskIoProtocolGuid,
                       (VOID **) &DiskIo, This->DriverBindingHandle,
                       ControllerHandle, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
 
@@ -304,11 +300,11 @@ fsw_efi_DriverBinding_Supported (
     goto Done;
   }
 
-  BS->CloseProtocol (ControllerHandle, &PROTO_NAME (DiskIoProtocol),
+  gBS->CloseProtocol (ControllerHandle, &gEfiDiskIoProtocolGuid,
                      This->DriverBindingHandle, ControllerHandle);
 
   Status =
-    BS->OpenProtocol (ControllerHandle, &PROTO_NAME (BlockIoProtocol), NULL,
+    gBS->OpenProtocol (ControllerHandle, &gEfiBlockIoProtocolGuid, NULL,
                       This->DriverBindingHandle, ControllerHandle,
                       EFI_OPEN_PROTOCOL_TEST_PROTOCOL);
 
@@ -322,9 +318,8 @@ fsw_efi_DetachVolume (
 )
 {
   // uninstall Simple File System protocol
-  BS->UninstallMultipleProtocolInterfaces (pVolume->Handle,
-                                           &PROTO_NAME
-                                           (SimpleFileSystemProtocol),
+  gBS->UninstallMultipleProtocolInterfaces (pVolume->Handle,
+                                           &gEfiSimpleFileSystemProtocolGuid,
                                            &pVolume->FileSystem, NULL);
 
   // release private data structure
@@ -368,9 +363,8 @@ fsw_efi_AttachVolume (
     goto Done;
   }
 
-  Status = BS->InstallMultipleProtocolInterfaces (&pVolume->Handle,
-                                           &PROTO_NAME
-                                           (SimpleFileSystemProtocol),
+  Status = gBS->InstallMultipleProtocolInterfaces (&pVolume->Handle,
+                                           &gEfiSimpleFileSystemProtocolGuid,
                                            &pVolume->FileSystem, NULL);
 
   if (EFI_ERROR (Status)) {
@@ -426,7 +420,7 @@ fsw_efi_DriverBinding_Start (
  
   // NOTE: we only want to look at the MediaId
 
-  Status = BS->OpenProtocol (ControllerHandle, &PROTO_NAME (BlockIoProtocol),
+  Status = gBS->OpenProtocol (ControllerHandle, &gEfiBlockIoProtocolGuid,
                              (VOID **) &BlockIo, This->DriverBindingHandle,
                              ControllerHandle, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
 
@@ -434,7 +428,7 @@ fsw_efi_DriverBinding_Start (
     goto Exit;
   }
 
-  Status = BS->OpenProtocol (ControllerHandle, &PROTO_NAME (DiskIoProtocol),
+  Status = gBS->OpenProtocol (ControllerHandle, &gEfiDiskIoProtocolGuid,
                       (VOID **) &DiskIo, This->DriverBindingHandle,
                       ControllerHandle, EFI_OPEN_PROTOCOL_BY_DRIVER);
 
@@ -448,12 +442,12 @@ fsw_efi_DriverBinding_Start (
 
   if (EFI_ERROR (Status)) {
     Status2 = gBS->OpenProtocol (ControllerHandle,
-                         &PROTO_NAME (SimpleFileSystemProtocol), NULL,
+                         &gEfiSimpleFileSystemProtocolGuid, NULL,
                          This->DriverBindingHandle, ControllerHandle,
                          EFI_OPEN_PROTOCOL_TEST_PROTOCOL);
 
     if (EFI_ERROR (Status2)) {
-      BS->CloseProtocol (ControllerHandle, &PROTO_NAME (DiskIoProtocol),
+      gBS->CloseProtocol (ControllerHandle, &gEfiDiskIoProtocolGuid,
                          This->DriverBindingHandle, ControllerHandle);
     }
   }
@@ -489,7 +483,7 @@ fsw_efi_DriverBinding_Stop (
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
   FSW_VOLUME_DATA *Volume;
 
-  Status = BS->OpenProtocol (ControllerHandle, &PROTO_NAME (SimpleFileSystemProtocol),
+  Status = gBS->OpenProtocol (ControllerHandle, &gEfiSimpleFileSystemProtocolGuid,
                       (VOID **) &FileSystem, This->DriverBindingHandle,
                       ControllerHandle, EFI_OPEN_PROTOCOL_GET_PROTOCOL);
 
@@ -498,7 +492,7 @@ fsw_efi_DriverBinding_Stop (
     fsw_efi_DetachVolume (Volume);
   }
 
-  Status = BS->CloseProtocol (ControllerHandle, &PROTO_NAME (DiskIoProtocol),
+  Status = gBS->CloseProtocol (ControllerHandle, &gEfiDiskIoProtocolGuid,
                        This->DriverBindingHandle, ControllerHandle);
 
   return Status;
@@ -922,7 +916,7 @@ fsw_efi_dnode_to_FileHandle (
 
   // populate the file handle
 
-  File->FileHandle.Revision = EFI_FILE_HANDLE_REVISION;
+  File->FileHandle.Revision = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION;
   File->FileHandle.Open = fsw_efi_FileHandle_Open;
   File->FileHandle.Close = fsw_efi_FileHandle_Close;
   File->FileHandle.Delete = fsw_efi_FileHandle_Delete;
@@ -1224,9 +1218,9 @@ fsw_efi_dnode_getinfo (
 
   Volume = (FSW_VOLUME_DATA *) File->shand.dnode->vol->host_data;
 
-  if (CompareGuid (InformationType, &GUID_NAME (FileInfo))) {	// ------
+  if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {	// ------
     Status = fsw_efi_dnode_fill_FileInfo (Volume, File->shand.dnode, BufferSize, Buffer);
-  } else if (CompareGuid (InformationType, &GUID_NAME (FileSystemInfo))) {	// ------
+  } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {	// ------
 
     // check buffer size
 
@@ -1262,11 +1256,11 @@ fsw_efi_dnode_getinfo (
 
     *BufferSize = RequiredSize;
     Status = EFI_SUCCESS;
-  } else if (CompareGuid (InformationType, &GUID_NAME (FileSystemVolumeLabelInfoId))) {	// ------
+  } else if (CompareGuid (InformationType, &gEfiFileSystemVolumeLabelInfoIdGuid)) {	// ------
 
     // check buffer size
 
-    RequiredSize = SIZE_OF_EFI_FILE_SYSTEM_VOLUME_LABEL_INFO + fsw_efi_strsize (&Volume->vol->label);
+    RequiredSize = SIZE_OF_EFI_FILE_SYSTEM_VOLUME_LABEL + fsw_efi_strsize (&Volume->vol->label);
 
     if (*BufferSize < RequiredSize) {
       *BufferSize = RequiredSize;
@@ -1276,17 +1270,17 @@ fsw_efi_dnode_getinfo (
 
     // copy volume label
 
-    fsw_efi_strcpy (((EFI_FILE_SYSTEM_VOLUME_LABEL_INFO *) Buffer)->VolumeLabel, &Volume->vol->label);
+    fsw_efi_strcpy (((EFI_FILE_SYSTEM_VOLUME_LABEL *) Buffer)->VolumeLabel, &Volume->vol->label);
 
     // prepare for return
 
     *BufferSize = RequiredSize;
     Status = EFI_SUCCESS;
-  } else if (CompareGuid (InformationType, &APPLE_GUID_NAME (BlessedSystemFileInfo))) {		// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFileInfoGuid)) {		// ------
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_SYSFILE, Buffer, BufferSize);
-  } else if (CompareGuid (InformationType, &APPLE_GUID_NAME (BlessedSystemFolderInfo))) {	// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFolderInfoGuid)) {	// ------
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_SYSFLDR, Buffer, BufferSize);
-  } else if (CompareGuid (InformationType, &APPLE_GUID_NAME (BlessedOsxFolderInfo))) {	// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedOsxFolderInfoGuid)) {	// ------
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_OSXFLDR, Buffer, BufferSize);
   } else {
     FSW_MSG_DEBUGV ((FSW_MSGSTR ("%a: Unsupported request (guid %g)\n"), __FUNCTION__, InformationType));

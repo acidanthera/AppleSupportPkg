@@ -54,7 +54,6 @@
 
 #include "fsw_core.h"
 
-
 /**
  * EFI Host: Private per-volume structure.
  */
@@ -74,7 +73,7 @@ typedef struct {
 } FSW_VOLUME_DATA;
 
 /** Signature for the volume structure. */
-#define FSW_VOLUME_DATA_SIGNATURE  EFI_SIGNATURE_32 ('f', 's', 'w', 'V')
+#define FSW_VOLUME_DATA_SIGNATURE  SIGNATURE_32 ('f', 's', 'w', 'V')
 /** Access macro for the volume structure. */
 #define FSW_VOLUME_FROM_VOL_INTERFACE(a)  CR (a, FSW_VOLUME_DATA, FileSystem, FSW_VOLUME_DATA_SIGNATURE)
 
@@ -98,7 +97,7 @@ typedef struct {
 #define FSW_EFI_FILE_KIND_DIR   (1)
 
 /** Signature for the file handle structure. */
-#define FSW_FILE_DATA_SIGNATURE    EFI_SIGNATURE_32 ('f', 's', 'w', 'F')
+#define FSW_FILE_DATA_SIGNATURE    SIGNATURE_32 ('f', 's', 'w', 'F')
 /** Access macro for the file handle structure. */
 #define FSW_FILE_FROM_FILE_HANDLE(a)  CR (a, FSW_FILE_DATA, FileHandle, FSW_FILE_DATA_SIGNATURE)
 

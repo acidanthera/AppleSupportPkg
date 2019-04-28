@@ -52,10 +52,6 @@
 #ifndef _FSW_BASE_H_
 #define _FSW_BASE_H_
 
-#ifdef VBOX
-#include "VBoxFswParam.h"
-#endif
-
 #ifndef FSW_DEBUG_LEVEL
 /**
  * Global debugging level. Can be set locally for the scope of a single

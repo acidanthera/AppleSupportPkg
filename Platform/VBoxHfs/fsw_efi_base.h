@@ -52,11 +52,29 @@
 #ifndef _FSW_EFI_BASE_H_
 #define _FSW_EFI_BASE_H_
 
-#ifndef VBOX
-#include <efi.h>
-#include <efilib.h>
-#define PROTO_NAME(x) x
-#endif
+#include <Uefi.h>
+#include <Library/DebugLib.h>
+#include <Library/BaseLib.h>
+#include <Protocol/DriverBinding.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/DevicePathLib.h>
+#include <Protocol/DevicePathFromText.h>
+#include <Protocol/DevicePathToText.h>
+#include <Protocol/DebugPort.h>
+#include <Protocol/DebugSupport.h>
+#include <Library/PrintLib.h>
+#include <Library/UefiLib.h>
+#include <Protocol/SimpleFileSystem.h>
+#include <Protocol/BlockIo.h>
+#include <Protocol/DiskIo.h>
+#include <Guid/FileSystemInfo.h>
+#include <Guid/FileInfo.h>
+#include <Guid/FileSystemVolumeLabelInfo.h>
+#include <Protocol/ComponentName.h>
 
 #define FSW_LITTLE_ENDIAN (1)
 
@@ -91,11 +109,15 @@ typedef UINT64  fsw_u64;
 
 #define fsw_snprintf AsciiSPrint
 
+// encoding conversion
+
+int fsw_streq_ISO88591_UTF16(void *s1data, void *s2data, int len);
+
 // 64-bit hooks
 
 #define FSW_U64_SHR(val,shiftbits) RShiftU64((val), (shiftbits))
 #define FSW_U64_SHL(val,shiftbits) LShiftU64((val), (shiftbits))
-#define FSW_U64_DIV(val,divisor) DivU64x32((val), (divisor), NULL)
+#define FSW_U64_DIV(val,divisor) DivU64x32((val), (divisor))
 
 // byte swapping
 
