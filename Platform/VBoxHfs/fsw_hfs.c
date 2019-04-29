@@ -1308,7 +1308,7 @@ fsw_hfs_readlink (struct fsw_hfs_volume *vol, struct fsw_hfs_dnode *dno, struct 
     link_target->skind = FSW_STRING_KIND_ISO88591;
     link_target->size = MPRFSIZE;
     fsw_memdup (&link_target->data, metaprefix, link_target->size);
-    sz = (fsw_u32) fsw_snprintf(((char *) link_target->data) + MPRFINUM, 10, "%d", (int)dno->ilink);
+    sz = (fsw_u32) fsw_u32_to_str(((char *) link_target->data) + MPRFINUM, 10, dno->ilink);
     link_target->len = MPRFINUM + sz;
 
     return FSW_SUCCESS;

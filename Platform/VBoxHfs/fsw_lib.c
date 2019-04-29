@@ -661,4 +661,41 @@ struct fsw_string_list* fsw_string_list_prepend(struct fsw_string_list* lst, str
 	return fresh;
 }
 
+int fsw_u32_to_str(char *str, int len, fsw_u32 value)
+{
+    int i;
+    int start;
+    int end;
+
+    /* Decimal UINT32_MAX (4294967295) length. */
+    static char buf[10];
+
+    if (len <= 0)
+    {
+        return 0;
+    }
+
+    for (i = sizeof(buf) - 1; value > 0 && i >= 0; --i)
+    {
+        buf[i] = "0123456789"[value % 10];
+        value /= 10;
+    }
+
+    start = i + 1;
+    end   = len - 1;
+
+    if (sizeof (buf) < (unsigned) end) {
+        end = sizeof (buf) - start;
+    }
+
+    for (i = 0; i < end; ++i)
+    {
+        str[i] = buf[start + i];
+    }
+
+    str[i] = '\0';
+
+    return end;
+}
+
 // EOF

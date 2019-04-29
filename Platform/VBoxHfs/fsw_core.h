@@ -462,6 +462,9 @@ fsw_u16      fsw_to_lower(fsw_u16 ch);
 void	fsw_string_list_lengths(struct fsw_string_list *lst, fsw_u32 *names, fsw_u32 *chars);
 struct	fsw_string_list *fsw_string_list_prepend(struct fsw_string_list *lst, struct fsw_string *str);
 void	fsw_string_list_free(struct fsw_string_list *lst);
+
+int fsw_u32_to_str(char *str, int len, fsw_u32 value);
+
 /*@}*/
 
 

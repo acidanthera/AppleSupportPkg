@@ -1179,11 +1179,13 @@ fsw_efi_bless_info (
   } else {
     CopyMem (Buffer, dpp, RequiredSize);
     Status = EFI_SUCCESS;
-    {
-      tmpStr = ConvertDevicePathToText(dpp, TRUE, TRUE);
+    DEBUG_CODE_BEGIN();
+    tmpStr = ConvertDevicePathToText(dpp, TRUE, TRUE);
+    if (tmpStr != NULL) {
       FSW_MSG_DEBUGV ((FSW_MSGSTR ("%a: handle %p, {devpath %s}\n"), __FUNCTION__, Volume, tmpStr));
       FreePool(tmpStr);
     }
+    DEBUG_CODE_END();
   }
 
   *BufferSize = RequiredSize;

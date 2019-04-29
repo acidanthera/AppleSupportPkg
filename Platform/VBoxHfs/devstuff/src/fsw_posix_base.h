@@ -86,10 +86,6 @@ typedef uint64_t      fsw_u64;
 #define FSW_MSGSTR(s) s
 #define FSW_MSGFUNC(...) (void) printf __VA_ARGS__
 
-// text creation
-
-#define fsw_snprintf snprintf
-
 // 64-bit hooks
 
 #define FSW_U64_SHR(val,shiftbits) ((fsw_u64)(val) >> (shiftbits))
