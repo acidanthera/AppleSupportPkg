@@ -39,9 +39,6 @@ STATIC VIRTUALSMC_KEY_VALUE  mVirtualSmcKeyValue[mVirtualSmcKeyCount] = {
   { 'HBKP', 'ch8*', 32, SMC_KEY_ATTRIBUTE_READ|SMC_KEY_ATTRIBUTE_WRITE, {} }
 };
 
-STATIC EFI_GUID mVirtualSmcStatusKeyGuid      = VIRTUALSMC_STATUS_KEY_GUID;
-STATIC EFI_GUID mVirtualSmcEncryptionKeyGuid  = VIRTUALSMC_ENCRYPTION_KEY_GUID;
-
 STATIC APPLE_SMC_IO_PROTOCOL mSmcIoProtocol = {
   APPLE_SMC_IO_PROTOCOL_REVISION,
   SmcIoVirtualSmcReadValue,
@@ -547,11 +544,11 @@ LoadAuthenticationKey (
   //
   // Load encryption key contents.
   //
-  Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &mVirtualSmcEncryptionKeyGuid, &Attributes, &Size, NULL);
+  Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, &Attributes, &Size, NULL);
   if (Status == EFI_BUFFER_TOO_SMALL) {
     Buffer = AllocateZeroPool (Size);
     if (Buffer) {
-      Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &mVirtualSmcEncryptionKeyGuid, &Attributes, &Size, Buffer);
+      Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, &Attributes, &Size, Buffer);
       if (EFI_ERROR (Status)) {
         DEBUG ((DEBUG_INFO, "Layer key (%d, %X) obtain failure - %r\n", (UINT32)Size, Attributes, Status));
       }
@@ -573,17 +570,17 @@ LoadAuthenticationKey (
   //
   // Nullify or (at least) remove existing vsmc-key variable.
   //
-  if (Buffer) {
+  if (Buffer != NULL) {
     ZeroMem (Buffer, Size);
-    Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &mVirtualSmcEncryptionKeyGuid, Attributes, Size, Buffer);
+    Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, Attributes, Size, Buffer);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_INFO, "Failed to zero key - %r\n", Status));
-      Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &mVirtualSmcEncryptionKeyGuid, 0, 0, NULL);
+      Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, 0, 0, NULL);
     }
     gBS->FreePool (Buffer);
     Buffer = NULL;
   } else {
-    Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &mVirtualSmcEncryptionKeyGuid, 0, 0, NULL);
+    Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, 0, 0, NULL);
   }
 
   if (EFI_ERROR (Status)) {
@@ -593,7 +590,13 @@ LoadAuthenticationKey (
   //
   // Erase local HBKP key copy at exit boot services.
   //
-  Status = gBS->CreateEvent (EVT_SIGNAL_EXIT_BOOT_SERVICES, TPL_NOTIFY, EraseAuthenticationKey, NULL, &mAuthenticationKeyEraseEvent);
+  Status = gBS->CreateEvent (
+    EVT_SIGNAL_EXIT_BOOT_SERVICES,
+    TPL_NOTIFY,
+    EraseAuthenticationKey,
+    NULL,
+    &mAuthenticationKeyEraseEvent
+    );
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "Failed to create exit bs event for hbkp erase\n"));
   }
@@ -623,9 +626,13 @@ ExportStatusKey (
   //
   // Set status key for kext frontend.
   //
-  Status = gRT->SetVariable (VIRTUALSMC_STATUS_KEY, &mVirtualSmcStatusKeyGuid,
+  Status = gRT->SetVariable (
+    VIRTUALSMC_STATUS_KEY,
+    &gOcReadOnlyVariableGuid,
     EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
-    sizeof (StatusBuffer), StatusBuffer);
+    sizeof (StatusBuffer),
+    StatusBuffer
+    );
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "Failed to create status - %r\n", Status));
   }

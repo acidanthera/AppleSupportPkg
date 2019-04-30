@@ -8,7 +8,7 @@
 #ifndef VIRTUAL_SMC_H
 #define VIRTUAL_SMC_H
 
-#include <Guid/LiluVariables.h>
+#include <Guid/OcVariables.h>
 #include <Protocol/AppleSmcIo.h>
 
 typedef struct {
@@ -20,11 +20,7 @@ typedef struct {
 } VIRTUALSMC_KEY_VALUE;
 
 #define VIRTUALSMC_STATUS_KEY           L"vsmc-status"
-#define VIRTUALSMC_STATUS_KEY_GUID      LILU_READ_ONLY_VARIABLE_GUID
-
 #define VIRTUALSMC_ENCRYPTION_KEY       L"vsmc-key"
-#define VIRTUALSMC_ENCRYPTION_KEY_GUID  LILU_WRITE_ONLY_VARIABLE_GUID
-
 
 EFI_STATUS
 EFIAPI

@@ -30,6 +30,10 @@
 [Protocols]
   gAppleSmcIoProtocolGuid  ## PRODUCES
 
+[Guids]
+  gOcReadOnlyVariableGuid
+  gOcWriteOnlyVariableGuid
+
 [LibraryClasses]
   BaseMemoryLib
   DebugLib
