@@ -41,7 +41,7 @@ AppleUiSupportEntrypoint (
     APPLE_SUPPORT_VERSION
     ));
 
-  Status = ConfigureConsoleControl (FALSE);
+  Status = ConfigureConsoleControl (OcConsoleControlDefault, FALSE);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "AppleUiSupport: ConsoleControl install failure - %r\n", Status));
   }
