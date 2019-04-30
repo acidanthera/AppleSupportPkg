@@ -557,6 +557,7 @@ LoadAuthenticationKey (
       }
     } else {
       DEBUG ((DEBUG_INFO, "Key buffer (%d) allocation failure - %r\n", (UINT32)Size, Status));
+      Status = EFI_OUT_OF_RESOURCES;
     }
   } else {
     DEBUG ((DEBUG_INFO, "Initial key obtain failure - %r\n", Status));
