@@ -28,7 +28,7 @@ Open source tool for verifying Apple EFI binaries. It supports ApplePE and Apple
 This library provides Apple's crypto signature algorithm for EFI binaries.
 
 ## VBoxHfs
-This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Note, that unlike other drivers, its source code is licensed under GPLv2.
+This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
 ## Credits
 - [Brad Conte](https://github.com/B-Con) for Sha256 implementation

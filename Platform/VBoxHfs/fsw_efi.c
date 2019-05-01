@@ -883,6 +883,12 @@ fsw_efi_dnode_to_FileHandle (
   // allocate file structure
 
   File = AllocateZeroPool (sizeof (FSW_FILE_DATA));
+
+  if (File == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Done;
+  }
+
   File->Signature = FSW_FILE_DATA_SIGNATURE;
 
   // check type
