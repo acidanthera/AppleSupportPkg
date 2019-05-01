@@ -43,7 +43,6 @@
   UefiDriverEntryPoint
   DebugLib
   AppleEventLib
-  OcConsoleLib
   OcCryptoLib
   OcGuardLib
   OcTimerLib

@@ -19,7 +19,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/DebugLib.h>
 #include <Library/TimerLib.h>
-#include <Library/OcConsoleLib.h>
 #include "AppleUiSupport.h"
 #include <AppleSupportPkgVersion.h>
 
@@ -40,11 +39,6 @@ AppleUiSupportEntrypoint (
     "Starting AppleUiSupport ver. %s\n",
     APPLE_SUPPORT_VERSION
     ));
-
-  Status = ConfigureConsoleControl (OcConsoleControlDefault, FALSE);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "AppleUiSupport: ConsoleControl install failure - %r\n", Status));
-  }
 
   Status = InitializeAppleImageConversion (ImageHandle, SystemTable);
   if (EFI_ERROR (Status)) {
