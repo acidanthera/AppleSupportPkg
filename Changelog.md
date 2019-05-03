@@ -1,6 +1,10 @@
 AppleSupport Changelog
 ======================
 
+#### v2.0.7
+- Added bless-compatible VBoxHfs driver (by @nms42)
+- Added compatibility with OpenCore logging protocols
+
 #### v2.0.6
 - Dynamically increase mouse polling speed to accomodate for platform specifics (thx jan4321)
 
