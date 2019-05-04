@@ -21,23 +21,22 @@ STATIC EFI_EVENT             mSmcIoArriveEvent;
 STATIC VOID                  *mSmcIoArriveNotify;
 STATIC EFI_EVENT             mAuthenticationKeyEraseEvent;
 
-STATIC CONST UINT8           mVirtualSmcKeyCount = 6;
-STATIC CONST UINT8           mAuthenticationKeyIndex = mVirtualSmcKeyCount - 1;
-STATIC VIRTUALSMC_KEY_VALUE  mVirtualSmcKeyValue[mVirtualSmcKeyCount] = {
-  { '#KEY', 'ui32', 4, SMC_KEY_ATTRIBUTE_READ, {0, 0, 0, mVirtualSmcKeyCount} },
+STATIC VIRTUALSMC_KEY_VALUE  mVirtualSmcKeyValue[6] = {
+  { '#KEY', 'ui32', 4, SMC_KEY_ATTRIBUTE_READ, {0, 0, 0, ARRAY_SIZE (mVirtualSmcKeyValue)} },
   { 'RMde', 'char', 1, SMC_KEY_ATTRIBUTE_READ, {SMC_MODE_APPCODE} },
   //
   // Requested yet unused (battery inside, causes missing battery in UI).
   //
-  //{ 'BBIN', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {} },
-  { 'BRSC', 'ui16', 2, SMC_KEY_ATTRIBUTE_READ, {} },
-  { 'MSLD', 'ui8 ', 1, SMC_KEY_ATTRIBUTE_READ, {} },
-  { 'BATP', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {} },
+  //{ 'BBIN', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { 'BRSC', 'ui16', 2, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { 'MSLD', 'ui8 ', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { 'BATP', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
   //
   // HBKP must always be the last key in the list (see mAuthenticationKeyIndex).
   //
-  { 'HBKP', 'ch8*', 32, SMC_KEY_ATTRIBUTE_READ|SMC_KEY_ATTRIBUTE_WRITE, {} }
+  { 'HBKP', 'ch8*', 32, SMC_KEY_ATTRIBUTE_READ|SMC_KEY_ATTRIBUTE_WRITE, {0} }
 };
+STATIC CONST UINT8           mAuthenticationKeyIndex = ARRAY_SIZE (mVirtualSmcKeyValue) - 1;
 
 STATIC APPLE_SMC_IO_PROTOCOL mSmcIoProtocol = {
   APPLE_SMC_IO_PROTOCOL_REVISION,
@@ -79,7 +78,7 @@ SmcIoVirtualSmcReadValue (
     return EFI_SMC_BAD_PARAMETER;
   }
 
-  for (Index = 0; Index < mVirtualSmcKeyCount; Index++) {
+  for (Index = 0; Index < ARRAY_SIZE (mVirtualSmcKeyValue); Index++) {
     if (mVirtualSmcKeyValue[Index].Key == Key) {
       if (mVirtualSmcKeyValue[Index].Size != Size) {
         return EFI_SMC_KEY_MISMATCH;
@@ -168,13 +167,17 @@ SmcIoVirtualSmcGetKeyCount (
   OUT UINT32                 *Count
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcGetKeyCount %d\n", mVirtualSmcKeyCount));
+  DEBUG ((
+    DEBUG_VERBOSE,
+    "SmcIoVirtualSmcGetKeyCount %d\n",
+    ARRAY_SIZE (mVirtualSmcKeyValue)
+    ));
 
   if (Count == NULL) {
     return EFI_SMC_BAD_PARAMETER;
   }
 
-  *Count = SwapBytes32 (mVirtualSmcKeyCount);
+  *Count = SwapBytes32 (ARRAY_SIZE (mVirtualSmcKeyValue));
 
   return EFI_SMC_SUCCESS;
 }
@@ -193,7 +196,7 @@ SmcIoVirtualSmcGetKeyFromIndex (
     return EFI_SMC_BAD_PARAMETER;
   }
 
-  if (Index < mVirtualSmcKeyCount) {
+  if (Index < ARRAY_SIZE (mVirtualSmcKeyValue)) {
     *Key = mVirtualSmcKeyValue[Index].Key;
     return EFI_SMC_SUCCESS;
   }
@@ -219,7 +222,7 @@ SmcIoVirtualSmcGetKeyInfo (
     return EFI_SMC_BAD_PARAMETER;
   }
 
-  for (Index = 0; Index < mVirtualSmcKeyCount; Index++) {
+  for (Index = 0; Index < ARRAY_SIZE (mVirtualSmcKeyValue); Index++) {
     if (mVirtualSmcKeyValue[Index].Key == Key) {
       *Size = mVirtualSmcKeyValue[Index].Size;
       *Type = mVirtualSmcKeyValue[Index].Type;
@@ -460,15 +463,15 @@ STATIC
 BOOLEAN
 ExtractAuthentificationKey (
   UINT8   *Buffer,
-  UINTN   Size
+  UINT32  Size
   )
 {
-  UINTN           Index;
+  UINT8           Index;
   AES_CONTEXT     Context;
   UINT8           EncryptKey[CONFIG_AES_KEY_SIZE];
   CONST UINT8     *InitVector;
   UINT8           *Payload;
-  UINTN           PayloadSize;
+  UINT32          PayloadSize;
   UINT32          RealSize;
 
   if (Size < sizeof (UINT32) + SMC_HBKP_SIZE) {
@@ -564,7 +567,7 @@ LoadAuthenticationKey (
   // Parse encryption contents if any.
   //
   if (!EFI_ERROR (Status)) {
-    ExtractAuthentificationKey (Buffer, Size);
+    ExtractAuthentificationKey (Buffer, (UINT32)Size);
   }
 
   //
