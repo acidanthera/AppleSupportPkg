@@ -30,7 +30,6 @@
   MdePkg/MdePkg.dec
   EfiPkg/EfiPkg.dec
   MdeModulePkg/MdeModulePkg.dec
-  IntelFrameworkPkg/IntelFrameworkPkg.dec
   OcSupportPkg/OcSupportPkg.dec
 
 [LibraryClasses]
