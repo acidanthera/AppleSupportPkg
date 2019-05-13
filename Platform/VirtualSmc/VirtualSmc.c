@@ -15,6 +15,8 @@
 #include <Library/OcCryptoLib.h>
 #include <Library/OcRtcLib.h>
 
+#include <AppleSupportPkgVersion.h>
+
 #include "VirtualSmc.h"
 
 STATIC EFI_EVENT             mSmcIoArriveEvent;
@@ -72,7 +74,7 @@ SmcIoVirtualSmcReadValue (
 {
   UINTN      Index;
 
-  DEBUG ((DEBUG_INFO, "SmcReadValue Key %X Size %d\n", Key, Size));
+  DEBUG ((DEBUG_INFO, "VSMC: SmcReadValue Key %X Size %d\n", Key, Size));
 
   if (Value == NULL) {
     return EFI_SMC_BAD_PARAMETER;
@@ -104,7 +106,7 @@ SmcIoVirtualSmcWriteValue (
 {
   UINTN       Index;
 
-  DEBUG ((DEBUG_INFO, "SmcWriteValue Key %X Size %d\n", Key, Size));
+  DEBUG ((DEBUG_INFO, "VSMC: SmcWriteValue Key %X Size %d\n", Key, Size));
 
   if (!Value || Size == 0) {
     return EFI_SMC_BAD_PARAMETER;
@@ -118,7 +120,7 @@ SmcIoVirtualSmcWriteValue (
     CopyMem (mVirtualSmcKeyValue[mAuthenticationKeyIndex].Data, Value, Size);
     for (Index = 0; Index < SMC_HBKP_SIZE; Index++) {
       if (mVirtualSmcKeyValue[mAuthenticationKeyIndex].Data[Index] != 0) {
-        DEBUG ((DEBUG_INFO, "Not updating key with non-zero data\n"));
+        DEBUG ((DEBUG_INFO, "VSMC: Not updating key with non-zero data\n"));
         break;
       }
     }
@@ -137,7 +139,7 @@ SmcIoVirtualSmcMakeKey (
 {
   UINTN      Index;
 
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcMakeKey\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcMakeKey\n"));
 
   if (Name != NULL && Key != NULL) {
     *Key  = 0;
@@ -169,8 +171,8 @@ SmcIoVirtualSmcGetKeyCount (
 {
   DEBUG ((
     DEBUG_VERBOSE,
-    "SmcIoVirtualSmcGetKeyCount %d\n",
-    ARRAY_SIZE (mVirtualSmcKeyValue)
+    "VSMC: SmcIoVirtualSmcGetKeyCount %u\n",
+    (UINT32) ARRAY_SIZE (mVirtualSmcKeyValue)
     ));
 
   if (Count == NULL) {
@@ -190,7 +192,7 @@ SmcIoVirtualSmcGetKeyFromIndex (
   OUT SMC_KEY                *Key
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcGetKeyFromIndex\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcGetKeyFromIndex\n"));
 
   if (Key == NULL) {
     return EFI_SMC_BAD_PARAMETER;
@@ -216,7 +218,7 @@ SmcIoVirtualSmcGetKeyInfo (
 {
   UINTN Index;
 
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcGetKeyFromIndex %X\n", Key));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcGetKeyFromIndex %X\n", Key));
 
   if (Size == NULL || Type == NULL || Attributes == NULL) {
     return EFI_SMC_BAD_PARAMETER;
@@ -241,7 +243,7 @@ SmcIoVirtualSmcReset (
   IN UINT32                 Mode
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcReset %X\n", Mode));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcReset %X\n", Mode));
 
   return EFI_SMC_SUCCESS;
 }
@@ -253,7 +255,7 @@ SmcIoVirtualSmcFlashType (
   IN SMC_FLASH_TYPE         Type
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcFlashType %X\n", Type));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcFlashType %X\n", Type));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -264,7 +266,7 @@ SmcIoVirtualSmcUnsupported (
   VOID
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnsupported\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnsupported\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -278,7 +280,7 @@ SmcIoVirtualSmcFlashWrite (
   IN SMC_DATA               *Data
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcFlashWrite %d\n", Size));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcFlashWrite %d\n", Size));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -291,7 +293,7 @@ SmcIoVirtualSmcFlashAuth (
   IN SMC_DATA               *Data
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcFlashAuth %d\n", Size));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcFlashAuth %d\n", Size));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -302,7 +304,7 @@ SmcIoVirtualSmcUnknown1 (
   VOID
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnknown1\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnknown1\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -315,7 +317,7 @@ SmcIoVirtualSmcUnknown2 (
   IN UINTN                  Ukn2
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnknown2\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnknown2\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -328,7 +330,7 @@ SmcIoVirtualSmcUnknown3 (
   IN UINTN                  Ukn2
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnknown3\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnknown3\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -340,7 +342,7 @@ SmcIoVirtualSmcUnknown4 (
   IN UINTN                  Ukn1
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnknown4\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnknown4\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -352,7 +354,7 @@ SmcIoVirtualSmcUnknown5 (
   IN UINT8                  *Data
   )
 {
-  DEBUG ((DEBUG_VERBOSE, "SmcIoVirtualSmcUnknown5\n"));
+  DEBUG ((DEBUG_VERBOSE, "VSMC: SmcIoVirtualSmcUnknown5\n"));
 
   return EFI_SMC_UNSUPPORTED_FEATURE;
 }
@@ -369,7 +371,7 @@ ReinstallSmcIoProtocolOnHandle (
   Status = gBS->HandleProtocol (Handle, &gAppleSmcIoProtocolGuid, (VOID **)&OldSmcIo);
   if (Status == EFI_UNSUPPORTED) {
     Status = gBS->InstallProtocolInterface (&Handle, &gAppleSmcIoProtocolGuid, EFI_NATIVE_INTERFACE, &mSmcIoProtocol);
-  } else if (Status == EFI_SUCCESS) {
+  } else if (!EFI_ERROR (Status)) {
     if (OldSmcIo->SmcReadValue != mSmcIoProtocol.SmcReadValue) {
       Status = gBS->ReinstallProtocolInterface (Handle, &gAppleSmcIoProtocolGuid, OldSmcIo, &mSmcIoProtocol);
       //FIXME: Do manual reinstallation here on error
@@ -402,7 +404,12 @@ ReinstallSmcIoProtocol (
     Status = ReinstallSmcIoProtocolOnHandle (Handles[Index]);
 
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Cannot reinstall SmcIo at %d handle with %r\n", Index, Status));
+      DEBUG ((
+        DEBUG_INFO,
+        "VSMC: Cannot reinstall SmcIo at %u handle with %r\n",
+        (UINT32) Index,
+        Status
+        ));
       continue;
     }
 
@@ -441,7 +448,12 @@ HandleNewSmcIoProtocol (
     Status = ReinstallSmcIoProtocolOnHandle (Handles[Index]);
 
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Cannot reinstall SmcIo from event at %d handle with %r\n", Index, Status));
+      DEBUG ((
+        DEBUG_INFO,
+        "VSMC: Cannot reinstall SmcIo from event at %u handle with %r\n",
+        (UINT32) Index,
+        Status
+        ));
     }
   }
 
@@ -475,7 +487,7 @@ ExtractAuthentificationKey (
   UINT32          RealSize;
 
   if (Size < sizeof (UINT32) + SMC_HBKP_SIZE) {
-    DEBUG ((DEBUG_INFO, "Invalid key length - %d\n", (UINT32)Size));
+    DEBUG ((DEBUG_INFO, "VSMC: Invalid key length - %u\n", (UINT32) Size));
     return FALSE;
   }
 
@@ -489,7 +501,7 @@ ExtractAuthentificationKey (
     // The magic is followed by an IV and at least one AES block containing at least SMC_HBKP_SIZE bytes.
     //
     if (Size < sizeof (UINT32) + AES_BLOCK_SIZE + SMC_HBKP_SIZE || (Size - sizeof (UINT32)) % AES_BLOCK_SIZE != 0) {
-      DEBUG ((DEBUG_INFO, "Invalid encrypted key length - %d\n", (UINT32)Size));
+      DEBUG ((DEBUG_INFO, "VSMC: Invalid encrypted key length - %u\n", (UINT32) Size));
       return FALSE;
     }
 
@@ -517,7 +529,7 @@ ExtractAuthentificationKey (
     // Ensure the size matches SMC_HBKP_SIZE.
     //
     if (RealSize != SMC_HBKP_SIZE) {
-      DEBUG ((DEBUG_INFO, "Invalid decrypted key length - %d\n", RealSize));
+      DEBUG ((DEBUG_INFO, "VSMC: Invalid decrypted key length - %d\n", RealSize));
       return FALSE;
     }
 
@@ -526,7 +538,7 @@ ExtractAuthentificationKey (
     //
     CopyMem (mVirtualSmcKeyValue[mAuthenticationKeyIndex].Data, Payload + sizeof (UINT32), SMC_HBKP_SIZE);
   } else {
-    DEBUG ((DEBUG_INFO, "Invalid key magic - %02X %02X %02X %02X\n", Buffer[0], Buffer[1], Buffer[2], Buffer[3]));
+    DEBUG ((DEBUG_INFO, "VSMC: Invalid key magic - %02X %02X %02X %02X\n", Buffer[0], Buffer[1], Buffer[2], Buffer[3]));
     return FALSE;
   }
 
@@ -550,34 +562,34 @@ LoadAuthenticationKey (
   Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, &Attributes, &Size, NULL);
   if (Status == EFI_BUFFER_TOO_SMALL) {
     Buffer = AllocateZeroPool (Size);
-    if (Buffer) {
+    if (Buffer != NULL) {
       Status = gRT->GetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, &Attributes, &Size, Buffer);
       if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_INFO, "Layer key (%d, %X) obtain failure - %r\n", (UINT32)Size, Attributes, Status));
+        DEBUG ((DEBUG_INFO, "VSMC: Layer key (%u, %X) obtain failure - %r\n", (UINT32) Size, Attributes, Status));
       }
     } else {
-      DEBUG ((DEBUG_INFO, "Key buffer (%d) allocation failure - %r\n", (UINT32)Size, Status));
+      DEBUG ((DEBUG_INFO, "VSMC: Key buffer (%u) allocation failure - %r\n", (UINT32) Size, Status));
       Status = EFI_OUT_OF_RESOURCES;
     }
   } else {
-    DEBUG ((DEBUG_INFO, "Initial key obtain failure - %r\n", Status));
-  }
-
-  //
-  // Parse encryption contents if any.
-  //
-  if (!EFI_ERROR (Status)) {
-    ExtractAuthentificationKey (Buffer, (UINT32)Size);
+    DEBUG ((DEBUG_INFO, "VSMC: Initial key obtain failure - %r\n", Status));
   }
 
   //
   // Nullify or (at least) remove existing vsmc-key variable.
   //
   if (Buffer != NULL) {
+    //
+    // Parse encryption contents if any.
+    //
+    if (!EFI_ERROR (Status)) {
+      ExtractAuthentificationKey (Buffer, (UINT32)Size);
+    }
+
     ZeroMem (Buffer, Size);
     Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, Attributes, Size, Buffer);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Failed to zero key - %r\n", Status));
+      DEBUG ((DEBUG_INFO, "VSMC: Failed to zero key - %r\n", Status));
       Status = gRT->SetVariable (VIRTUALSMC_ENCRYPTION_KEY, &gOcWriteOnlyVariableGuid, 0, 0, NULL);
     }
     gBS->FreePool (Buffer);
@@ -587,7 +599,7 @@ LoadAuthenticationKey (
   }
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "Failed to remove key - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "VSMC: Failed to remove key - %r\n", Status));
   }
 
   //
@@ -601,7 +613,7 @@ LoadAuthenticationKey (
     &mAuthenticationKeyEraseEvent
     );
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "Failed to create exit bs event for hbkp erase\n"));
+    DEBUG ((DEBUG_INFO, "VSMC: Failed to create exit bs event for hbkp erase\n"));
   }
 }
 
@@ -637,7 +649,7 @@ ExportStatusKey (
     StatusBuffer
     );
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "Failed to create status - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "VSMC: Failed to create status - %r\n", Status));
   }
 }
 
@@ -650,7 +662,7 @@ VirtualSmcMain (
 {
   EFI_STATUS  Status;
 
-  DEBUG ((DEBUG_INFO, "VirtualSmc 1.0 loading...\n"));
+  DEBUG ((DEBUG_INFO, "VSMC: VirtualSmc %s loading...\n", APPLE_SUPPORT_VERSION));
 
   LoadAuthenticationKey ();
   ExportStatusKey ();
@@ -664,7 +676,7 @@ VirtualSmcMain (
     Status = ReinstallSmcIoProtocolOnHandle (ImageHandle);
 
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Can neither install nor reinstall SmcIo with %r\n", Status));
+      DEBUG ((DEBUG_INFO, "VSMC: Can neither install nor reinstall SmcIo with %r\n", Status));
       return EFI_LOAD_ERROR;
     }
   }
@@ -676,14 +688,14 @@ VirtualSmcMain (
   Status = gBS->CreateEvent (EVT_NOTIFY_SIGNAL, TPL_NOTIFY, HandleNewSmcIoProtocol, NULL, &mSmcIoArriveEvent);
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "SmcIo notify event creation failed %r\n", Status));
+    DEBUG ((DEBUG_INFO, "VSMC: SmcIo notify event creation failed %r\n", Status));
     return Status;
   }
 
   Status = gBS->RegisterProtocolNotify (&gAppleSmcIoProtocolGuid, mSmcIoArriveEvent, &mSmcIoArriveNotify);
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "SmcIo notify event registration failed %r\n", Status));
+    DEBUG ((DEBUG_INFO, "VSMC: SmcIo notify event registration failed %r\n", Status));
     gBS->CloseEvent (mSmcIoArriveEvent);
     return Status;
   }
