@@ -22,9 +22,10 @@ static int fsw_streq_ISO88591_UTF8(void *s1data, void *s2data, int len)
     int i;
     fsw_u8 *p1 = (fsw_u8 *)s1data;
     fsw_u8 *p2 = (fsw_u8 *)s2data;
-    fsw_u32 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u32 c1, c2;
+
         c1 = *p1++;
         c2 = *p2++;
         if ((c2 & 0xe0) == 0xc0) {
@@ -49,9 +50,10 @@ static int fsw_streq_ISO88591_UTF16(void *s1data, void *s2data, int len)
     int i;
     fsw_u8 *p1 = (fsw_u8 *)s1data;
     fsw_u16 *p2 = (fsw_u16 *)s2data;
-    fsw_u32 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u32 c1, c2;
+
         c1 = *p1++;
         c2 = *p2++;
         if (c1 != c2)
@@ -66,9 +68,10 @@ static int fsw_streq_ISO88591_UTF16_SWAPPED(void *s1data, void *s2data, int len)
     int i;
     fsw_u8 *p1 = (fsw_u8 *)s1data;
     fsw_u16 *p2 = (fsw_u16 *)s2data;
-    fsw_u16 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u16 c1, c2;
+
         c1 = *p1++;
         c2 = *p2++; c2 = FSW_SWAPVALUE_U16(c2);
         if (c1 != c2)
@@ -82,9 +85,10 @@ static int fsw_streq_UTF8_UTF16(void *s1data, void *s2data, int len)
     int i;
     fsw_u8 *p1 = (fsw_u8 *)s1data;
     fsw_u16 *p2 = (fsw_u16 *)s2data;
-    fsw_u32 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u32 c1, c2;
+
         c1 = *p1++;
         if ((c1 & 0xe0) == 0xc0) {
             c1 = ((c1 & 0x1f) << 6) | (*p1++ & 0x3f);
@@ -108,9 +112,10 @@ static int fsw_streq_UTF8_UTF16_SWAPPED(void *s1data, void *s2data, int len)
     int i;
     fsw_u8 *p1 = (fsw_u8 *)s1data;
     fsw_u16 *p2 = (fsw_u16 *)s2data;
-    fsw_u16 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u16 c1, c2;
+
         c1 = *p1++;
         if ((c1 & 0xe0) == 0xc0) {
             c1 = ((c1 & 0x1f) << 6) | (*p1++ & 0x3f);
@@ -134,9 +139,10 @@ static int fsw_streq_UTF16_UTF16_SWAPPED(void *s1data, void *s2data, int len)
     int i;
     fsw_u16 *p1 = (fsw_u16 *)s1data;
     fsw_u16 *p2 = (fsw_u16 *)s2data;
-    fsw_u16 c1, c2;
     
     for (i = 0; i < len; i++) {
+        fsw_u16 c1, c2;
+
         c1 = *p1++;
         c2 = *p2++; c2 = FSW_SWAPVALUE_U16(c2);
         if (c1 != c2)
@@ -151,7 +157,6 @@ static fsw_status_t fsw_strcoerce_UTF8_ISO88591(void *srcdata, int srclen, struc
     int             i;
     fsw_u8       *sp;
     fsw_u8       *dp;
-    fsw_u32         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_ISO88591, srclen, srclen * sizeof(fsw_u8), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -161,6 +166,8 @@ static fsw_status_t fsw_strcoerce_UTF8_ISO88591(void *srcdata, int srclen, struc
     sp = (fsw_u8 *)srcdata;
     dp = (fsw_u8 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u32         c;
+
         c = *sp++;
         if ((c & 0xe0) == 0xc0) {
             c = ((c & 0x1f) << 6) | (*sp++ & 0x3f);
@@ -183,7 +190,6 @@ static fsw_status_t fsw_strcoerce_UTF16_ISO88591(void *srcdata, int srclen, stru
     int             i;
     fsw_u16       *sp;
     fsw_u8       *dp;
-    fsw_u32         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_ISO88591, srclen, srclen * sizeof(fsw_u8), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -193,6 +199,8 @@ static fsw_status_t fsw_strcoerce_UTF16_ISO88591(void *srcdata, int srclen, stru
     sp = (fsw_u16 *)srcdata;
     dp = (fsw_u8 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u32         c;
+
         c = *sp++;
         *dp++ = (fsw_u8)c;
     }
@@ -205,7 +213,6 @@ static fsw_status_t fsw_strcoerce_UTF16_SWAPPED_ISO88591(void *srcdata, int srcl
     int             i;
     fsw_u16       *sp;
     fsw_u8       *dp;
-    fsw_u16         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_ISO88591, srclen, srclen * sizeof(fsw_u8), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -215,6 +222,8 @@ static fsw_status_t fsw_strcoerce_UTF16_SWAPPED_ISO88591(void *srcdata, int srcl
     sp = (fsw_u16 *)srcdata;
     dp = (fsw_u8 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u16         c;
+
         c = *sp++; c = FSW_SWAPVALUE_U16(c);
         *dp++ = (fsw_u8)c;
     }
@@ -227,7 +236,6 @@ static fsw_status_t fsw_strcoerce_ISO88591_UTF16(void *srcdata, int srclen, stru
     int             i;
     fsw_u8       *sp;
     fsw_u16       *dp;
-    fsw_u32         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_UTF16, srclen, srclen * sizeof(fsw_u16), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -237,6 +245,8 @@ static fsw_status_t fsw_strcoerce_ISO88591_UTF16(void *srcdata, int srclen, stru
     sp = (fsw_u8 *)srcdata;
     dp = (fsw_u16 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u32         c;
+
         c = *sp++;
         *dp++ = (fsw_u16)c;
     }
@@ -249,7 +259,6 @@ static fsw_status_t fsw_strcoerce_UTF8_UTF16(void *srcdata, int srclen, struct f
     int             i;
     fsw_u8       *sp;
     fsw_u16       *dp;
-    fsw_u32         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_UTF16, srclen, srclen * sizeof(fsw_u16), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -259,6 +268,8 @@ static fsw_status_t fsw_strcoerce_UTF8_UTF16(void *srcdata, int srclen, struct f
     sp = (fsw_u8 *)srcdata;
     dp = (fsw_u16 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u32         c;
+
         c = *sp++;
         if ((c & 0xe0) == 0xc0) {
             c = ((c & 0x1f) << 6) | (*sp++ & 0x3f);
@@ -281,7 +292,6 @@ static fsw_status_t fsw_strcoerce_UTF16_SWAPPED_UTF16(void *srcdata, int srclen,
     int             i;
     fsw_u16       *sp;
     fsw_u16       *dp;
-    fsw_u16         c;
     
     fsw_string_setter(dest, FSW_STRING_KIND_UTF16, srclen, srclen * sizeof(fsw_u16), NULL);
     status = fsw_alloc(dest->size, &dest->data);
@@ -291,6 +301,8 @@ static fsw_status_t fsw_strcoerce_UTF16_SWAPPED_UTF16(void *srcdata, int srclen,
     sp = (fsw_u16 *)srcdata;
     dp = (fsw_u16 *)dest->data;
     for (i = 0; i < srclen; i++) {
+        fsw_u16         c;
+
         c = *sp++; c = FSW_SWAPVALUE_U16(c);
         *dp++ = (fsw_u16)c;
     }

@@ -407,7 +407,7 @@ fsw_status_t fsw_dnode_lookup_path(struct fsw_dnode *dno,
                                    struct fsw_string *lookup_path, char separator,
                                    struct fsw_dnode **child_dno_out);
 fsw_status_t fsw_dnode_dir_read(struct fsw_shandle *shand, struct fsw_dnode **child_dno_out);
-fsw_status_t fsw_dnode_readlink(struct fsw_dnode *dno, struct fsw_string *link_target);
+fsw_status_t fsw_dnode_readlink(struct fsw_dnode *dno, struct fsw_string *target_name);
 fsw_status_t fsw_dnode_readlink_data(struct DNODESTRUCTNAME *dno, struct fsw_string *link_target);
 fsw_status_t fsw_dnode_resolve(struct fsw_dnode *dno, struct fsw_dnode **target_dno_out);
 

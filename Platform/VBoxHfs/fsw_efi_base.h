@@ -105,7 +105,7 @@ typedef UINT64  fsw_u64;
 #define FSW_MSGSTR(s) DEBUG_INFO, s
 #define FSW_MSGFUNC(...) DEBUG(__VA_ARGS__)
 
-// encoding conversion
+// string handling
 
 int fsw_streq_ISO88591_UTF16(void *s1data, void *s2data, int len);
 

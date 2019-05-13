@@ -149,18 +149,18 @@ static fsw_status_t fsw_hfs_dnode_readinfo (
 );
 
 static int fsw_hfs_cmpb_catkey (
-	BTreeKey *key1,
-	BTreeKey *key2
+	BTreeKey *btkey1,
+	BTreeKey *btkey2
 );
 
 static int fsw_hfs_cmpf_catkey (
-	BTreeKey *key1,
-	BTreeKey *key2
+	BTreeKey *btkey1,
+	BTreeKey *btkey2
 );
 
 static int fsw_hfs_cmpt_catkey (
-	BTreeKey *key1,
-	BTreeKey *key2
+	BTreeKey *btkey1,
+	BTreeKey *btkey2
 );
 
 fsw_u32 fsw_hfs_vol_bless_id (
@@ -264,7 +264,6 @@ fsw_hfs_read_block (struct fsw_hfs_dnode *dno, fsw_u32 log_bno, fsw_u32 off, fsw
 {
 	fsw_status_t status;
 	struct fsw_extent extent;
-	fsw_u32 phys_bno;
 	fsw_u8 *buffer;
 
 	fsw_memzero(&extent, sizeof(extent));
@@ -272,6 +271,8 @@ fsw_hfs_read_block (struct fsw_hfs_dnode *dno, fsw_u32 log_bno, fsw_u32 off, fsw
 	status = fsw_hfs_get_extent (dno->g.vol, dno, &extent);
 
 	if (status == FSW_SUCCESS) {
+		fsw_u32 phys_bno;
+
 		phys_bno = extent.phys_start;
 		status = fsw_block_get (dno->g.vol, phys_bno, 0, (void **) &buffer);
 
@@ -290,13 +291,13 @@ static fsw_s32
 fsw_hfs_read_file (struct fsw_hfs_dnode *dno, fsw_u64 pos, fsw_s32 len, fsw_u8 *buf)
 {
 	fsw_status_t status;
-	fsw_u32 log_bno;
 	fsw_s32 read = 0;
 	fsw_u32 block_size_bits = dno->g.vol->block_size_shift;
 	fsw_u32 block_size = (1 << block_size_bits);
 	fsw_u32 block_size_mask = block_size - 1;
 	
 	while (len > 0) {
+		fsw_u32 log_bno;
 		fsw_u32 off = (fsw_u32) (pos & block_size_mask);
 		fsw_s32 next_len = len;
 		
@@ -442,7 +443,6 @@ fsw_hfs_volume_mount (struct fsw_hfs_volume *vol)
 {
 	fsw_status_t status, rv;
 	void *buffer = NULL;
-	HFSPlusVolumeHeader *voldesc;
 	fsw_u32 blockno;
 
 	vol->primary_voldesc = NULL;
@@ -452,8 +452,9 @@ fsw_hfs_volume_mount (struct fsw_hfs_volume *vol)
 #define CHECK(sx) if (sx != FSW_SUCCESS) { rv = sx; break; }
 
 	do {
-		fsw_u16 signature;
+		HFSPlusVolumeHeader *voldesc;
 		fsw_u32 block_size;
+		fsw_u16 signature;
 
 		status = fsw_block_get (vol, blockno, 0, &buffer);
 		CHECK (status);
@@ -664,25 +665,30 @@ fsw_hfs_find_block (HFSPlusExtentRecord *exts, fsw_u32 *lbno, fsw_u32 *pbno)
 static fsw_u32
 fsw_hfs_btnode_keyoffset (struct fsw_hfs_btree *btree, btnode_datum_t *btnode, fsw_u32 tuplenum)
 {
-	fsw_u16 u16raw;
-	fsw_u32 ix;
+	fsw_u16 koff = 0;
+	fsw_u16 count;
 
-	ix = ((btree->btnode_size - sizeof (BTNodeDescriptor)) / sizeof (fsw_u16)) - 1 - tuplenum;
+	count = be16_to_cpu (btnode->ndesc.numRecords);
 
-	u16raw = btnode->shorts[ix];
+	if (count > 0 && tuplenum < count) {
+		fsw_u32 ix;
 
-	return be16_to_cpu (u16raw);
+		ix = ((btree->btnode_size - sizeof (BTNodeDescriptor)) / sizeof (fsw_u16)) - 1 - tuplenum;
+		koff = be16_to_cpu(btnode->shorts[ix]);
+	}
+
+	return koff;
 }
 
 /* Pointer to the key inside btnode for given tuple (key, record) number */
 
 static BTreeKey *
-fsw_hfs_btnode_key (struct fsw_hfs_btree *btree, btnode_datum_t* node, fsw_u32 tuplenum)
+fsw_hfs_btnode_key (struct fsw_hfs_btree *btree, btnode_datum_t* btnode, fsw_u32 tuplenum)
 {
-	fsw_u8 *cnode = (fsw_u8 *) node;
+	fsw_u8 *cnode = (fsw_u8 *) btnode;
 	fsw_u32 offset;
 
-	offset = fsw_hfs_btnode_keyoffset (btree, node, tuplenum);
+	offset = fsw_hfs_btnode_keyoffset (btree, btnode, tuplenum);
 
 	if (offset < sizeof(BTNodeDescriptor) || offset > btree->btnode_size - sizeof (fsw_u16)) {
 		return NULL;
@@ -702,13 +708,12 @@ fsw_hfs_btnode_record_ptr (BTreeKey *currkey)
 }
 
 static fsw_status_t
-fsw_hfs_btree_read_node (struct fsw_hfs_btree *btree, fsw_u32 nodenum, btnode_datum_t** outbuf)
+fsw_hfs_btree_read_node (struct fsw_hfs_btree *btree, fsw_u32 nodenum, btnode_datum_t** outnode)
 {
 	fsw_status_t status;
-	btnode_datum_t* buffer;
-	fsw_u32 roffset;
+	btnode_datum_t* btnode;
 
-	status = fsw_alloc (btree->btnode_size, &buffer);
+	status = fsw_alloc (btree->btnode_size, &btnode);
 
 	if (status == FSW_SUCCESS) {
 		fsw_u64 bstart;
@@ -716,21 +721,21 @@ fsw_hfs_btree_read_node (struct fsw_hfs_btree *btree, fsw_u32 nodenum, btnode_da
 
 		status = FSW_VOLUME_CORRUPTED;
 		bstart = (fsw_u64) nodenum * btree->btnode_size;
-
-		rv = fsw_hfs_read_file(btree->btfile, bstart, btree->btnode_size, (fsw_u8 *) buffer);
+		fsw_memzero (btnode, btree->btnode_size);
+		rv = fsw_hfs_read_file(btree->btfile, bstart, btree->btnode_size, (fsw_u8 *) btnode);
 
 		if ((fsw_u32) rv == btree->btnode_size) {
-			roffset = fsw_hfs_btnode_keyoffset(btree, buffer, 0);
+			fsw_u32 roffset = fsw_hfs_btnode_keyoffset(btree, btnode, 0);
 
-			if (roffset >= sizeof (BTNodeDescriptor)) {
-				*outbuf = buffer;
+			if (roffset == sizeof (BTNodeDescriptor)) {
+				*outnode = btnode;
 				status = FSW_SUCCESS;
 			}
 		}
 	}
 
 	if (status != FSW_SUCCESS)
-		fsw_free(buffer);
+		fsw_free(btnode);
 
 	return status;
 }
@@ -751,7 +756,7 @@ fsw_hfs_btree_search (struct fsw_hfs_btree *btree, BTreeKey *key, int (*compare_
 	fsw_status_t status;
 	btnode_datum_t *btnode = NULL;
 	fsw_u32 btnodenum;
-	fsw_u32 tuplenum = 0;
+	fsw_u32 tuplenum;
 
 	btnodenum = btree->btroot_node;
 
@@ -766,11 +771,6 @@ fsw_hfs_btree_search (struct fsw_hfs_btree *btree, BTreeKey *key, int (*compare_
 			break;
 
 		count = be16_to_cpu (btnode->ndesc.numRecords);
-
-		if (count == 0) {
-			status = FSW_NOT_FOUND;
-			break;
-		}
 
 		for (tuplenum = 0; tuplenum < count; tuplenum++) {
 			currkey = fsw_hfs_btnode_key (btree, btnode, tuplenum);
@@ -922,8 +922,8 @@ fsw_hfs_btnode_iterate_records (struct fsw_hfs_btree *btree, btnode_datum_t *fir
 
 	for (;;) {
 		fsw_u32 i;
-		fsw_u32 count = be16_to_cpu (btnode->ndesc.numRecords);
 		fsw_u32 next_btnode;
+		fsw_u32 count = be16_to_cpu (btnode->ndesc.numRecords);
 
 		/* Iterate over all records in this node */
 
@@ -1308,7 +1308,7 @@ fsw_hfs_readlink (struct fsw_hfs_volume *vol, struct fsw_hfs_dnode *dno, struct 
     link_target->skind = FSW_STRING_KIND_ISO88591;
     link_target->size = MPRFSIZE;
     fsw_memdup (&link_target->data, metaprefix, link_target->size);
-    sz = (fsw_u32) fsw_u32_to_str(((char *) link_target->data) + MPRFINUM, 10, dno->ilink);
+    sz = (fsw_u32) fsw_snprintf(((char *) link_target->data) + MPRFINUM, 10, "%d", (int)dno->ilink);
     link_target->len = MPRFINUM + sz;
 
     return FSW_SUCCESS;

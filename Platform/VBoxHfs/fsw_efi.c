@@ -1222,9 +1222,9 @@ fsw_efi_dnode_getinfo (
 
   Volume = (FSW_VOLUME_DATA *) File->shand.dnode->vol->host_data;
 
-  if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {	// ------
+  if (CompareGuid (InformationType, &gEfiFileInfoGuid)) {
     Status = fsw_efi_dnode_fill_FileInfo (Volume, File->shand.dnode, BufferSize, Buffer);
-  } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {	// ------
+  } else if (CompareGuid (InformationType, &gEfiFileSystemInfoGuid)) {
 
     // check buffer size
 
@@ -1260,7 +1260,7 @@ fsw_efi_dnode_getinfo (
 
     *BufferSize = RequiredSize;
     Status = EFI_SUCCESS;
-  } else if (CompareGuid (InformationType, &gEfiFileSystemVolumeLabelInfoIdGuid)) {	// ------
+  } else if (CompareGuid (InformationType, &gEfiFileSystemVolumeLabelInfoIdGuid)) {
 
     // check buffer size
 
@@ -1280,11 +1280,11 @@ fsw_efi_dnode_getinfo (
 
     *BufferSize = RequiredSize;
     Status = EFI_SUCCESS;
-  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFileInfoGuid)) {		// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFileInfoGuid)) {
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_SYSFILE, Buffer, BufferSize);
-  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFolderInfoGuid)) {	// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedSystemFolderInfoGuid)) {
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_SYSFLDR, Buffer, BufferSize);
-  } else if (CompareGuid (InformationType, &gAppleBlessedOsxFolderInfoGuid)) {	// ------
+  } else if (CompareGuid (InformationType, &gAppleBlessedOsxFolderInfoGuid)) {
     Status = fsw_efi_bless_info (Volume, HFS_BLESS_OSXFLDR, Buffer, BufferSize);
   } else {
     FSW_MSG_DEBUGV ((FSW_MSGSTR ("%a: Unsupported request (guid %g)\n"), __FUNCTION__, InformationType));

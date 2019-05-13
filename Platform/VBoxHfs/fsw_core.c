@@ -182,7 +182,7 @@ void fsw_set_blocksize(struct fsw_volume *vol, fsw_u32 phys_blocksize, fsw_u32 l
 fsw_status_t fsw_block_get(struct VOLSTRUCTNAME *vol, fsw_u32 phys_bno, fsw_u32 cache_level, void **buffer_out)
 {
     fsw_status_t    status;
-    fsw_u32         i, discard_level, new_bcache_size;
+    fsw_u32         i;
     struct fsw_blockcache *new_bcache = NULL;
 
     // TODO: allow the host driver to do its own caching; just call through if
@@ -209,6 +209,8 @@ fsw_status_t fsw_block_get(struct VOLSTRUCTNAME *vol, fsw_u32 phys_bno, fsw_u32 
             break;
     }
     if (i >= vol->bcache_size) {
+        fsw_u32 discard_level;
+
         for (discard_level = 0; discard_level <= MAX_CACHE_LEVEL; discard_level++) {
             for (i = 0; i < vol->bcache_size; i++) {
                 if (vol->bcache[i].refcount == 0 && vol->bcache[i].cache_level <= discard_level)
@@ -219,6 +221,8 @@ fsw_status_t fsw_block_get(struct VOLSTRUCTNAME *vol, fsw_u32 phys_bno, fsw_u32 
         }
     }
     if (i >= vol->bcache_size) {
+	fsw_u32 new_bcache_size;
+
         // enlarge / create the cache
         if (vol->bcache_size < 16)
             new_bcache_size = 16;
@@ -904,7 +908,6 @@ fsw_status_t fsw_dnode_readlink_data(struct fsw_dnode *dno, struct fsw_string *l
     fsw_status_t    status;
     struct fsw_shandle shand;
     fsw_u32         buffer_size;
-    char            buffer[FSW_PATH_MAX];
 
     if (dno == NULL || dno->vol == NULL || dno->size > FSW_PATH_MAX)
         return FSW_VOLUME_CORRUPTED;
@@ -915,6 +918,8 @@ fsw_status_t fsw_dnode_readlink_data(struct fsw_dnode *dno, struct fsw_string *l
     status = fsw_shandle_open(dno, &shand);
 
     if (status == FSW_SUCCESS) {
+	    char buffer[FSW_PATH_MAX];
+
 	    buffer_size = sizeof(buffer);
 	    status = fsw_shandle_read(&shand, &buffer_size, buffer);
 	    fsw_shandle_close(&shand);
@@ -1060,7 +1065,7 @@ fsw_status_t fsw_shandle_read(struct fsw_shandle *shand, fsw_u32 *buffer_size_in
     struct fsw_volume *vol = dno->vol;
     fsw_u8          *buffer, *block_buffer;
     fsw_u32         buflen, copylen, pos;
-    fsw_u32         log_bno, pos_in_extent, phys_bno, pos_in_physblock;
+    fsw_u32         phys_bno, pos_in_physblock;
     fsw_u32         cache_level;
 
     if (shand->pos >= dno->size) {   // already at EOF
@@ -1082,6 +1087,7 @@ fsw_status_t fsw_shandle_read(struct fsw_shandle *shand, fsw_u32 *buffer_size_in
         buflen = (fsw_u32)(dno->size - pos);
 
     while (buflen > 0) {
+	    fsw_u32 log_bno, pos_in_extent;
         // get extent for the current logical block
 
         log_bno = pos / vol->log_blocksize;
