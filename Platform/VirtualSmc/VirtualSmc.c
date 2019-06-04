@@ -24,19 +24,19 @@ STATIC VOID                  *mSmcIoArriveNotify;
 STATIC EFI_EVENT             mAuthenticationKeyEraseEvent;
 
 STATIC VIRTUALSMC_KEY_VALUE  mVirtualSmcKeyValue[6] = {
-  { '#KEY', 'ui32', 4, SMC_KEY_ATTRIBUTE_READ, {0, 0, 0, ARRAY_SIZE (mVirtualSmcKeyValue)} },
-  { 'RMde', 'char', 1, SMC_KEY_ATTRIBUTE_READ, {SMC_MODE_APPCODE} },
+  { SMC_KEY_KEY, SmcKeyTypeUint32, 4, SMC_KEY_ATTRIBUTE_READ, {0, 0, 0, ARRAY_SIZE (mVirtualSmcKeyValue)} },
+  { SMC_KEY_RMde, SmcKeyTypeChar, 1, SMC_KEY_ATTRIBUTE_READ, {SMC_MODE_APPCODE} },
   //
   // Requested yet unused (battery inside, causes missing battery in UI).
   //
-  //{ 'BBIN', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
-  { 'BRSC', 'ui16', 2, SMC_KEY_ATTRIBUTE_READ, {0} },
-  { 'MSLD', 'ui8 ', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
-  { 'BATP', 'flag', 1, SMC_KEY_ATTRIBUTE_READ, {0} },
+  //{ SMC_KEY_BBIN, SmcKeyTypeFlag, 1, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { SMC_KEY_BRSC, SmcKeyTypeUint16, 2, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { SMC_KEY_MSLD, SmcKeyTypeUint8, 1, SMC_KEY_ATTRIBUTE_READ, {0} },
+  { SMC_KEY_BATP, SmcKeyTypeFlag, 1, SMC_KEY_ATTRIBUTE_READ, {0} },
   //
   // HBKP must always be the last key in the list (see mAuthenticationKeyIndex).
   //
-  { 'HBKP', 'ch8*', 32, SMC_KEY_ATTRIBUTE_READ|SMC_KEY_ATTRIBUTE_WRITE, {0} }
+  { SMC_KEY_HBKP, SmcKeyTypeCh8s, 32, SMC_KEY_ATTRIBUTE_READ|SMC_KEY_ATTRIBUTE_WRITE, {0} }
 };
 STATIC CONST UINT8           mAuthenticationKeyIndex = ARRAY_SIZE (mVirtualSmcKeyValue) - 1;
 
@@ -115,7 +115,7 @@ SmcIoVirtualSmcWriteValue (
   //
   // Handle HBKP separately to let boot.efi erase its contents as early as it wants.
   //
-  if (Key == 'HBKP' && Size <= SMC_HBKP_SIZE) {
+  if (Key == SMC_KEY_HBKP && Size <= SMC_HBKP_SIZE) {
     ZeroMem (mVirtualSmcKeyValue[mAuthenticationKeyIndex].Data, SMC_HBKP_SIZE);
     CopyMem (mVirtualSmcKeyValue[mAuthenticationKeyIndex].Data, Value, Size);
     for (Index = 0; Index < SMC_HBKP_SIZE; Index++) {
