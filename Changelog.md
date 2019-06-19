@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.0.8
+- Respect OpenCore scan policy during apfs driver loading
+
 #### v2.0.7
 - Added bless-compatible VBoxHfs driver (by @nms42)
 - Added compatibility with OpenCore logging protocols

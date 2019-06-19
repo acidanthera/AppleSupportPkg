@@ -18,6 +18,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 #include <AppleSupportPkgVersion.h>
 #include <Uefi/UefiGpt.h>
+#include <Guid/OcVariables.h>
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DevicePathLib.h>
@@ -26,6 +27,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/OcAppleImageVerificationLib.h>
+#include <Library/OcBootManagementLib.h>
 #include <Protocol/BlockIo.h>
 #include <Protocol/DiskIo.h>
 #include <Protocol/BlockIo2.h>
@@ -427,6 +429,56 @@ LegacyApfsContainerScan (
 
 }
 
+STATIC
+EFI_STATUS
+CheckOpenCoreScanPolicy (
+  IN EFI_HANDLE  Handle
+  )
+{
+  EFI_STATUS  Status;
+  UINT32      ScanPolicy;
+  UINT32      OcScanPolicy;
+  UINTN       OcScanPolicySize;
+
+  //
+  // If scan policy is missing, just ignore.
+  //
+  OcScanPolicy = 0;
+  OcScanPolicySize = sizeof (OcScanPolicy);
+  Status = gRT->GetVariable (
+    OC_SCAN_POLICY_VARIABLE_NAME,
+    &gOcVendorVariableGuid,
+    NULL,
+    &OcScanPolicySize,
+    &OcScanPolicy
+    );
+  if (EFI_ERROR (Status)) {
+    return EFI_SUCCESS;
+  }
+
+  //
+  // If filesystem limitations are set and APFS is not allowed,
+  // report failure.
+  //
+  if ((OcScanPolicy & OC_SCAN_FILE_SYSTEM_LOCK) != 0
+    && (OcScanPolicy & OC_SCAN_ALLOW_FS_APFS) == 0) {
+    return EFI_UNSUPPORTED;
+  }
+
+  //
+  // If device type locking is set and this device is not allowed,
+  // report failure.
+  //
+  if ((OcScanPolicy & OC_SCAN_DEVICE_LOCK) != 0) {
+    ScanPolicy = OcGetDevicePolicyType (Handle, NULL);
+    if ((ScanPolicy & OcScanPolicy) == 0) {
+      return EFI_UNSUPPORTED;
+    }
+  }
+
+  return EFI_SUCCESS;
+}
+
 /**
 
   Routine Description:
@@ -458,6 +510,11 @@ ApfsDriverLoaderSupported (
   EFI_STATUS                    Status;
   APPLE_PARTITION_INFO_PROTOCOL *ApplePartitionInfo          = NULL;
   EFI_PARTITION_INFO_PROTOCOL   *Edk2PartitionInfo           = NULL;
+
+  Status = CheckOpenCoreScanPolicy (ControllerHandle);
+  if (EFI_ERROR (Status)) {
+    return EFI_UNSUPPORTED;
+  }
 
   Status = gBS->OpenProtocol (
     ControllerHandle,
