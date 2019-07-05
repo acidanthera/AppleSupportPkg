@@ -55,7 +55,7 @@ package() {
   cp UsbKbDxe.efi tmp/Drivers/         || exit 1
   cp VBoxHfs.efi tmp/Drivers/          || exit 1
   pushd tmp || exit 1
-  zip -qry ../"AppleSupport-v${ver}-${2}.zip" * || exit 1
+  zip -qry -FS ../"AppleSupport-v${ver}-${2}.zip" * || exit 1
   popd || exit 1
   rm -rf tmp || exit 1
   popd || exit 1
