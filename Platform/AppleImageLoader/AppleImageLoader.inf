@@ -59,8 +59,10 @@
 
 [Sources]
   AppleImageLoader.c
+  AppleImageLoader.h
   Core/CoreMain.h
   Core/Image/Image.c
+  Core/Image/Image.h
   Core/Misc/MemoryProtection.c
 
 [Pcd]
