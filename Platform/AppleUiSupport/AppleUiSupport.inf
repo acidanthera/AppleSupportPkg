@@ -73,6 +73,7 @@
 
 [Sources]
   AppleEvent/AppleEvent.c
+  AppleEvent/AppleEventInternal.h
   AppleEvent/EventQueue.c
   AppleEvent/KeyHandler.c
   AppleEvent/PointerHandler.c
