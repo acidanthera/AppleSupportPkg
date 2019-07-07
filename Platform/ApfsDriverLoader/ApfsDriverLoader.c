@@ -1029,8 +1029,6 @@ ApfsDriverLoaderStart (
                       );
   }
 
-  FreePool (ApfsBlock);
-
   //
   // Fill public AppleFileSystemEfiBootRecordInfo protocol interface
   //
@@ -1063,6 +1061,8 @@ ApfsDriverLoaderStart (
     if (Private != NULL) {
       FreePool (Private);
     }
+    FreePool (ApfsBlock);
+
     return Status;
   }
 
@@ -1071,6 +1071,8 @@ ApfsDriverLoaderStart (
     EfiFileBuffer,
     EfiBootRecordBlock->EfiFileLen
     );
+
+  FreePool (ApfsBlock);
 
   if (EFI_ERROR (Status)) {
     gBS->UninstallProtocolInterface (
