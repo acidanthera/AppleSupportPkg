@@ -1034,6 +1034,7 @@ ApfsDriverLoaderStart (
   //
   Private = AllocatePool (sizeof (APFS_DRIVER_INFO_PRIVATE_DATA));
   if (Private == NULL) {
+    FreePool (ApfsBlock);
     return EFI_OUT_OF_RESOURCES;
   }
 
