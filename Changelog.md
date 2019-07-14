@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.0.9
+- Fixed memory corruption on select platforms (by @mjg59)
+
 #### v2.0.8
 - Respect OpenCore scan policy during apfs driver loading
 
