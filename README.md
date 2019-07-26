@@ -13,10 +13,9 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Version system: connects each apfs.efi to the device from which it was retrieved.
 - Embedded signature verification of chainloaded apfs.efi driver, what prevents possible implant injection.
 
-## AppleImageLoader
-Secure AppleEfiFat binary driver with implementation of AppleLoadImage protocol with EfiBinary signature verification.
+## AppleGenericInput
 
-It provides secure loading of Apple EFI binary files into memory by pre-authenticating its signature.
+Reference driver to shim AMI APTIO proprietary mouse & keyboard protocols or Generic UEFI input protocols for File Vault 2 GUI input support. Generally [modified UsbKbDxe](https://github.com/acidanthera/AppleSupportPkg/tree/master/Platform/AppleUsbKbDxe) works no worse on APTIO V, but for Z77, Z87, and similar AppleGenericInput may be the only solution.
 
 ## AppleUiSupport
 Driver which implements set of protocol for support EfiLoginUi which used for FileVault as login window. In short, it implements FileVault support and replaces AppleKeyMapAggregator.efi, AppleEvent.efi, AppleUiTheme.efi, FirmwareVolume.efi, AppleImageCodec.efi. Also, it contains hash service fixes and unicode collation for some boards. These fixes removed from AptioMemoryFix in R23.

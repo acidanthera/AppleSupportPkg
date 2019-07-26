@@ -81,6 +81,7 @@
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 
 [Components]
+  AppleSupportPkg/Platform/AppleGenericInput/AppleGenericInput.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
