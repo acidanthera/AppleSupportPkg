@@ -24,7 +24,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 typedef struct {
   //
-  // Stored key buffer for responding to non-Apple protocolsPAGING_1G_ADDRESS_MASK_64
+  // Stored key buffer for responding to non-Apple protocols
   //
   AMI_EFI_KEY_DATA    KeyBuffer[AIK_DATA_BUFFER_SIZE];
   AMI_EFI_KEY_DATA    *KeyBufferHead;

@@ -27,7 +27,7 @@ AIKSourceGrabEfiKey (
 {
   EFI_STATUS      Status;
   EFI_EVENT       Event;
-PAGING_1G_ADDRESS_MASK_64
+
   ZeroMem (KeyData, sizeof (*KeyData));
 
   if (Source->AmiKeycode != NULL && Source->AmiReadEfikey) {

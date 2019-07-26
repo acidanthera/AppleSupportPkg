@@ -64,7 +64,7 @@ AIKShimTextInputReadKeyStrokeEx (
 VOID
 EFIAPI
 AIKShimWaitForKeyHandler (
-  IN EFI_EVENT  Event,PAGING_1G_ADDRESS_MASK_64
+  IN EFI_EVENT  Event,
   IN VOID       *Context
   );
 

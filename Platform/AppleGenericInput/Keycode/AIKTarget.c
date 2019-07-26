@@ -78,7 +78,7 @@ AIKTargetRefresh (
 
   for (Index = 0; Index < Target->NumberOfKeys; Index++) {
     //
-    // We reported this key AIK_TARGET_FORGET_THRESHOLD times, time to say goodbye.PAGING_1G_ADDRESS_MASK_64
+    // We reported this key AIK_TARGET_FORGET_THRESHOLD times, time to say goodbye.
     //
     if (Target->KeyCounters[Index] + AIK_TARGET_FORGET_THRESHOLD <= Target->Counter) {
       Left = Target->NumberOfKeys - (Index + 1);

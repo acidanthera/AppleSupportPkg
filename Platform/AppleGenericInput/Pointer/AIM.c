@@ -54,7 +54,7 @@ EFIAPI
 AmiShimPointerFilterOut (
   IN OUT UINT8 *AbsX,
   IN OUT UINT8 *AbsY,
-  IN OUT INT32 *X,PAGING_1G_ADDRESS_MASK_64
+  IN OUT INT32 *X,
   IN OUT INT32 *Y
   )
 {
@@ -72,7 +72,7 @@ AmiShimPointerFilterOut (
       *AbsX = 0;
       *X = 0;
     }
-PAGING_1G_ADDRESS_MASK_64
+
     gXCounts[gIndex] = 0;
   }
 
@@ -88,7 +88,7 @@ PAGING_1G_ADDRESS_MASK_64
       *AbsY = 0;
       *Y = 0;
     }
-PAGING_1G_ADDRESS_MASK_64
+
     gYCounts[gIndex] = 0;
   }
 
@@ -135,7 +135,7 @@ AmiShimPointerSmooth (
   )
 {
   UINT8 AbsX, AbsY;
-PAGING_1G_ADDRESS_MASK_64
+
   *X = Clamp (*X, -16, 16);
   *Y = Clamp (*Y, -16, 16);
   // According to AMI it should not be reported
@@ -209,7 +209,7 @@ AmiShimPointerSmooth (
 VOID
 EFIAPI
 AmiShimPointerPositionHandler (
-  IN EFI_EVENT  Event,PAGING_1G_ADDRESS_MASK_64
+  IN EFI_EVENT  Event,
   IN VOID       *Context
   )
 {
@@ -305,7 +305,7 @@ AmiShimPointerGetState (
   EFI_STATUS                 Status;
   UINTN                      Index;
   AMI_SHIM_POINTER_INSTANCE  *Pointer;
-PAGING_1G_ADDRESS_MASK_64
+
   if (This == NULL || State == NULL) {
     return EFI_INVALID_PARAMETER;
   }
@@ -407,7 +407,7 @@ AmiShimPointerInstallOnHandle (
   UINTN                      Index;
   AMI_SHIM_POINTER_INSTANCE  *Pointer;
   AMI_SHIM_POINTER_INSTANCE  *FreePointer;
-PAGING_1G_ADDRESS_MASK_64
+
   FreePointer = NULL;
 
   for (Index = 0; Index < AIM_MAX_POINTERS; Index++) {
@@ -456,7 +456,7 @@ AmiShimPointerInstall (
   if (EFI_ERROR(Status)) {
     return EFI_NOT_FOUND;
   }
-PAGING_1G_ADDRESS_MASK_64
+
   DEBUG ((DEBUG_INFO, "Found %d Handles located by protocol\n", NoHandles));
 
   Installed = FALSE;
@@ -522,7 +522,7 @@ AmiShimPointerUninstall (
 VOID
 EFIAPI
 AmiShimPointerArriveHandler (
-  IN EFI_EVENT  Event,PAGING_1G_ADDRESS_MASK_64
+  IN EFI_EVENT  Event,
   IN VOID       *Context
   )
 {
@@ -536,7 +536,7 @@ AIMInit (
 {
   EFI_STATUS       Status;
   VOID             *Registration;
-PAGING_1G_ADDRESS_MASK_64
+
   Status = gBS->CreateEvent (EVT_NOTIFY_SIGNAL, TPL_NOTIFY, AmiShimPointerArriveHandler, NULL, &mAmiShimPointer.ProtocolArriveEvent);
 
   if (EFI_ERROR (Status)) {

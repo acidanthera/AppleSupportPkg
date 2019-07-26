@@ -125,7 +125,7 @@ AIKTranslateConfigure (
   VOID
   )
 {
-  UINTN                     Index;PAGING_1G_ADDRESS_MASK_64
+  UINTN                     Index;
   CONST APPLE_MODIFIER_MAP  DefaultModifierMap[AIK_MODIFIER_MAX] = {
     USB_HID_KB_KP_MODIFIER_RIGHT_SHIFT,
     USB_HID_KB_KP_MODIFIER_LEFT_SHIFT,
