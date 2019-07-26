@@ -53,6 +53,8 @@ package() {
   cp AppleUiSupport.efi tmp/Drivers/   || exit 1
   cp UsbKbDxe.efi tmp/Drivers/         || exit 1
   cp VBoxHfs.efi tmp/Drivers/          || exit 1
+  cp CleanNvram.efi tmp/Tools/         || exit 1
+  cp VerifyMsrE2.efi tmp/Tools/        || exit 1
   pushd tmp || exit 1
   zip -qry -FS ../"AppleSupport-${ver}-${2}.zip" * || exit 1
   popd || exit 1
