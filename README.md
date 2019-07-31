@@ -1,7 +1,7 @@
 AppleSupportPkg
 ==============
 
-[![Build Status](https://travis-ci.org/acidanthera/AppleSupportPkg.svg?branch=master)](https://travis-ci.org/acidanthera/AppleSupportPkg) [![Scan Status](https://scan.coverity.com/projects/16467/badge.svg?flat=1)](https://scan.coverity.com/projects/16467)
+[![Build Status](https://travis-ci.com/acidanthera/AppleSupportPkg.svg?branch=master)](https://travis-ci.com/acidanthera/AppleSupportPkg) [![Scan Status](https://scan.coverity.com/projects/16467/badge.svg?flat=1)](https://scan.coverity.com/projects/16467)
 
 -----
 
