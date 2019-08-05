@@ -23,8 +23,8 @@ Driver which implements set of protocol for support EfiLoginUi which used for Fi
 ## AppleEfiSignTool
 Open source tool for verifying Apple EFI binaries. It supports ApplePE and AppleFat binaries.
 
-## AppleDxeImageVerificationLib
-This library provides Apple's crypto signature algorithm for EFI binaries.
+## FwRuntimeServices
+This driver provides the necessary compatibility improvements required for normal functioning of UEFI Runtime Services such as date, time, NVRAM variable storage, and others in macOS.
 
 ## VBoxHfs
 This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.

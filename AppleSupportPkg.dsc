@@ -88,6 +88,7 @@
   AppleSupportPkg/Platform/AppleUiSupport/AppleUiSupport.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
   AppleSupportPkg/Platform/AppleUsbKbDxe/UsbKbDxe.inf
+  AppleSupportPkg/Platform/FwRuntimeServices/FwRuntimeServices.inf
   AppleSupportPkg/Platform/VirtualSmc/VirtualSmc.inf
   AppleSupportPkg/Platform/VBoxHfs/VBoxHfs.inf
 
