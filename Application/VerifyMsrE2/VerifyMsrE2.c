@@ -78,7 +78,7 @@ UefiMain (
 
   Print (L"Starting All APs to verify 0xE2 register...\n", Status);
 
-  Status = mMpServices->StartupAllAPs (mMpServices, ReadMsrE2, TRUE, NULL, 1000000, NULL, NULL);
+  Status = mMpServices->StartupAllAPs (mMpServices, ReadMsrE2, TRUE, NULL, 5e6, NULL, NULL);
   if (EFI_ERROR (Status)) {
     Print (L"Failed to StartupAllAPs - %r\n", Status);
     return Status;
