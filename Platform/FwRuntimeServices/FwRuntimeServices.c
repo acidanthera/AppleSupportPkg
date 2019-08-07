@@ -14,6 +14,7 @@
 
 #include "FwRuntimeServicesPrivate.h"
 
+#include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/OcBootManagementLib.h>
 #include <Library/UefiBootServicesTableLib.h>
@@ -22,73 +23,49 @@
 #include <Protocol/LoadedImage.h>
 #include <Protocol/OcFirmwareRuntime.h>
 
-STATIC EFI_IMAGE_START  mStoredStartImage;
-
-STATIC UINTN            mNestedCount;
-
-EFI_STATUS
+STATIC
+VOID
 EFIAPI
-WrapStartImage (
-  IN  EFI_HANDLE  ImageHandle,
-  OUT UINTN       *ExitDataSize,
-  OUT CHAR16      **ExitData  OPTIONAL
+FwGetCurrent (
+  OUT OC_FWRT_CONFIG  *Config
   )
 {
-  EFI_STATUS                  Status;
-  EFI_LOADED_IMAGE_PROTOCOL   *AppleLoadedImage;
+  CopyMem (Config, gCurrentConfig, sizeof (*Config));
+}
 
-  AppleLoadedImage = OcGetAppleBootLoadedImage (ImageHandle);
+STATIC
+VOID
+EFIAPI
+FwSetMain (
+  IN CONST OC_FWRT_CONFIG  *Config
+  )
+{
+  CopyMem (&gMainConfig, Config, sizeof (gMainConfig));
+}
 
-  //
-  // Nest count checking is used to protect from situations like
-  // Start BootLoader → { Start App, App Finished, Start Kernel }
-  //
-  ++mNestedCount;
-
-  if (mNestedCount == 1) {
-    //
-    // Request boot variable redirection if enabled.
-    //
-    SetBootVariableRedirect (TRUE);
-
-    if (AppleLoadedImage) {
-      //
-      // Latest Windows brings Virtualization-based security and monitors
-      // CR0 by launching itself under a hypevisor. Since we need WP disable
-      // on macOS to let NVRAM work, and for the time being no other OS
-      // requires it, here we decide to use it for macOS exclusively.
-      //
-      SetWriteUnprotectorMode (TRUE);
-    }
-
-    Status = mStoredStartImage (ImageHandle, ExitDataSize, ExitData);
-
-    if (AppleLoadedImage) {
-      //
-      // We failed but other operating systems should be loadable.
-      //
-      SetWriteUnprotectorMode (FALSE);
-    }
-
-    //
-    // Disable redirect on failure, this is cleaner design-wise.
-    //
-    SetBootVariableRedirect (FALSE);
+STATIC
+VOID
+EFIAPI
+FwSetOverride (
+  IN CONST OC_FWRT_CONFIG  *Config
+  )
+{
+  if (Config != NULL) {
+    CopyMem (&gOverrideConfig, Config, sizeof (gOverrideConfig));
+    gCurrentConfig = &gOverrideConfig;
   } else {
-    Status = mStoredStartImage (ImageHandle, ExitDataSize, ExitData);
+    gCurrentConfig = &gMainConfig;
   }
-
-  --mNestedCount;
-
-  return Status;
 }
 
 STATIC
 OC_FIRMWARE_RUNTIME_PROTOCOL
 mOcFirmwareRuntimeProtocol = {
   OC_FIRMWARE_RUNTIME_REVISION,
-  SetBootVariableRedirect,
-  SetCustomGetVariableHandler
+  FwGetCurrent,
+  FwSetMain,
+  FwSetOverride,
+  FwOnGetVariable
 };
 
 EFI_STATUS
@@ -115,11 +92,10 @@ UefiEntrypoint (
     return EFI_ALREADY_STARTED;
   }
 
-  mStoredStartImage       = gBS->StartImage;
-  gBS->StartImage         = WrapStartImage;
-
-  gBS->Hdr.CRC32 = 0;
-  gBS->CalculateCrc32 (gBS, gBS->Hdr.HeaderSize, &gBS->Hdr.CRC32);
+  //
+  // Activate main configuration.
+  //
+  gCurrentConfig = &gMainConfig;
 
   RedirectRuntimeServices ();
 

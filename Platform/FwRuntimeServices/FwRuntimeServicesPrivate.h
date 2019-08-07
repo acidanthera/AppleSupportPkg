@@ -16,26 +16,31 @@
 #define FIRMWARE_RUNTIME_SERVICES_PRIVATE_H
 
 #include <Uefi.h>
+#include <Protocol/OcFirmwareRuntime.h>
+
+/**
+  Main runtime services configuration.
+**/
+extern OC_FWRT_CONFIG  gMainConfig;
+
+/**
+  Override runtime services configuration.
+**/
+extern OC_FWRT_CONFIG  gOverrideConfig;
+
+/**
+  Current active runtime services configuration (main or override).
+**/
+extern OC_FWRT_CONFIG  *gCurrentConfig;
 
 VOID
 RedirectRuntimeServices (
   VOID
   );
 
-VOID
-SetWriteUnprotectorMode (
-  IN BOOLEAN  Enable
-  );
-
-BOOLEAN
-EFIAPI
-SetBootVariableRedirect (
-  IN BOOLEAN  Enable
-  );
-
 EFI_STATUS
 EFIAPI
-SetCustomGetVariableHandler (
+FwOnGetVariable (
   IN  EFI_GET_VARIABLE  GetVariable,
   OUT EFI_GET_VARIABLE  *OrgGetVariable  OPTIONAL
   );

@@ -209,7 +209,7 @@ UefiMain (
 {
   EFI_STATUS                   Status;
   OC_FIRMWARE_RUNTIME_PROTOCOL *FwRuntime;
-  BOOLEAN                      Redirect;
+  OC_FWRT_CONFIG               Config;
 
   Print (L"NVRAM cleanup %s\n", APPLE_SUPPORT_VERSION);
 
@@ -220,18 +220,19 @@ UefiMain (
     );
 
   if (!EFI_ERROR (Status) && FwRuntime->Revision >= OC_FIRMWARE_RUNTIME_REVISION) {
-    Redirect = FwRuntime->SetNvram (FALSE);
-    Print (L"Found AMF NVRAM, full access %d\n", Redirect);
+    ZeroMem (&Config, sizeof (Config));
+    FwRuntime->SetOverride (&Config);
+    Print (L"Found AMF NVRAM, full access %d\n", Config.BootVariableRedirect);
   } else {
-    Redirect = FALSE;
+    FwRuntime = NULL;
     Print (L"Missing AMF NVRAM\n");
   }
 
   DeleteVariables ();
 
-  if (Redirect) {
+  if (FwRuntime != NULL) {
     Print (L"Restoring AMF NVRAM...\n");
-    FwRuntime->SetNvram (TRUE);
+    FwRuntime->SetOverride (NULL);
   }
 
   Print (L"NVRAM cleanup completed, please reboot!\n");

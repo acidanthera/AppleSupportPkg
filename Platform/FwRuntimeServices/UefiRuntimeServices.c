@@ -37,9 +37,12 @@ STATIC EFI_SET_VARIABLE              mStoredSetVariable;
 STATIC EFI_GET_NEXT_HIGH_MONO_COUNT  mStoredGetNextHighMonotonicCount;
 STATIC EFI_RESET_SYSTEM              mStoredResetSystem;
 
-STATIC BOOLEAN                       mBootVariableRedirect;
-STATIC BOOLEAN                       mWriteUnprotector;
-STATIC BOOLEAN                       mRestrictedPermissions;
+/**
+  Configurations to use.
+**/
+OC_FWRT_CONFIG  gMainConfig;
+OC_FWRT_CONFIG  gOverrideConfig;
+OC_FWRT_CONFIG  *gCurrentConfig;
 
 /**
   Boot phase accessible variables.
@@ -56,7 +59,7 @@ WriteUnprotectorPrologue (
 {
   IA32_CR0  Cr0;
 
-  if (mWriteUnprotector) {
+  if (gCurrentConfig->WriteUnprotector) {
     *Ints     = SaveAndDisableInterrupts ();
     Cr0.UintN = AsmReadCr0 ();
     if (Cr0.Bits.WP == 1) {
@@ -81,7 +84,7 @@ WriteUnprotectorEpilogue (
 {
   IA32_CR0  Cr0;
 
-  if (mWriteUnprotector) {
+  if (gCurrentConfig->WriteUnprotector) {
     if (Wp) {
       Cr0.UintN   = AsmReadCr0 ();
       Cr0.Bits.WP = 1;
@@ -268,7 +271,7 @@ WrapGetVariable (
   //
   // Abort access to write-only variables.
   //
-  if (mRestrictedPermissions
+  if (gCurrentConfig->RestrictedVariables
     && CompareGuid (VendorGuid, &gOcWriteOnlyVariableGuid)) {
     return EFI_SECURITY_VIOLATION;
   }
@@ -276,7 +279,7 @@ WrapGetVariable (
   //
   // Redirect Boot-prefixed variables to our own GUID.
   //
-  if (mBootVariableRedirect && IsEfiBootVar (VariableName, VendorGuid)) {
+  if (gCurrentConfig->BootVariableRedirect && IsEfiBootVar (VariableName, VendorGuid)) {
     VendorGuid = &gOcVendorVariableGuid;
     Routed     = TRUE;
   } else {
@@ -348,7 +351,7 @@ WrapGetNextVariableName (
   //
   // In case we do not redirect, simply do nothing.
   //
-  if (!mBootVariableRedirect) {
+  if (!gCurrentConfig->BootVariableRedirect) {
     Status = mStoredGetNextVariableName (VariableNameSize, VariableName, VendorGuid);
     WriteUnprotectorEpilogue (Ints, Wp);
     return Status;
@@ -519,9 +522,16 @@ WrapSetVariable (
   BOOLEAN     Wp;
 
   //
+  // Abort access when running with read-only NVRAM.
+  //
+  if (gCurrentConfig->WriteProtection) {
+    return EFI_SECURITY_VIOLATION;
+  }
+
+  //
   // Abort access to read-only variables.
   //
-  if (mRestrictedPermissions
+  if (gCurrentConfig->RestrictedVariables
     && CompareGuid (VendorGuid, &gOcReadOnlyVariableGuid)) {
     return EFI_SECURITY_VIOLATION;
   }
@@ -529,7 +539,7 @@ WrapSetVariable (
   //
   // Redirect Boot-prefixed variables to our own GUID.
   //
-  if (mBootVariableRedirect && IsEfiBootVar (VariableName, VendorGuid)) {
+  if (gCurrentConfig->BootVariableRedirect && IsEfiBootVar (VariableName, VendorGuid)) {
     VendorGuid = &gOcVendorVariableGuid;
   }
 
@@ -595,47 +605,9 @@ WrapResetSystem (
   WriteUnprotectorEpilogue (Ints, Wp);
 }
 
-VOID
-SetWriteUnprotectorMode (
-  IN BOOLEAN  Enable
-  )
-{
-  mWriteUnprotector = Enable;
-}
-
-BOOLEAN
-EFIAPI
-SetBootVariableRedirect (
-  IN BOOLEAN  Enable
-  )
-{
-  UINTN       DataSize;
-  EFI_STATUS  Status;
-  BOOLEAN     Previous;
-
-  if (Enable) {
-    DataSize = sizeof (Enable);
-    Status = mStoredGetVariable (
-      OC_BOOT_REDIRECT_VARIABLE_NAME,
-      &gOcVendorVariableGuid,
-      NULL,
-      &DataSize,
-      &Enable
-      );
-
-    if (EFI_ERROR (Status)) {
-      Enable = FALSE;
-    }
-  }
-
-  Previous = mBootVariableRedirect;
-  mBootVariableRedirect = Enable;
-  return Previous;
-}
-
 EFI_STATUS
 EFIAPI
-SetCustomGetVariableHandler (
+FwOnGetVariable (
   IN  EFI_GET_VARIABLE  GetVariable,
   OUT EFI_GET_VARIABLE  *OrgGetVariable  OPTIONAL
   )
@@ -671,8 +643,8 @@ TranslateAddressesHandler (
   gRT->ConvertPointer (0, (VOID **) &mStoredGetNextHighMonotonicCount);
   gRT->ConvertPointer (0, (VOID **) &mStoredResetSystem);
 
-  mCustomGetVariable     = NULL;
-  mRestrictedPermissions = TRUE;
+  gRT->ConvertPointer (0, (VOID **) &gCurrentConfig);
+  mCustomGetVariable = NULL;
 }
 
 VOID

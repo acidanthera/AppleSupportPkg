@@ -51,7 +51,6 @@
   gAppleBootVariableGuid                      ## SOMETIMES_CONSUMES
 
 [Protocols]
-  gEfiLoadedImageProtocolGuid                 ## CONSUMES
   gOcFirmwareRuntimeProtocolGuid              ## SOMETIMES_PRODUCES
 
 [Depex]
