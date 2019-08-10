@@ -5,6 +5,8 @@ AppleSupport Changelog
 - Fixed memory corruption on select platforms (by @mjg59)
 - Added AppleGenericInput (formerly AptioInputFix)
 - Added CleanNvram and VerifyMsrE2 tools
+- Added FwRuntimeServices OpenCore runtime compatibility layer
+- Incrased VerifyMsrE2 timeout to 5s for more cores (by @mrmiller)
 
 #### v2.0.8
 - Respect OpenCore scan policy during apfs driver loading
