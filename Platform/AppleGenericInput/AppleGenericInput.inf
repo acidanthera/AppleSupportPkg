@@ -45,12 +45,14 @@
   EfiPkg/EfiPkg.dec
   MdeModulePkg/MdeModulePkg.dec
   MdePkg/MdePkg.dec
+  OcSupportPkg/OcSupportPkg.dec
 
 [LibraryClasses]
   BaseMemoryLib
   DebugLib
   HiiLib
   MemoryAllocationLib
+  OcGuardLib
   PcdLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
