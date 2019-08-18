@@ -14,6 +14,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef AMI_POINTER_H
 #define AMI_POINTER_H
 
+#include <Library/OcGuardLib.h>
+
 // 15A10CE7-EAB5-43BF-9042-74432E696377
 #define AMI_EFIPOINTER_PROTOCOL_GUID \
     { 0x15A10CE7, 0xEAB5, 0x43BF, { 0x90, 0x42, 0x74, 0x43, 0x2E, 0x69, 0x63, 0x77 } }
@@ -33,7 +35,10 @@ typedef struct {
   INT32        PositionZ;
 } AMI_POINTER_POSITION_STATE_DATA;
 
-VERIFY_SIZE_OF(AMI_POINTER_POSITION_STATE_DATA, 16);
+OC_STATIC_ASSERT (
+  sizeof (AMI_POINTER_POSITION_STATE_DATA) == 16,
+  "AMI_POINTER_POSITION_STATE_DATA is expected to be 16 bytes"
+  );
 
 // Unless Changed == 1, no data is provided
 typedef struct {
@@ -43,7 +48,10 @@ typedef struct {
   UINT8        RightButton;
 } AMI_POINTER_BUTTON_STATE_DATA;
 
-VERIFY_SIZE_OF(AMI_POINTER_BUTTON_STATE_DATA, 4);
+OC_STATIC_ASSERT (
+  sizeof (AMI_POINTER_BUTTON_STATE_DATA) == 4,
+  "AMI_POINTER_BUTTON_STATE_DATA is expected to be 4 bytes"
+  );
 
 typedef
 VOID
