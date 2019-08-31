@@ -68,12 +68,6 @@ extern AIK_SCANCODE_TO_USB  gAikScanCodeToUsbMap[AIK_MAX_SCANCODE_NUM];
 extern CONST CHAR8 *        gAikModifiersToNameMap[AIK_MAX_MODIFIERS_NUM];
 extern CONST CHAR8 *        gAikAppleKeyToNameMap[AIK_MAX_APPLEKEY_NUM];
 
-#ifndef APTIOFIX_DEBUG_TARGET
-#define AIK_DEBUG_STR(x) (NULL)
-#else
-#define AIK_DEBUG_STR(x) (x)
-#endif
-
 #define AIK_PS2KEY_TO_NAME(k, m) \
   (((k) < AIK_MAX_PS2KEY_NUM && gAikPs2KeyToUsbMap[k].KeyName) \
   ? (((m) & (EFI_LEFT_SHIFT_PRESSED|EFI_RIGHT_SHIFT_PRESSED)) \
