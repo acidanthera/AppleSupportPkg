@@ -42,27 +42,9 @@
   OcSupportPkg/OcSupportPkg.dec
   UefiCpuPkg/UefiCpuPkg.dec
 
-[Guids]
-  gEfiGlobalVariableGuid                        ## CONSUMES
-  gAppleVendorVariableGuid                      ## CONSUMES
-  gAppleBootVariableGuid                        ## CONSUMES
-  gAppleCoreStorageVariableGuid                 ## CONSUMES
-  gAppleTamperResistantBootVariableGuid         ## CONSUMES
-  gAppleWirelessNetworkVariableGuid             ## CONSUMES
-  gApplePersonalizationVariableGuid             ## CONSUMES
-  gAppleNetbootVariableGuid                     ## CONSUMES
-  gAppleSecureBootVariableGuid                  ## CONSUMES
-  gAppleTamperResistantBootSecureVariableGuid   ## CONSUMES
-  gAppleTamperResistantBootEfiUserVariableGuid  ## CONSUMES
-  gOcVendorVariableGuid                         ## CONSUMES
-  gOcReadOnlyVariableGuid                       ## CONSUMES
-  gOcWriteOnlyVariableGuid                      ## CONSUMES
-
 [Protocols]
   gOcFirmwareRuntimeProtocolGuid
 
 [LibraryClasses]
   UefiApplicationEntryPoint
-  UefiLib
-  PcdLib
-  IoLib
+  OcBootManagementLib
