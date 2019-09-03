@@ -82,7 +82,6 @@
 
 [Components]
   AppleSupportPkg/Application/VerifyMsrE2/VerifyMsrE2.inf
-  AppleSupportPkg/Application/CleanNvram/CleanNvram.inf
   AppleSupportPkg/Platform/AppleGenericInput/AppleGenericInput.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
