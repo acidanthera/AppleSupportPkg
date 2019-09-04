@@ -26,10 +26,6 @@ This driver provides the necessary compatibility improvements required for norma
 ## VBoxHfs
 This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
-### CleanNvram
-
-Erases several NVRAM variables that may affect your boot.
-
 ## VerifyMsrE2
 
 Certain firmwares fail to properly initialize 0xE2 MSR register (`MSR_BROADWELL_PKG_CST_CONFIG_CONTROL`) across all the cores. This application prints 0xE2 values of all the cores and reports 0xE2 status. The notable example of desyncrhonised 0xE2 MSR registers are several GIGABYTE UEFI firmwares for Intel 100 Series and Intel 200 Series chipsets.
