@@ -17,9 +17,6 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 
 Reference driver to shim AMI APTIO proprietary mouse & keyboard protocols or Generic UEFI input protocols for File Vault 2 GUI input support. Generally [modified UsbKbDxe](https://github.com/acidanthera/AppleSupportPkg/tree/master/Platform/AppleUsbKbDxe) works no worse on APTIO V, but for Z77, Z87, and similar AppleGenericInput may be the only solution.
 
-## AppleEfiSignTool
-Open source tool for verifying Apple EFI binaries. It supports ApplePE and AppleFat binaries.
-
 ## FwRuntimeServices
 This driver provides the necessary compatibility improvements required for normal functioning of UEFI Runtime Services such as date, time, NVRAM variable storage, and others in macOS.
 
