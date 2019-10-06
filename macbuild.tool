@@ -49,7 +49,6 @@ package() {
   mkdir -p tmp/Drivers || exit 1
   mkdir -p tmp/Tools   || exit 1
   cp ApfsDriverLoader.efi tmp/Drivers/  || exit 1
-  cp AppleGenericInput.efi tmp/Drivers/ || exit 1
   cp FwRuntimeServices.efi tmp/Drivers/ || exit 1
   cp UsbKbDxe.efi tmp/Drivers/          || exit 1
   cp VBoxHfs.efi tmp/Drivers/           || exit 1
