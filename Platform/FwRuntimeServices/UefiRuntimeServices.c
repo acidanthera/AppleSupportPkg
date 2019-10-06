@@ -256,7 +256,6 @@ WrapGetVariable (
   EFI_STATUS  Status;
   BOOLEAN     Ints;
   BOOLEAN     Wp;
-  BOOLEAN     Routed;
 
   //
   // Perform early checks for speedup.
@@ -281,9 +280,6 @@ WrapGetVariable (
   //
   if (gCurrentConfig->BootVariableRedirect && IsEfiBootVar (VariableName, VendorGuid)) {
     VendorGuid = &gOcVendorVariableGuid;
-    Routed     = TRUE;
-  } else {
-    Routed     = FALSE;
   }
 
   WriteUnprotectorPrologue (&Ints, &Wp);
