@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.1.1
+- Moved AppleGenericInput into OpenCore mainline
+
 #### v2.1.0
 - Moved AppleUiSupport into OpenCore mainline
 - Moved CleanNvram into OpenCore mainline
