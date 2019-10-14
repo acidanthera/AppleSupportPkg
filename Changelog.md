@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.1.2
+- Fixed enabling RO/WO variables before OS start
+
 #### v2.1.1
 - Moved AppleGenericInput into OpenCore mainline
 

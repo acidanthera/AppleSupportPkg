@@ -49,6 +49,7 @@ OC_FWRT_CONFIG  *gCurrentConfig;
 **/
 STATIC EFI_EVENT                     mTranslateEvent;
 STATIC EFI_GET_VARIABLE              mCustomGetVariable;
+STATIC BOOLEAN                       mKernelStarted;
 
 STATIC
 VOID
@@ -271,6 +272,7 @@ WrapGetVariable (
   // Abort access to write-only variables.
   //
   if (gCurrentConfig->RestrictedVariables
+    && mKernelStarted
     && CompareGuid (VendorGuid, &gOcWriteOnlyVariableGuid)) {
     return EFI_SECURITY_VIOLATION;
   }
@@ -528,6 +530,7 @@ WrapSetVariable (
   // Abort access to read-only variables.
   //
   if (gCurrentConfig->RestrictedVariables
+    && mKernelStarted
     && CompareGuid (VendorGuid, &gOcReadOnlyVariableGuid)) {
     return EFI_SECURITY_VIOLATION;
   }
@@ -641,6 +644,11 @@ TranslateAddressesHandler (
 
   gRT->ConvertPointer (0, (VOID **) &gCurrentConfig);
   mCustomGetVariable = NULL;
+
+  //
+  // Ideally we do that from ExitBootServices, but VirtualAddressChange is fine as well.
+  //
+  mKernelStarted     = TRUE;
 }
 
 VOID
