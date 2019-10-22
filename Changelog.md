@@ -3,6 +3,7 @@ AppleSupport Changelog
 
 #### v2.1.2
 - Fixed enabling RO/WO variables before OS start
+- Fixed extra delay during FwRuntimeServices startup
 
 #### v2.1.1
 - Moved AppleGenericInput into OpenCore mainline

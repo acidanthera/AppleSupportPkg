@@ -32,8 +32,6 @@
   BaseLib
   BaseMemoryLib
   DebugLib
-  OcBootManagementLib
-  OcStringLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiRuntimeServicesTableLib
