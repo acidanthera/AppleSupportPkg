@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/PcdLib.h>
 #include <Library/UefiLib.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/OcMiscLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiApplicationEntryPoint.h>
@@ -94,6 +95,8 @@ UefiMain (
   } else {
     Print (L"This firmware has LOCKED MSR 0xE2 register!\n");
   }
+
+  gBS->Stall (SECONDS_TO_MICROSECONDS (3));
 
   return EFI_SUCCESS;
 }

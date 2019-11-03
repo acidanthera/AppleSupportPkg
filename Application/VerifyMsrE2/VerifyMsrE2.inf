@@ -38,12 +38,14 @@
   AppleSupportPkg/AppleSupportPkg.dec
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  OcSupportPkg/OcSupportPkg.dec
   UefiCpuPkg/UefiCpuPkg.dec
 
 [Protocols]
   gEfiMpServiceProtocolGuid                 ## CONSUMES
 
 [LibraryClasses]
+  OcConsoleControlEntryModeLib
   UefiApplicationEntryPoint
   UefiLib
   PcdLib

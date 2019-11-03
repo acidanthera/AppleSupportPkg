@@ -1,6 +1,9 @@
 AppleSupport Changelog
 ======================
 
+#### v2.1.3
+- Added VerifyMsrE2 boot screen compatibility
+
 #### v2.1.2
 - Fixed enabling RO/WO variables before OS start
 - Fixed extra delay during FwRuntimeServices startup
