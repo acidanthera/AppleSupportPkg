@@ -572,7 +572,7 @@ WrapSetVariable (
       );
 
     if (Status == EFI_BUFFER_TOO_SMALL
-      && Attributes == (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
+      && CurrAttributes == (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
       mStoredSetVariable (
         VariableName,
         VendorGuid,
