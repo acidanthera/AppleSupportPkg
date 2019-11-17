@@ -516,6 +516,8 @@ WrapSetVariable (
   )
 {
   EFI_STATUS  Status;
+  UINTN       CurrSize;
+  UINT32      CurrAttributes;
   BOOLEAN     Ints;
   BOOLEAN     Wp;
 
@@ -551,6 +553,44 @@ WrapSetVariable (
     DataSize,
     Data
     );
+
+  //
+  // Some firmwares follow recent UEFI spec and disallow variable writes changing volatile variables
+  // to non-volatile. We believe that the RT services client should handle this by deleting such variables
+  // first, and then writing. Yet, many (including macOS) do not, so we it here ourselves.
+  // REF: https://github.com/acidanthera/bugtracker/issues/575
+  //
+  if (Status == EFI_INVALID_PARAMETER
+    && Attributes == (EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
+    CurrSize = 0;
+    Status = mStoredGetVariable (
+      VariableName,
+      VendorGuid,
+      &CurrAttributes,
+      &CurrSize,
+      NULL
+      );
+
+    if (Status == EFI_BUFFER_TOO_SMALL
+      && Attributes == (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
+      mStoredSetVariable (
+        VariableName,
+        VendorGuid,
+        CurrAttributes,
+        0,
+        NULL
+        );
+      Status = mStoredSetVariable (
+        VariableName,
+        VendorGuid,
+        Attributes,
+        DataSize,
+        Data
+        );
+    } else {
+      Status = EFI_INVALID_PARAMETER;
+    }
+  }
 
   WriteUnprotectorEpilogue (Ints, Wp);
 
