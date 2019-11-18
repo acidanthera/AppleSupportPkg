@@ -41,6 +41,13 @@ FwSetMain (
   )
 {
   CopyMem (&gMainConfig, Config, sizeof (gMainConfig));
+
+  //
+  // TODO: Remove this, testing only.
+  //
+  if (gMainConfig.BootVariableRedirect) {
+    gMainConfig.BootVariableFallback = TRUE;
+  }
 }
 
 STATIC

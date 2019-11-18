@@ -32,6 +32,7 @@
   BaseLib
   BaseMemoryLib
   DebugLib
+  OcBootManagementLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiRuntimeServicesTableLib
