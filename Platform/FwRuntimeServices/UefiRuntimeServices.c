@@ -647,15 +647,21 @@ STATIC
 EFI_DEVICE_PATH *
 GetBootEntryDevicePath (
   EFI_LOAD_OPTION  *LoadOption,
-  UINTN            LoadOptionSize
+  UINTN            LoadOptionSize,
+  BOOLEAN          ForFallback
   )
 {
-  UINT8                    *LoadOptionPtr;
-  CONST CHAR16             *Description;
-  UINTN                    DescriptionSize;
-  UINT16                   FilePathListSize;
-  EFI_DEVICE_PATH_PROTOCOL *FilePathList;
-
+  UINT8                     *LoadOptionPtr;
+  CONST CHAR16              *Description;
+  UINTN                     DescriptionSize;
+  UINT16                    FilePathListSize;
+  EFI_DEVICE_PATH_PROTOCOL  *FilePathList;
+  EFI_DEVICE_PATH_PROTOCOL  *CurrNode;
+  FILEPATH_DEVICE_PATH      *LastNode;
+  UINTN                     Index;
+  UINTN                     Index2;
+  UINTN                     PathLen;
+  UINTN                     CurrLen;
 
   if (LoadOptionSize < sizeof (*LoadOption)
     || (LoadOption->Attributes & LOAD_OPTION_ACTIVE) == 0
@@ -665,7 +671,7 @@ GetBootEntryDevicePath (
 
   FilePathListSize = LoadOption->FilePathListLength;
 
-  LoadOptionPtr   = (UINT8 *)(LoadOption + 1);
+  LoadOptionPtr   = (UINT8 *) (LoadOption + 1);
   LoadOptionSize -= sizeof (*LoadOption);
 
   if (LoadOption->FilePathListLength > LoadOptionSize) {
@@ -674,9 +680,16 @@ GetBootEntryDevicePath (
 
   LoadOptionSize -= FilePathListSize;
 
-  Description     = (CHAR16 *)LoadOptionPtr;
+  Description     = (CHAR16 *) LoadOptionPtr;
   DescriptionSize = StrnSizeS (Description, (LoadOptionSize / sizeof (CHAR16)));
   if (DescriptionSize > LoadOptionSize) {
+    return NULL;
+  }
+
+  //
+  // Just discard all macOS entries.
+  //
+  if (ForFallback && StrCmp (Description, L"Mac OS X") == 0) {
     return NULL;
   }
 
@@ -686,6 +699,50 @@ GetBootEntryDevicePath (
   FilePathList = (EFI_DEVICE_PATH_PROTOCOL *)LoadOptionPtr;
   if (!IsDevicePathValid (FilePathList, FilePathListSize)) {
     return NULL;
+  }
+
+  //
+  // Ignore checks for already stored paths.
+  //
+  if (!ForFallback) {
+    return FilePathList;
+  }
+
+  LastNode = NULL;
+
+  for (CurrNode = FilePathList; !IsDevicePathEnd (CurrNode); CurrNode = NextDevicePathNode (CurrNode)) {
+    if (DevicePathType (CurrNode) == MEDIA_DEVICE_PATH && DevicePathSubType (CurrNode) == MEDIA_FILEPATH_DP) {
+      LastNode = (FILEPATH_DEVICE_PATH *) CurrNode;
+    }
+  }
+
+  //
+  // Also discard entries that do not point to files (or maybe folders).
+  //
+  if (LastNode == NULL) {
+    return NULL;
+  }
+
+  //
+  // In addition discard several predefined names that are known to be macOS related.
+  // There obviously are more, but we are unlikely to see them.
+  //
+  STATIC CONST CHAR16 *mAppleBootloaders[] = {
+    L"boot.efi",
+    L"ThorUtil.efi",
+    L"MultiUpdater.efi"
+  };
+
+  PathLen = OcFileDevicePathNameLen (LastNode);
+  for (Index = 0; Index < ARRAY_SIZE (mAppleBootloaders); ++Index) {
+    CurrLen = StrLen (mAppleBootloaders[Index]);
+    if (PathLen >= CurrLen) {
+      Index2 = PathLen - CurrLen;
+      if ((Index2 == 0 || LastNode->PathName[Index2 - 1] == L'\\')
+        && CompareMem (&LastNode->PathName[Index2], mAppleBootloaders[Index], CurrLen) == 0) {
+        return NULL;
+      }
+    }
   }
 
   return FilePathList;
@@ -709,10 +766,9 @@ HandleBootEntryFallback (
 
   //
   // Check if this device path is eligible for fallback entry.
-  // Ignore all Apple entries.
   //
-  SelfPath = GetBootEntryDevicePath (LoadOption, LoadOptionSize);
-  if (SelfPath == NULL || OcIsAppleBootDevicePath (SelfPath)) {
+  SelfPath = GetBootEntryDevicePath (LoadOption, LoadOptionSize, TRUE);
+  if (SelfPath == NULL) {
     return;
   }
 
@@ -768,7 +824,7 @@ HandleBootEntryFallback (
       continue;
     }
 
-    OtherPath = GetBootEntryDevicePath ((EFI_LOAD_OPTION *) &mTmpBootOption[0], mTmpBootOptionSize);
+    OtherPath = GetBootEntryDevicePath ((EFI_LOAD_OPTION *) &mTmpBootOption[0], mTmpBootOptionSize, FALSE);
     if (OtherPath == NULL) {
       //
       // Assume invalid entry or whatever it is, just ignore.
