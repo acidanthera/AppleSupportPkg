@@ -63,6 +63,10 @@ FwSetOverride (
   } else {
     gCurrentConfig = &gMainConfig;
   }
+
+  if (gCurrentConfig->BootVariableRedirect) {
+    gCurrentConfig->BootVariableFallback = TRUE;
+  }
 }
 
 STATIC

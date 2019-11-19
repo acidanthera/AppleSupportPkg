@@ -693,7 +693,7 @@ GetBootEntryDevicePath (
 
 STATIC
 VOID
-HandleBootOrderEntry (
+HandleBootEntryFallback (
   UINT16           OcBootNum,
   EFI_LOAD_OPTION  *LoadOption,
   UINTN            LoadOptionSize
@@ -701,6 +701,7 @@ HandleBootOrderEntry (
 {
   EFI_STATUS       Status;
   UINTN            Index;
+  UINTN            Index2;
   CHAR16           BootOption[L_STR_LEN (L"Boot####") + 1];
   INT32            BootNum;
   EFI_DEVICE_PATH  *SelfPath;
@@ -767,12 +768,19 @@ HandleBootOrderEntry (
       continue;
     }
 
+    OtherPath = GetBootEntryDevicePath ((EFI_LOAD_OPTION *) &mTmpBootOption[0], mTmpBootOptionSize);
+    if (OtherPath == NULL) {
+      //
+      // Assume invalid entry or whatever it is, just ignore.
+      //
+      continue;
+    }
+
     //
     // Check option device paths for equality.
     // In case they match, just ignore this option.
     //
-    OtherPath = GetBootEntryDevicePath ((EFI_LOAD_OPTION *) &mTmpBootOption[0], mTmpBootOptionSize);
-    if (OtherPath == NULL || IsDevicePathEqual (SelfPath, OtherPath)) {
+    if (IsDevicePathEqual (SelfPath, OtherPath)) {
       return;
     }
   }
@@ -789,7 +797,14 @@ HandleBootOrderEntry (
         break;
       }
     } else if (BootNum < 0) {
-      BootNum = (INT32) (OC_GL_BOOT_OPTION_START + Index);
+      for (Index2 = 0; Index2 < mTmpBootOrderSize / sizeof (mTmpBootOrder[0]); ++Index2) {
+        if (mTmpBootOrder[Index2] == OC_GL_BOOT_OPTION_START + Index) {
+          break;
+        }
+      }
+      if (Index2 == mTmpBootOrderSize / sizeof (mTmpBootOrder[0])) {
+        BootNum = (INT32) (OC_GL_BOOT_OPTION_START + Index);
+      }
     }
   }
 
@@ -885,7 +900,11 @@ WrapSetVariable (
     // as we simply cannot track the difference between current and next.
     //
     if (EFI_ERROR (Status)) {
-      IsBootOrder = FALSE;
+      if (Status == EFI_NOT_FOUND) {
+        mTmpBootOrderSize = 0;
+      } else {
+        IsBootOrder = FALSE;
+      }
     }
   }
 
@@ -947,7 +966,7 @@ WrapSetVariable (
         mTmpBootOrderSize / sizeof (UINT16)
         );
     } else if (BootNum >= 0) {
-      HandleBootOrderEntry (
+      HandleBootEntryFallback (
         (UINT16) BootNum,
         Data,
         DataSize
