@@ -2,6 +2,7 @@ AppleSupport Changelog
 ======================
 #### v2.1.4
 - Added workaround for V to NV variable upgrade in FwRuntimeServices
+- Added support for RequestBootVarFallback in FwRuntimeServices
 
 #### v2.1.3
 - Added VerifyMsrE2 boot screen compatibility
