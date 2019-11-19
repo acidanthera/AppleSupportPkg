@@ -41,13 +41,6 @@ FwSetMain (
   )
 {
   CopyMem (&gMainConfig, Config, sizeof (gMainConfig));
-
-  //
-  // TODO: Remove this, testing only.
-  //
-  if (gMainConfig.BootVariableRedirect) {
-    gMainConfig.BootVariableFallback = TRUE;
-  }
 }
 
 STATIC
@@ -62,10 +55,6 @@ FwSetOverride (
     gCurrentConfig = &gOverrideConfig;
   } else {
     gCurrentConfig = &gMainConfig;
-  }
-
-  if (gCurrentConfig->BootVariableRedirect) {
-    gCurrentConfig->BootVariableFallback = TRUE;
   }
 }
 
