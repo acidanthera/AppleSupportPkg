@@ -132,8 +132,7 @@ StartApfsDriver (
   DEBUG ((DEBUG_VERBOSE, "Verifying binary signature\n"));
   Status = VerifyApplePeImageSignature (
     EfiFileBuffer,
-    &EfiFileSize,
-    NULL
+    &EfiFileSize
     );
 
   DEBUG ((DEBUG_VERBOSE, "New ImageSize after verification: %lu\n", EfiFileSize));
