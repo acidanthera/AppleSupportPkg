@@ -1,5 +1,8 @@
 AppleSupport Changelog
 ======================
+#### v2.1.5
+- Fixed assertions in AppleUsbKbDxe driver
+
 #### v2.1.4
 - Added workaround for V to NV variable upgrade in FwRuntimeServices
 - Added support for RequestBootVarFallback in FwRuntimeServices

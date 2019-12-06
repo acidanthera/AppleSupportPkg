@@ -235,7 +235,8 @@ USBKeyboardDriverBindingStart (
     UsbKeyboardDevice->DevicePath
     );
 
-  UsbKeyboardDevice->UsbIo    = UsbIo;
+  UsbKeyboardDevice->Signature   = USB_KB_DEV_SIGNATURE;
+  UsbKeyboardDevice->UsbIo       = UsbIo;
 
   UsbKbLocateAppleKeyMapDb (UsbKeyboardDevice);
 
@@ -312,7 +313,6 @@ USBKeyboardDriverBindingStart (
     UsbKeyboardDevice->DevicePath
     );
 
-  UsbKeyboardDevice->Signature                  = USB_KB_DEV_SIGNATURE;
   UsbKeyboardDevice->SimpleInput.Reset          = USBKeyboardReset;
   UsbKeyboardDevice->SimpleInput.ReadKeyStroke  = USBKeyboardReadKeyStroke;
 
