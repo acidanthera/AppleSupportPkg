@@ -2,6 +2,7 @@ AppleSupport Changelog
 ======================
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver
+- Added var workaround for pre UEFI 2.8 boards in FwRuntimeServices
 
 #### v2.1.4
 - Added workaround for V to NV variable upgrade in FwRuntimeServices

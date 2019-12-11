@@ -980,7 +980,8 @@ WrapSetVariable (
   //
   if (Status == EFI_INVALID_PARAMETER
     && Attributes == (EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
-    CurrSize = 0;
+    CurrAttributes = 0;
+    CurrSize       = 0;
     Status = mStoredGetVariable (
       VariableName,
       VendorGuid,
@@ -989,7 +990,23 @@ WrapSetVariable (
       NULL
       );
 
-    if (Status == EFI_BUFFER_TOO_SMALL
+    //
+    // Attributes are not set prior to UEFI 2.8 specification unless Status is EFI_SUCCESS.
+    // Retry with a fixed size buffer in this case. This should be good enough for most variables.
+    //
+    if (Status == EFI_BUFFER_TOO_SMALL && CurrAttributes == 0) {
+      CurrAttributes = 0;
+      CurrSize       = sizeof (mTmpBootOption);
+      Status = mStoredGetVariable (
+        VariableName,
+        VendorGuid,
+        &CurrAttributes,
+        &CurrSize,
+        mTmpBootOption
+        );
+    }
+
+    if ((Status == EFI_BUFFER_TOO_SMALL || !EFI_ERROR (Status))
       && CurrAttributes == (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
       mStoredSetVariable (
         VariableName,
