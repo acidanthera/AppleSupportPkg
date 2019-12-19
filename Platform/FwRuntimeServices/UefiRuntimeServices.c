@@ -911,7 +911,7 @@ WrapSetVariable (
   //
   // Abort access when running with read-only NVRAM.
   //
-  if (gCurrentConfig->WriteProtection) {
+  if (gCurrentConfig->WriteProtection && (Attributes & EFI_VARIABLE_NON_VOLATILE) != 0) {
     return EFI_SECURITY_VIOLATION;
   }
 
