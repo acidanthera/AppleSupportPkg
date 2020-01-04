@@ -900,8 +900,6 @@ WrapSetVariable (
   )
 {
   EFI_STATUS  Status;
-  UINTN       CurrSize;
-  UINT32      CurrAttributes;
   INT32       BootNum;
   BOOLEAN     Ints;
   BOOLEAN     Wp;
@@ -971,61 +969,6 @@ WrapSetVariable (
     DataSize,
     Data
     );
-
-  //
-  // Some firmwares follow recent UEFI spec and disallow variable writes changing volatile variables
-  // to non-volatile. We believe that the RT services client should handle this by deleting such variables
-  // first, and then writing. Yet, many (including macOS) do not, so we it here ourselves.
-  // REF: https://github.com/acidanthera/bugtracker/issues/575
-  //
-  if (Status == EFI_INVALID_PARAMETER
-    && Attributes == (EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
-    CurrAttributes = 0;
-    CurrSize       = 0;
-    Status = mStoredGetVariable (
-      VariableName,
-      VendorGuid,
-      &CurrAttributes,
-      &CurrSize,
-      NULL
-      );
-
-    //
-    // Attributes are not set prior to UEFI 2.8 specification unless Status is EFI_SUCCESS.
-    // Retry with a fixed size buffer in this case. This should be good enough for most variables.
-    //
-    if (Status == EFI_BUFFER_TOO_SMALL && CurrAttributes == 0) {
-      CurrAttributes = 0;
-      CurrSize       = sizeof (mTmpBootOption);
-      Status = mStoredGetVariable (
-        VariableName,
-        VendorGuid,
-        &CurrAttributes,
-        &CurrSize,
-        mTmpBootOption
-        );
-    }
-
-    if ((Status == EFI_BUFFER_TOO_SMALL || !EFI_ERROR (Status))
-      && CurrAttributes == (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)) {
-      mStoredSetVariable (
-        VariableName,
-        VendorGuid,
-        CurrAttributes,
-        0,
-        NULL
-        );
-      Status = mStoredSetVariable (
-        VariableName,
-        VendorGuid,
-        Attributes,
-        DataSize,
-        Data
-        );
-    } else {
-      Status = EFI_INVALID_PARAMETER;
-    }
-  }
 
   if (!EFI_ERROR (Status) && DoFallback && Data != NULL && DataSize > 0) {
     //

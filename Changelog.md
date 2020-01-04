@@ -2,7 +2,6 @@ AppleSupport Changelog
 ======================
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver
-- Added var workaround for pre UEFI 2.8 boards in FwRuntimeServices
 - Allowed writing to non-volatile variables with disabled write
 
 #### v2.1.4
