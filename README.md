@@ -13,14 +13,10 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 - Version system: connects each apfs.efi to the device from which it was retrieved.
 - Embedded signature verification of chainloaded apfs.efi driver, what prevents possible implant injection.
 
-## FwRuntimeServices
-This driver provides the necessary compatibility improvements required for normal functioning of UEFI Runtime Services such as date, time, NVRAM variable storage, and others in macOS.
-
 ## VBoxHfs
 This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
 ## VerifyMsrE2
-
 Certain firmwares fail to properly initialize 0xE2 MSR register (`MSR_BROADWELL_PKG_CST_CONFIG_CONTROL`) across all the cores. This application prints 0xE2 values of all the cores and reports 0xE2 status. The notable example of desyncrhonised 0xE2 MSR registers are several GIGABYTE UEFI firmwares for Intel 100 Series and Intel 200 Series chipsets.
 
 CFG Lock option is available on most APTIO V firmwares, although it may be hidden from the GUI. If VerifyMsrE2 reports that your 0xE2 register is consistently locked, you may try to unlock this option directly.
