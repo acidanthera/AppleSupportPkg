@@ -2,7 +2,7 @@ AppleSupport Changelog
 ======================
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver
-- Allowed writing to non-volatile variables with disabled write
+- Moved FwRuntimeServices driver to OcSupportPkg and bundle with OpenCore
 
 #### v2.1.4
 - Added workaround for V to NV variable upgrade in FwRuntimeServices
