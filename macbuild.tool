@@ -27,6 +27,7 @@ package() {
 }
 
 cd $(dirname "$0")
+ARCHS=(X64 IA32)
 SELFPKG=AppleSupportPkg
 DEPNAMES=('EfiPkg' 'OcSupportPkg')
 DEPURLS=('https://github.com/acidanthera/EfiPkg' 'https://github.com/acidanthera/OcSupportPkg')

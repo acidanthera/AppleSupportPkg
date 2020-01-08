@@ -52,21 +52,29 @@ ApfsBlockChecksumCalculate (
   )
 {
   UINTN         Index;
-  UINT64        Sum1 = 0;
-  UINT64        Check1 = 0;
-  UINT64        Sum2 = 0;
-  UINT64        Check2 = 0;
-  CONST UINT64  ModValue = 0xFFFFFFFF;
+  UINT64        Sum1;
+  UINT64        Check1;
+  UINT64        Sum2;
+  UINT64        Check2;
+  UINT32        Remainder;
+  CONST UINT32  ModValue = 0xFFFFFFFF;
+
+  Sum1 = 0;
+  Sum2 = 0;
 
   for (Index = 0; Index < DataSize / sizeof (UINT32); Index++) {
-    Sum1 = ((Sum1 + (UINT64)Data[Index]) % ModValue);
-    Sum2 = (Sum2 + Sum1) % ModValue;
+    DivU64x32Remainder (Sum1 + Data[Index], ModValue, &Remainder);
+    Sum1 = Remainder;
+    DivU64x32Remainder (Sum2 + Sum1, ModValue, &Remainder);
+    Sum2 = Remainder;
   }
 
-  Check1 = ModValue - ((Sum1 + Sum2) % ModValue);
-  Check2 = ModValue - ((Sum1 + Check1) % ModValue);
+  DivU64x32Remainder (Sum1 + Sum2, ModValue, &Remainder);
+  Check1 = ModValue - Remainder;
+  DivU64x32Remainder (Sum1 + Check1, ModValue, &Remainder);
+  Check2 = ModValue - Remainder;
 
-  return (Check2 << 32) | Check1;
+  return (Check2 << 32U) | Check1;
 }
 
 //
