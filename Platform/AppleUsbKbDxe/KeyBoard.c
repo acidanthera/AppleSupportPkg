@@ -981,7 +981,7 @@ KeyboardHandler (
   UINT32              UsbStatus;
   EFI_KEY_DESCRIPTOR  *KeyDescriptor;
   UINTN               NumberOfKeyCodes;
-  APPLE_KEY_CODE      KeyCodes[8];
+  APPLE_KEY_CODE      KeyCodes[6];
 
   ASSERT (Context != NULL);
 
