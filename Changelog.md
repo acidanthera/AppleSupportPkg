@@ -3,6 +3,7 @@ AppleSupport Changelog
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver
 - Moved FwRuntimeServices driver to OcSupportPkg and bundle with OpenCore
+- Moved VerifyMsrE2 tool to OcSupportPkg and bundle with OpenCore
 
 #### v2.1.4
 - Added workaround for V to NV variable upgrade in FwRuntimeServices
