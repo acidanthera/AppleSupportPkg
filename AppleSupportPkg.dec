@@ -25,32 +25,6 @@
 [Includes]
   Include
 
-[Guids]
-  ## AppleSupport package token space guid
-  gAppleSupportPkgTokenSpaceGuid = { 0xB446482, 0xBC85, 0x483A, { 0xA7, 0x81, 0x5B, 0xAD, 0xB0, 0x2F, 0x9F, 0x47 }}
-
 [Protocols]
   gAmiEfiPointerProtocolGuid  = { 0x15A10CE7, 0xEAB5, 0x43BF, { 0x90, 0x42, 0x74, 0x43, 0x2E, 0x69, 0x63, 0x77 } }
   gAmiEfiKeycodeProtocolGuid  = { 0x0ADFB62D, 0xFF74, 0x484C, { 0x89, 0x44, 0xF8, 0x5C, 0x4B, 0xEA, 0x87, 0xA8 } }
-
-[PcdsFeatureFlag]
-  ## Indicates if USB KeyBoard Driver disconnects itself when the Exit Boot
-  ## Services event is triggered.<BR><BR>
-  #   TRUE  - USB KeyBoard Driver will disconnect itself.<BR>
-  #   FALSE - USB KeyBoard Driver will not disconnect itself.<BR>
-  # @Prompt Disconnect the USB KeyBoard Driver when exitting Boot Services.
-  gAppleSupportPkgTokenSpaceGuid.PcdEnableDisconnectOnExitBootServicesInUsbKbDriver|TRUE|BOOLEAN|0x00000000
-
-  ## Indicates if USB KeyBoard Driver registers a Apple KeyMap Database protocol installation notify.
-  ## Services event is triggered.<BR><BR>
-  #   TRUE  - USB KeyBoard Driver will registers a protocol installation notify.<BR>
-  #   FALSE - USB KeyBoard Driver will registers a protocol installation notify.<BR>
-  # @Prompt Register a protocol installation notify for Apple KeyMap Database when not found initially.
-  gAppleSupportPkgTokenSpaceGuid.PcdNotifyAppleKeyMapDbInUsbKbDriver|TRUE|BOOLEAN|0x00000001
-
-  ## Indicates if USB KeyBoard Driver disconnects other drivers to take precedence.
-  ## Services event is triggered.<BR><BR>
-  #   TRUE  - USB KeyBoard Driver will disconnect other drivers.<BR>
-  #   FALSE - USB KeyBoard Driver will not disconnect other drivers.<BR>
-  # @Prompt Disconnect other drivers for the USB KeyBoard Driver to take precedence over them.
-  gAppleSupportPkgTokenSpaceGuid.PcdUsbKbDriverTakePrecedence|TRUE|BOOLEAN|0x00000002
