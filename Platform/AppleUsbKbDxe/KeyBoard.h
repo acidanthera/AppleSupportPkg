@@ -1,14 +1,8 @@
 /** @file
   Function prototype for USB Keyboard Driver.
 
-Copyright (c) 2004 - 2013, Intel Corporation. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+Copyright (c) 2004 - 2018, Intel Corporation. All rights reserved.<BR>
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
@@ -24,7 +18,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #define USB_KEYBOARD_DESCRIPTION_STR_LEN  (16 + 1)  // Description: "English Keyboard"
 
 #pragma pack (1)
-typedef PACKED struct {
+typedef struct {
   //
   // This 4-bytes total array length is required by PreparePackageList()
   //
@@ -114,12 +108,12 @@ ReleaseKeyboardLayoutResources (
 
   This function is the handler function for USB keyboard's asynchronous interrupt transfer
   to manage the keyboard. It parses the USB keyboard input report, and inserts data to
-  keyboard Buffer according to state of modifer keys and normal keys. Timer for repeat key
+  keyboard buffer according to state of modifer keys and normal keys. Timer for repeat key
   is also set accordingly.
 
-  @param  Data             A pointer to a Buffer that is filled with key data which is
+  @param  Data             A pointer to a buffer that is filled with key data which is
                            retrieved via asynchronous interrupt transfer.
-  @param  DataLength       Indicates the size of the data Buffer.
+  @param  DataLength       Indicates the size of the data buffer.
   @param  Context          Pointing to USB_KB_DEV instance.
   @param  Result           Indicates the result of the asynchronous interrupt transfer.
 
@@ -157,16 +151,16 @@ USBKeyboardRecoveryHandler (
   );
 
 /**
-  Retrieves a USB keycode after parsing the raw data in keyboard Buffer.
+  Retrieves a USB keycode after parsing the raw data in keyboard buffer.
 
-  This function parses keyboard Buffer. It updates state of modifier key for
+  This function parses keyboard buffer. It updates state of modifier key for
   USB_KB_DEV instancem, and returns keycode for output.
 
   @param  UsbKeyboardDevice    The USB_KB_DEV instance.
   @param  KeyCode              Pointer to the USB keycode for output.
 
   @retval EFI_SUCCESS          Keycode successfully parsed.
-  @retval EFI_NOT_READY        Keyboard Buffer is not ready for a valid keycode
+  @retval EFI_NOT_READY        Keyboard buffer is not ready for a valid keycode
 
 **/
 EFI_STATUS
@@ -180,7 +174,7 @@ USBParseKey (
 
   @param  UsbKeyboardDevice     The USB_KB_DEV instance.
   @param  KeyCode               Indicates the key code that will be interpreted.
-  @param  KeyData               A pointer to a Buffer that is filled in with
+  @param  KeyData               A pointer to a buffer that is filled in with
                                 the keystroke information for the key that
                                 was pressed.
 
@@ -315,6 +309,18 @@ USBKeyboardRepeatHandler (
 VOID
 SetKeyLED (
   IN  USB_KB_DEV    *UsbKeyboardDevice
+  );
+
+/**
+  Initialize the key state.
+
+  @param  UsbKeyboardDevice     The USB_KB_DEV instance.
+  @param  KeyState              A pointer to receive the key state information.
+**/
+VOID
+InitializeKeyState (
+  IN  USB_KB_DEV           *UsbKeyboardDevice,
+  OUT EFI_KEY_STATE        *KeyState
   );
 
 #endif

@@ -2,13 +2,7 @@
   UEFI Component Name(2) protocol implementation for USB Keyboard driver.
 
 Copyright (c) 2004 - 2011, Intel Corporation. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
@@ -18,7 +12,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 //
 // EFI Component Name Protocol
 //
-GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME_PROTOCOL  gUsbKeyboardComponentNameProtocol = {
+GLOBAL_REMOVE_IF_UNREFERENCED EFI_COMPONENT_NAME_PROTOCOL  gUsbKeyboardComponentName = {
   UsbKeyboardComponentNameGetDriverName,
   UsbKeyboardComponentNameGetControllerName,
   "eng"
@@ -86,7 +80,7 @@ UsbKeyboardComponentNameGetDriverName (
            This->SupportedLanguages,
            mUsbKeyboardDriverNameTable,
            DriverName,
-           (BOOLEAN)(This == &gUsbKeyboardComponentNameProtocol)
+           (BOOLEAN)(This == &gUsbKeyboardComponentName)
            );
 }
 
@@ -176,7 +170,7 @@ UsbKeyboardComponentNameGetControllerName (
                   ControllerHandle,
                   &gEfiUsbIoProtocolGuid,
                   (VOID **) &UsbIoProtocol,
-                  gUsbKeyboardDriverBindingProtocol.DriverBindingHandle,
+                  gUsbKeyboardDriverBinding.DriverBindingHandle,
                   ControllerHandle,
                   EFI_OPEN_PROTOCOL_BY_DRIVER
                   );
@@ -184,7 +178,7 @@ UsbKeyboardComponentNameGetControllerName (
     gBS->CloseProtocol (
            ControllerHandle,
            &gEfiUsbIoProtocolGuid,
-           gUsbKeyboardDriverBindingProtocol.DriverBindingHandle,
+           gUsbKeyboardDriverBinding.DriverBindingHandle,
            ControllerHandle
            );
 
@@ -201,7 +195,7 @@ UsbKeyboardComponentNameGetControllerName (
                   ControllerHandle,
                   &gEfiSimpleTextInProtocolGuid,
                   (VOID **) &SimpleTxtIn,
-                  gUsbKeyboardDriverBindingProtocol.DriverBindingHandle,
+                  gUsbKeyboardDriverBinding.DriverBindingHandle,
                   ControllerHandle,
                   EFI_OPEN_PROTOCOL_GET_PROTOCOL
                   );
@@ -217,7 +211,7 @@ UsbKeyboardComponentNameGetControllerName (
            This->SupportedLanguages,
            UsbKbDev->ControllerNameTable,
            ControllerName,
-           (BOOLEAN)(This == &gUsbKeyboardComponentNameProtocol)
+           (BOOLEAN)(This == &gUsbKeyboardComponentName)
            );
 
 }

@@ -1,14 +1,8 @@
 /** @file
   Header file for USB Keyboard Driver's Data Structures.
 
-Copyright (c) 2004 - 2016, Intel Corporation. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+Copyright (c) 2004 - 2017, Intel Corporation. All rights reserved.<BR>
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 #ifndef _EFI_USB_KB_H_
@@ -74,7 +68,7 @@ typedef struct {
 #define USB_KB_DEV_SIGNATURE  SIGNATURE_32 ('u', 'k', 'b', 'd')
 #define USB_KB_CONSOLE_IN_EX_NOTIFY_SIGNATURE SIGNATURE_32 ('u', 'k', 'b', 'x')
 
-typedef struct {
+typedef struct _KEYBOARD_CONSOLE_IN_EX_NOTIFY {
   UINTN                                 Signature;
   EFI_KEY_DATA                          KeyData;
   EFI_KEY_NOTIFY_FUNCTION               KeyNotificationFn;
@@ -167,23 +161,16 @@ typedef struct {
   APPLE_KEY_MAP_DATABASE_PROTOCOL   *KeyMapDb;
   UINTN                             KeyMapDbIndex;
 
-  EFI_USB_DEVICE_DESCRIPTOR         DeviceDescriptor;
-
   EFI_EVENT                         KeyMapInstallNotifyEvent;
 
   EFI_EVENT                         ExitBootServicesEvent;
 } USB_KB_DEV;
 
-#define SIZE_OF_USB_KB_DEV                                          \
-  (PcdGetBool (PcdEnableDisconnectOnExitBootServicesInUsbKbDriver)  \
-    ? sizeof (USB_KB_DEV)                                           \
-    : OFFSET_OF (USB_KB_DEV, ExitBootServicesEvent))                \
-
 //
 // Global Variables
 //
-extern EFI_DRIVER_BINDING_PROTOCOL   gUsbKeyboardDriverBindingProtocol;
-extern EFI_COMPONENT_NAME_PROTOCOL   gUsbKeyboardComponentNameProtocol;
+extern EFI_DRIVER_BINDING_PROTOCOL   gUsbKeyboardDriverBinding;
+extern EFI_COMPONENT_NAME_PROTOCOL   gUsbKeyboardComponentName;
 extern EFI_COMPONENT_NAME2_PROTOCOL  gUsbKeyboardComponentName2;
 
 #define USB_KB_DEV_FROM_THIS(a) \
@@ -404,8 +391,8 @@ UsbKeyboardComponentNameGetControllerName (
   Reset the input device and optionaly run diagnostics
 
   There are 2 types of reset for USB keyboard.
-  For non-exhaustive reset, only keyboard Buffer is cleared.
-  For exhaustive reset, in addition to clearance of keyboard Buffer, the hardware status
+  For non-exhaustive reset, only keyboard buffer is cleared.
+  For exhaustive reset, in addition to clearance of keyboard buffer, the hardware status
   is also re-initialized.
 
   @param  This                 Protocol instance pointer.
@@ -426,7 +413,7 @@ USBKeyboardReset (
   Reads the next keystroke from the input device.
 
   @param  This                 The EFI_SIMPLE_TEXT_INPUT_PROTOCOL instance.
-  @param  Key                  A pointer to a Buffer that is filled in with the keystroke
+  @param  Key                  A pointer to a buffer that is filled in with the keystroke
                                information for the key that was pressed.
 
   @retval EFI_SUCCESS          The keystroke information was returned.
@@ -478,7 +465,7 @@ USBKeyboardResetEx (
   Reads the next keystroke from the input device.
 
   @param  This                   Protocol instance pointer.
-  @param  KeyData                A pointer to a Buffer that is filled in with the keystroke
+  @param  KeyData                A pointer to a buffer that is filled in with the keystroke
                                  state data for the key that was pressed.
 
   @retval EFI_SUCCESS            The keystroke information was returned.
@@ -520,10 +507,14 @@ USBKeyboardSetState (
   Register a notification function for a particular keystroke for the input device.
 
   @param  This                        Protocol instance pointer.
-  @param  KeyData                     A pointer to a Buffer that is filled in with the keystroke
-                                      information data for the key that was pressed.
+  @param  KeyData                     A pointer to a buffer that is filled in with
+                                      the keystroke information for the key that was
+                                      pressed. If KeyData.Key, KeyData.KeyState.KeyToggleState
+                                      and KeyData.KeyState.KeyShiftState are 0, then any incomplete
+                                      keystroke will trigger a notification of the KeyNotificationFunction.
   @param  KeyNotificationFunction     Points to the function to be called when the key
-                                      sequence is typed specified by KeyData.
+                                      sequence is typed specified by KeyData. This notification function
+                                      should be called at <=TPL_CALLBACK.
   @param  NotifyHandle                Points to the unique handle assigned to the registered notification.
 
   @retval EFI_SUCCESS                 The notification function was registered successfully.

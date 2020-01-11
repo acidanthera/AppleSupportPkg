@@ -2,15 +2,9 @@
   USB Keyboard Driver that manages USB keyboard and produces Simple Text Input
   Protocol and Simple Text Input Ex Protocol.
 
-Copyright (c) 2004 - 2016, Intel Corporation. All rights reserved.<BR>
+Copyright (c) 2004 - 2018, Intel Corporation. All rights reserved.<BR>
 Portions Copyright (C) 2016 - 2018, Download-Fritz. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
@@ -23,7 +17,7 @@ STATIC BOOLEAN mExitingBootServices = FALSE;
 //
 // USB Keyboard Driver Global Variables
 //
-EFI_DRIVER_BINDING_PROTOCOL gUsbKeyboardDriverBindingProtocol = {
+EFI_DRIVER_BINDING_PROTOCOL gUsbKeyboardDriverBinding = {
   USBKeyboardDriverBindingSupported,
   USBKeyboardDriverBindingStart,
   USBKeyboardDriverBindingStop,
@@ -56,9 +50,9 @@ USBKeyboardDriverBindingEntryPoint (
   Status = EfiLibInstallDriverBindingComponentName2 (
              ImageHandle,
              SystemTable,
-             &gUsbKeyboardDriverBindingProtocol,
+             &gUsbKeyboardDriverBinding,
              ImageHandle,
-             &gUsbKeyboardComponentNameProtocol,
+             &gUsbKeyboardComponentName,
              &gUsbKeyboardComponentName2
              );
   ASSERT_EFI_ERROR (Status);
@@ -199,7 +193,7 @@ USBKeyboardDriverBindingStart (
     goto ErrorExit1;
   }
 
-  UsbKeyboardDevice = AllocateZeroPool (SIZE_OF_USB_KB_DEV);
+  UsbKeyboardDevice = AllocateZeroPool (sizeof (USB_KB_DEV));
   ASSERT (UsbKeyboardDevice != NULL);
 
   //
@@ -235,19 +229,13 @@ USBKeyboardDriverBindingStart (
     UsbKeyboardDevice->DevicePath
     );
 
-  UsbKeyboardDevice->Signature   = USB_KB_DEV_SIGNATURE;
-  UsbKeyboardDevice->UsbIo       = UsbIo;
+  UsbKeyboardDevice->UsbIo = UsbIo;
 
+  //
+  // Valid signature is required by UsbKbLocateAppleKeyMapDb.
+  //
+  UsbKeyboardDevice->Signature = USB_KB_DEV_SIGNATURE;
   UsbKbLocateAppleKeyMapDb (UsbKeyboardDevice);
-
-  Status = UsbIo->UsbGetDeviceDescriptor (
-                    UsbIo,
-                    &UsbKeyboardDevice->DeviceDescriptor
-                    );
-
-  if (EFI_ERROR (Status)) {
-    return EFI_UNSUPPORTED;
-  }
 
   //
   // Get interface & endpoint descriptor
@@ -258,17 +246,6 @@ USBKeyboardDriverBindingStart (
            );
 
   EndpointNumber = UsbKeyboardDevice->InterfaceDescriptor.NumEndpoints;
-
-  if (EndpointNumber == 0) {
-    gBS->FreePool (UsbKeyboardDevice);
-    gBS->CloseProtocol (
-      Controller,
-      &gEfiUsbIoProtocolGuid,
-      This->DriverBindingHandle,
-      Controller
-      );
-    return EFI_UNSUPPORTED;
-  }
 
   //
   // Traverse endpoints to find interrupt endpoint
@@ -313,6 +290,7 @@ USBKeyboardDriverBindingStart (
     UsbKeyboardDevice->DevicePath
     );
 
+  UsbKeyboardDevice->Signature                  = USB_KB_DEV_SIGNATURE;
   UsbKeyboardDevice->SimpleInput.Reset          = USBKeyboardReset;
   UsbKeyboardDevice->SimpleInput.ReadKeyStroke  = USBKeyboardReadKeyStroke;
 
@@ -457,7 +435,7 @@ USBKeyboardDriverBindingStart (
   UsbKeyboardDevice->ControllerNameTable = NULL;
   AddUnicodeString2 (
     "eng",
-    gUsbKeyboardComponentNameProtocol.SupportedLanguages,
+    gUsbKeyboardComponentName.SupportedLanguages,
     &UsbKeyboardDevice->ControllerNameTable,
     L"Generic Usb Keyboard",
     TRUE
@@ -653,10 +631,10 @@ USBKeyboardDriverBindingStop (
 }
 
 /**
-  Internal function to read the next keystroke from the keyboard Buffer.
+  Internal function to read the next keystroke from the keyboard buffer.
 
   @param  UsbKeyboardDevice       USB keyboard's private structure.
-  @param  KeyData                 A pointer to Buffer to hold the keystroke
+  @param  KeyData                 A pointer to buffer to hold the keystroke
                                   data for the key that was pressed.
 
   @retval EFI_SUCCESS             The keystroke information was returned.
@@ -678,6 +656,8 @@ USBKeyboardReadKeyStrokeWorker (
   }
 
   if (IsQueueEmpty (&UsbKeyboardDevice->EfiKeyQueue)) {
+    ZeroMem (&KeyData->Key, sizeof (KeyData->Key));
+    InitializeKeyState (UsbKeyboardDevice, &KeyData->KeyState);
     return EFI_NOT_READY;
   }
 
@@ -690,8 +670,8 @@ USBKeyboardReadKeyStrokeWorker (
   Reset the input device and optionally run diagnostics
 
   There are 2 types of reset for USB keyboard.
-  For non-exhaustive reset, only keyboard Buffer is cleared.
-  For exhaustive reset, in addition to clearance of keyboard Buffer, the hardware status
+  For non-exhaustive reset, only keyboard buffer is cleared.
+  For exhaustive reset, in addition to clearance of keyboard buffer, the hardware status
   is also re-initialized.
 
   @param  This                 Protocol instance pointer.
@@ -730,7 +710,7 @@ USBKeyboardReset (
       UsbKeyboardDevice->DevicePath
       );
     //
-    // Clear the key Buffer of this USB keyboard
+    // Clear the key buffer of this USB keyboard
     //
     InitQueue (&UsbKeyboardDevice->UsbKeyQueue, sizeof (USB_KEY));
     InitQueue (&UsbKeyboardDevice->EfiKeyQueue, sizeof (EFI_KEY_DATA));
@@ -755,7 +735,7 @@ USBKeyboardReset (
   Reads the next keystroke from the input device.
 
   @param  This                 The EFI_SIMPLE_TEXT_INPUT_PROTOCOL instance.
-  @param  Key                  A pointer to a Buffer that is filled in with the keystroke
+  @param  Key                  A pointer to a buffer that is filled in with the keystroke
                                information for the key that was pressed.
 
   @retval EFI_SUCCESS          The keystroke information was returned.
@@ -834,7 +814,7 @@ USBKeyboardWaitForKey (
 
   //
   // Enter critical section
-  //  
+  //
   OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
   
   //
@@ -886,7 +866,7 @@ USBKeyboardTimerHandler (
   UsbKeyboardDevice = (USB_KB_DEV *) Context;
 
   //
-  // Fetch raw data from the USB keyboard Buffer,
+  // Fetch raw data from the USB keyboard buffer,
   // and translate it into USB keycode.
   //
   Status = USBParseKey (UsbKeyboardDevice, &KeyCode);
@@ -1055,7 +1035,7 @@ USBKeyboardResetEx (
   Reads the next keystroke from the input device.
 
   @param  This                   Protocol instance pointer.
-  @param  KeyData                A pointer to a Buffer that is filled in with the keystroke
+  @param  KeyData                A pointer to a buffer that is filled in with the keystroke
                                  state data for the key that was pressed.
 
   @retval EFI_SUCCESS            The keystroke information was returned.
@@ -1152,10 +1132,14 @@ USBKeyboardSetState (
   Register a notification function for a particular keystroke for the input device.
 
   @param  This                        Protocol instance pointer.
-  @param  KeyData                     A pointer to a Buffer that is filled in with the keystroke
-                                      information data for the key that was pressed.
+  @param  KeyData                     A pointer to a buffer that is filled in with
+                                      the keystroke information for the key that was
+                                      pressed. If KeyData.Key, KeyData.KeyState.KeyToggleState
+                                      and KeyData.KeyState.KeyShiftState are 0, then any incomplete
+                                      keystroke will trigger a notification of the KeyNotificationFunction.
   @param  KeyNotificationFunction     Points to the function to be called when the key
-                                      sequence is typed specified by KeyData.
+                                      sequence is typed specified by KeyData. This notification function
+                                      should be called at <=TPL_CALLBACK.
   @param  NotifyHandle                Points to the unique handle assigned to the registered notification.
 
   @retval EFI_SUCCESS                 The notification function was registered successfully.
@@ -1313,7 +1297,7 @@ KeyNotifyProcessHandler (
   while (TRUE) {
     //
     // Enter critical section
-    //  
+    //
     OldTpl = gBS->RaiseTPL (TPL_NOTIFY);
     Status = Dequeue (&UsbKeyboardDevice->EfiKeyQueueForNotify, &KeyData, sizeof (KeyData));
     //

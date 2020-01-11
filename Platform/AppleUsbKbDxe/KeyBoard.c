@@ -1,15 +1,9 @@
 /** @file
   Helper functions for USB Keyboard Driver.
 
-Copyright (c) 2004 - 2016, Intel Corporation. All rights reserved.<BR>
+Copyright (c) 2004 - 2018, Intel Corporation. All rights reserved.<BR>
 Portions Copyright (c) 2016 - 2018, Download-Fritz. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
@@ -155,7 +149,7 @@ USB_KEYBOARD_LAYOUT_PACK_BIN  mUsbKeyboardLayoutBin = {
 // EFI_KEY is defined in UEFI spec.
 // USB Keycode is defined in USB HID Firmware spec.
 //
-UINT8 gEfiKeyToUsbKeyCodeConvertionTable[] = {
+UINT8 EfiKeyToUsbKeyCodeConvertionTable[] = {
   0xe0,  //  EfiKeyLCtrl
   0xe3,  //  EfiKeyA0
   0xe2,  //  EfiKeyLAlt
@@ -638,7 +632,7 @@ SetKeyboardLayoutEvent (
     //
     // Fill the key into KeyConvertionTable, whose index is calculated from USB keycode.
     //
-    KeyCode = gEfiKeyToUsbKeyCodeConvertionTable [(UINT8) (TempKey.Key)];
+    KeyCode = EfiKeyToUsbKeyCodeConvertionTable [(UINT8) (TempKey.Key)];
     TableEntry = GetKeyDescriptor (UsbKeyboardDevice, KeyCode);
     if (TableEntry == NULL) {
       ReleaseKeyboardLayoutResources (UsbKeyboardDevice);
@@ -825,6 +819,7 @@ InitUSBKeyboard (
 
   InitQueue (&UsbKeyboardDevice->UsbKeyQueue, sizeof (USB_KEY));
   InitQueue (&UsbKeyboardDevice->EfiKeyQueue, sizeof (EFI_KEY_DATA));
+  InitQueue (&UsbKeyboardDevice->EfiKeyQueueForNotify, sizeof (EFI_KEY_DATA));
 
   //
   // Use the config out of the descriptor
@@ -948,12 +943,12 @@ InitUSBKeyboard (
 
   This function is the handler function for USB keyboard's asynchronous interrupt transfer
   to manage the keyboard. It parses the USB keyboard input report, and inserts data to
-  keyboard Buffer according to state of modifer keys and normal keys. Timer for repeat key
+  keyboard buffer according to state of modifer keys and normal keys. Timer for repeat key
   is also set accordingly.
 
-  @param  Data             A pointer to a Buffer that is filled with key data which is
+  @param  Data             A pointer to a buffer that is filled with key data which is
                            retrieved via asynchronous interrupt transfer.
-  @param  DataLength       Indicates the size of the data Buffer.
+  @param  DataLength       Indicates the size of the data buffer.
   @param  Context          Pointing to USB_KB_DEV instance.
   @param  Result           Indicates the result of the asynchronous interrupt transfer.
 
@@ -1059,12 +1054,16 @@ KeyboardHandler (
   }
 
   //
-  // Following code checks current keyboard input report against old key code Buffer.
+  // Following code checks current keyboard input report against old key code buffer.
   // According to USB HID Firmware Specification, the report consists of 8 bytes.
   // Byte 0 is map of Modifier keys.
   // Byte 1 is reserved.
   // Bytes 2 to 7 are keycodes.
   //
+  if (DataLength < 8) {
+    return EFI_DEVICE_ERROR;
+  }
+
   CurKeyCodeBuffer  = (UINT8 *) Data;
   OldKeyCodeBuffer  = UsbKeyboardDevice->LastKeyCodeArray;
 
@@ -1087,7 +1086,9 @@ KeyboardHandler (
   //
   // Parse the modifier key, which is the first byte of keyboard input report.
   //
-  CurModifierMap   = CurKeyCodeBuffer[0];
+  CurModifierMap  = CurKeyCodeBuffer[0];
+  OldModifierMap  = OldKeyCodeBuffer[0];
+
   NumberOfKeyCodes = 0;
 
   //
@@ -1113,8 +1114,6 @@ KeyboardHandler (
                                    );
   }
 
-  OldModifierMap  = OldKeyCodeBuffer[0];
-
   //
   // Handle modifier key's pressing or releasing situation.
   // According to USB HID Firmware spec, Byte 0 uses folloing map of Modifier keys:
@@ -1133,7 +1132,7 @@ KeyboardHandler (
       //
       // If current modifier key is up, then CurModifierMap & Mask = 0;
       // otherwise it is a non-zero value.
-      // Insert the changed modifier key into key Buffer.
+      // Insert the changed modifier key into key buffer.
       //
       UsbKey.KeyCode = (UINT8) (0xe0 + Index);
       UsbKey.Down    = (BOOLEAN) ((CurModifierMap & Mask) != 0);
@@ -1152,7 +1151,7 @@ KeyboardHandler (
       continue;
     }
     //
-    // For any key in old keycode Buffer, if it is not in current keycode Buffer,
+    // For any key in old keycode buffer, if it is not in current keycode buffer,
     // then it is released. Otherwise, it is not released.
     //
     KeyRelease = TRUE;
@@ -1202,7 +1201,7 @@ KeyboardHandler (
       continue;
     }
     //
-    // For any key in current keycode Buffer, if it is not in old keycode Buffer,
+    // For any key in current keycode buffer, if it is not in old keycode buffer,
     // then it is pressed. Otherwise, it is not pressed.
     //
     KeyPress = TRUE;
@@ -1247,7 +1246,7 @@ KeyboardHandler (
   }
 
   //
-  // Update LastKeycodeArray Buffer in the UsbKeyboardDevice data structure.
+  // Update LastKeycodeArray buffer in the UsbKeyboardDevice data structure.
   //
   for (Index = 0; Index < 8; Index++) {
     UsbKeyboardDevice->LastKeyCodeArray[Index] = CurKeyCodeBuffer[Index];
@@ -1276,16 +1275,16 @@ KeyboardHandler (
 
 
 /**
-  Retrieves a USB keycode after parsing the raw data in keyboard Buffer.
+  Retrieves a USB keycode after parsing the raw data in keyboard buffer.
 
-  This function parses keyboard Buffer. It updates state of modifier key for
+  This function parses keyboard buffer. It updates state of modifier key for
   USB_KB_DEV instancem, and returns keycode for output.
 
   @param  UsbKeyboardDevice    The USB_KB_DEV instance.
   @param  KeyCode              Pointer to the USB keycode for output.
 
   @retval EFI_SUCCESS          Keycode successfully parsed.
-  @retval EFI_NOT_READY        Keyboard Buffer is not ready for a valid keycode
+  @retval EFI_NOT_READY        Keyboard buffer is not ready for a valid keycode
 
 **/
 EFI_STATUS
@@ -1516,13 +1515,72 @@ USBParseKey (
   return EFI_NOT_READY;
 }
 
+/**
+  Initialize the key state.
+
+  @param  UsbKeyboardDevice     The USB_KB_DEV instance.
+  @param  KeyState              A pointer to receive the key state information.
+**/
+VOID
+InitializeKeyState (
+  IN  USB_KB_DEV           *UsbKeyboardDevice,
+  OUT EFI_KEY_STATE        *KeyState
+  )
+{
+  KeyState->KeyShiftState  = EFI_SHIFT_STATE_VALID;
+  KeyState->KeyToggleState = EFI_TOGGLE_STATE_VALID;
+
+  if (UsbKeyboardDevice->LeftCtrlOn) {
+    KeyState->KeyShiftState |= EFI_LEFT_CONTROL_PRESSED;
+  }
+  if (UsbKeyboardDevice->RightCtrlOn) {
+    KeyState->KeyShiftState |= EFI_RIGHT_CONTROL_PRESSED;
+  }
+  if (UsbKeyboardDevice->LeftAltOn) {
+    KeyState->KeyShiftState |= EFI_LEFT_ALT_PRESSED;
+  }
+  if (UsbKeyboardDevice->RightAltOn) {
+    KeyState->KeyShiftState |= EFI_RIGHT_ALT_PRESSED;
+  }
+  if (UsbKeyboardDevice->LeftShiftOn) {
+    KeyState->KeyShiftState |= EFI_LEFT_SHIFT_PRESSED;
+  }
+  if (UsbKeyboardDevice->RightShiftOn) {
+    KeyState->KeyShiftState |= EFI_RIGHT_SHIFT_PRESSED;
+  }
+  if (UsbKeyboardDevice->LeftLogoOn) {
+    KeyState->KeyShiftState |= EFI_LEFT_LOGO_PRESSED;
+  }
+  if (UsbKeyboardDevice->RightLogoOn) {
+    KeyState->KeyShiftState |= EFI_RIGHT_LOGO_PRESSED;
+  }
+  if (UsbKeyboardDevice->MenuKeyOn) {
+    KeyState->KeyShiftState |= EFI_MENU_KEY_PRESSED;
+  }
+  if (UsbKeyboardDevice->SysReqOn) {
+    KeyState->KeyShiftState |= EFI_SYS_REQ_PRESSED;
+  }
+
+  if (UsbKeyboardDevice->ScrollOn) {
+    KeyState->KeyToggleState |= EFI_SCROLL_LOCK_ACTIVE;
+  }
+  if (UsbKeyboardDevice->NumLockOn) {
+    KeyState->KeyToggleState |= EFI_NUM_LOCK_ACTIVE;
+  }
+  if (UsbKeyboardDevice->CapsOn) {
+    KeyState->KeyToggleState |= EFI_CAPS_LOCK_ACTIVE;
+  }
+  if (UsbKeyboardDevice->IsSupportPartialKey) {
+    KeyState->KeyToggleState |= EFI_KEY_STATE_EXPOSED;
+  }
+}
 
 /**
   Converts USB Keycode ranging from 0x4 to 0x65 to EFI_INPUT_KEY.
 
   @param  UsbKeyboardDevice     The USB_KB_DEV instance.
   @param  KeyCode               Indicates the key code that will be interpreted.
-  @param  KeyData               A pointer to a Buffer that is filled in with
+  @param  KeyData               A pointer to a buffer that is filled in with
                                 the keystroke information for the key that
                                 was pressed.
 
@@ -1588,7 +1646,8 @@ UsbKeyCodeToEfiInputKey (
       // Need not return associated shift state if a class of printable characters that
       // are normally adjusted by shift modifiers. e.g. Shift Key + 'f' key = 'F'
       //
-      if ((KeyDescriptor->AffectedAttribute & EFI_AFFECTED_BY_CAPS_LOCK) != 0) {
+      if ((KeyDescriptor->Unicode != CHAR_NULL) && (KeyDescriptor->ShiftedUnicode != CHAR_NULL) &&
+          (KeyDescriptor->Unicode != KeyDescriptor->ShiftedUnicode)) {
         UsbKeyboardDevice->LeftShiftOn = FALSE;
         UsbKeyboardDevice->RightShiftOn = FALSE;
       }
@@ -1651,52 +1710,8 @@ UsbKeyCodeToEfiInputKey (
   //
   // Save Shift/Toggle state
   //
-  KeyData->KeyState.KeyShiftState  = EFI_SHIFT_STATE_VALID;
-  KeyData->KeyState.KeyToggleState = EFI_TOGGLE_STATE_VALID;
+  InitializeKeyState (UsbKeyboardDevice, &KeyData->KeyState);
 
-  if (UsbKeyboardDevice->LeftCtrlOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_LEFT_CONTROL_PRESSED;
-  }
-  if (UsbKeyboardDevice->RightCtrlOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_RIGHT_CONTROL_PRESSED;
-  }
-  if (UsbKeyboardDevice->LeftAltOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_LEFT_ALT_PRESSED;
-  }
-  if (UsbKeyboardDevice->RightAltOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_RIGHT_ALT_PRESSED;
-  }
-  if (UsbKeyboardDevice->LeftShiftOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_LEFT_SHIFT_PRESSED;
-  }
-  if (UsbKeyboardDevice->RightShiftOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_RIGHT_SHIFT_PRESSED;
-  }
-  if (UsbKeyboardDevice->LeftLogoOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_LEFT_LOGO_PRESSED;
-  }
-  if (UsbKeyboardDevice->RightLogoOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_RIGHT_LOGO_PRESSED;
-  }
-  if (UsbKeyboardDevice->MenuKeyOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_MENU_KEY_PRESSED;
-  }
-  if (UsbKeyboardDevice->SysReqOn) {
-    KeyData->KeyState.KeyShiftState |= EFI_SYS_REQ_PRESSED;
-  }
-
-  if (UsbKeyboardDevice->ScrollOn) {
-    KeyData->KeyState.KeyToggleState |= EFI_SCROLL_LOCK_ACTIVE;
-  }
-  if (UsbKeyboardDevice->NumLockOn) {
-    KeyData->KeyState.KeyToggleState |= EFI_NUM_LOCK_ACTIVE;
-  }
-  if (UsbKeyboardDevice->CapsOn) {
-    KeyData->KeyState.KeyToggleState |= EFI_CAPS_LOCK_ACTIVE;
-  }
-  if (UsbKeyboardDevice->IsSupportPartialKey) {
-    KeyData->KeyState.KeyToggleState |= EFI_KEY_STATE_EXPOSED;
-  }
   //
   // Signal KeyNotify process event if this key pressed matches any key registered.
   //
@@ -1711,6 +1726,7 @@ UsbKeyCodeToEfiInputKey (
       //
       Enqueue (&UsbKeyboardDevice->EfiKeyQueueForNotify, KeyData, sizeof (*KeyData));
       gBS->SignalEvent (UsbKeyboardDevice->KeyNotifyProcessEvent);
+      break;
     }
   }
 
@@ -1817,8 +1833,8 @@ Enqueue (
 {
   ASSERT (ItemSize == Queue->ItemSize);
   //
-  // If keyboard Buffer is full, throw the
-  // first key out of the keyboard Buffer.
+  // If keyboard buffer is full, throw the
+  // first key out of the keyboard buffer.
   //
   if (IsQueueFull (Queue)) {
     Queue->Head = (Queue->Head + 1) % (MAX_KEY_ALLOWED + 1);
@@ -1827,7 +1843,7 @@ Enqueue (
   CopyMem (Queue->Buffer[Queue->Tail], Item, ItemSize);
 
   //
-  // Adjust the tail pointer of the FIFO keyboard Buffer.
+  // Adjust the tail pointer of the FIFO keyboard buffer.
   //
   Queue->Tail = (Queue->Tail + 1) % (MAX_KEY_ALLOWED + 1);
 }
@@ -1860,7 +1876,7 @@ Dequeue (
   CopyMem (Item, Queue->Buffer[Queue->Head], ItemSize);
 
   //
-  // Adjust the head pointer of the FIFO keyboard Buffer.
+  // Adjust the head pointer of the FIFO keyboard buffer.
   //
   Queue->Head = (Queue->Head + 1) % (MAX_KEY_ALLOWED + 1);
 
@@ -1935,7 +1951,7 @@ USBKeyboardRepeatHandler (
   //
   if (UsbKeyboardDevice->RepeatKey != 0) {
     //
-    // Inserts the repeat key into keyboard Buffer,
+    // Inserts the repeat key into keyboard buffer,
     //
     UsbKey.KeyCode = UsbKeyboardDevice->RepeatKey;
     UsbKey.Down    = TRUE;
