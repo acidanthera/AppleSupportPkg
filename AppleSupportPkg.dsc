@@ -87,6 +87,9 @@
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
   AppleSupportPkg/Platform/VBoxHfs/VBoxHfs.inf
 
+[LibraryClasses]
+  NULL|OcSupportPkg/Library/OcCompilerIntrinsicsLib/OcCompilerIntrinsicsLib.inf
+
 [PcdsFixedAtBuild]
   gEfiMdePkgTokenSpaceGuid.PcdMaximumAsciiStringLength|0
 !if $(TARGET) == RELEASE
