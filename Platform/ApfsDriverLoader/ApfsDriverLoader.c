@@ -259,7 +259,7 @@ LegacyApfsContainerScan (
   EFI_STATUS                  Status;
   UINTN                       Index               = 0;
   UINT8                       *Block              = NULL;
-  UINTN                       Lba                 = 0;
+  UINT64                      Lba                 = 0;
   UINT32                      PartitionNumber     = 0;
   UINT32                      PartitionEntrySize  = 0;
   EFI_PARTITION_TABLE_HEADER  *GptHeader          = NULL;
@@ -973,7 +973,7 @@ ApfsDriverLoaderStart (
                                 ApfsBlockSize
                                 )  + LegacyBaseOffset;
 
-    EfiFileCurrentExtentSize = MultU64x32 (
+    EfiFileCurrentExtentSize = (UINTN) MultU64x32 (
                                 EfiBootRecordBlock->RecordExtents[Index].BlockCount,
                                 ApfsBlockSize
                                 );
