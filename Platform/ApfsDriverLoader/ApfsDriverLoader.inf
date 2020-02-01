@@ -49,6 +49,7 @@
   PcdLib
   OcAppleImageVerificationLib
   OcBootManagementLib
+  OcConsoleLib
   OcMiscLib
   OcGuardLib
 
