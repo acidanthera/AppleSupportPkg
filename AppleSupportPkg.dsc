@@ -28,7 +28,7 @@
 [LibraryClasses]
   BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
   BaseRngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
-  BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
+  BaseMemoryLib|MdePkg/Library/BaseMemoryLibOptDxe/BaseMemoryLibOptDxe.inf
   CpuLib|MdePkg/Library/BaseCpuLib/BaseCpuLib.inf
   DebugLib|OcSupportPkg/Library/OcDebugLogLib/OcDebugLogLib.inf
   DebugPrintErrorLevelLib|MdePkg/Library/BaseDebugPrintErrorLevelLib/BaseDebugPrintErrorLevelLib.inf

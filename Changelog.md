@@ -1,5 +1,8 @@
 AppleSupport Changelog
 ======================
+#### v2.1.6
+- Added SSE2 support in memory intrinsics for better performance
+
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver
 - Moved FwRuntimeServices driver to OcSupportPkg and bundle with OpenCore
