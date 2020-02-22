@@ -29,6 +29,7 @@
   BaseLib|MdePkg/Library/BaseLib/BaseLib.inf
   BaseRngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
   BaseMemoryLib|MdePkg/Library/BaseMemoryLibOptDxe/BaseMemoryLibOptDxe.inf
+  BaseSynchronizationLib|MdePkg/Library/BaseSynchronizationLib/BaseSynchronizationLib.inf
   CpuLib|MdePkg/Library/BaseCpuLib/BaseCpuLib.inf
   DebugLib|OcSupportPkg/Library/OcDebugLogLib/OcDebugLogLib.inf
   DebugPrintErrorLevelLib|MdePkg/Library/BaseDebugPrintErrorLevelLib/BaseDebugPrintErrorLevelLib.inf
@@ -67,6 +68,7 @@
   PeCoffLib|MdePkg/Library/BasePeCoffLib/BasePeCoffLib.inf
   PeCoffGetEntryPointLib|MdePkg/Library/BasePeCoffGetEntryPointLib/BasePeCoffGetEntryPointLib.inf
   PeCoffExtraActionLib|MdePkg/Library/BasePeCoffExtraActionLibNull/BasePeCoffExtraActionLibNull.inf
+  TimerLib|OcSupportPkg/Library/OcTimerLib/OcTimerLib.inf
   OcTimerLib|OcSupportPkg/Library/OcTimerLib/OcTimerLib.inf
   OcMemoryLib|OcSupportPkg/Library/OcMemoryLib/OcMemoryLib.inf
   OcMiscLib|OcSupportPkg/Library/OcMiscLib/OcMiscLib.inf
@@ -85,6 +87,7 @@
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 
 [Components]
+  AppleSupportPkg/Platform/AudioDxe/AudioDxe.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
   AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
   AppleSupportPkg/Platform/VBoxHfs/VBoxHfs.inf
