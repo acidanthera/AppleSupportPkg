@@ -25,6 +25,9 @@
 #include "HdaController.h"
 #include "HdaControllerComponentName.h"
 
+#include <Library/OcHdaDevicesLib.h>
+#include <Library/OcStringLib.h>
+
 VOID
 EFIAPI
 HdaControllerStreamPollTimerHandler(
@@ -215,29 +218,7 @@ HdaControllerGetName(
   DEBUG((DEBUG_INFO, "HdaControllerGetName(): start\n"));
 
   // Try to match controller name.
-  HdaControllerDev->Name = NULL;
-  UINTN ControllerIndex = 0;
-  while (gHdaControllerList[ControllerIndex].Id != 0) {
-    // Check ID and revision against array element.
-    if (gHdaControllerList[ControllerIndex].Id == HdaControllerDev->VendorId)
-      HdaControllerDev->Name = gHdaControllerList[ControllerIndex].Name;
-    ControllerIndex++;
-  }
-
-  // If match wasn't found, try again with a generic device ID.
-  if (HdaControllerDev->Name == NULL) {
-    ControllerIndex = 0;
-    while (gHdaControllerList[ControllerIndex].Id != 0) {
-      // Check ID and revision against array element.
-      if (gHdaControllerList[ControllerIndex].Id == GET_PCI_GENERIC_ID(HdaControllerDev->VendorId))
-        HdaControllerDev->Name = gHdaControllerList[ControllerIndex].Name;
-      ControllerIndex++;
-    }
-  }
-
-  // If match still wasn't found, controller is unknown.
-  if (HdaControllerDev->Name == NULL)
-    HdaControllerDev->Name = HDA_CONTROLLER_MODEL_GENERIC;
+  HdaControllerDev->Name = AsciiStrCopyToUnicode (OcHdaControllerGetName (HdaControllerDev->VendorId), 0);
   DEBUG((DEBUG_INFO, "HdaControllerGetName(): controller is %s\n", HdaControllerDev->Name));
 }
 

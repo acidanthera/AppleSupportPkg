@@ -25,6 +25,9 @@
 #include "HdaCodec.h"
 #include "HdaCodecComponentName.h"
 
+#include <Library/OcHdaDevicesLib.h>
+#include <Library/OcStringLib.h>
+
 EFI_STATUS
 EFIAPI
 HdaCodecProbeWidget(
@@ -461,29 +464,7 @@ HdaCodecProbeCodec(
     return Status;
 
   // Try to match codec name.
-  HdaCodecDev->Name = NULL;
-  UINTN CodecIndex = 0;
-  while (gHdaCodecList[CodecIndex].Id != 0) {
-    // Check ID and revision against array element.
-    if ((gHdaCodecList[CodecIndex].Id == HdaCodecDev->VendorId) && (gHdaCodecList[CodecIndex].Rev <= ((UINT16)HdaCodecDev->RevisionId)))
-      HdaCodecDev->Name = gHdaCodecList[CodecIndex].Name;
-    CodecIndex++;
-  }
-
-  // If match wasn't found, try again with a generic device ID.
-  if (HdaCodecDev->Name == NULL) {
-    CodecIndex = 0;
-    while (gHdaCodecList[CodecIndex].Id != 0) {
-      // Check ID and revision against array element.
-      if (gHdaCodecList[CodecIndex].Id == GET_CODEC_GENERIC_ID(HdaCodecDev->VendorId))
-        HdaCodecDev->Name = gHdaCodecList[CodecIndex].Name;
-      CodecIndex++;
-    }
-  }
-
-  // If match still wasn't found, codec is unknown.
-  if (HdaCodecDev->Name == NULL)
-    HdaCodecDev->Name = HDA_CODEC_MODEL_GENERIC;
+  HdaCodecDev->Name = AsciiStrCopyToUnicode (OcHdaCodecGetName (HdaCodecDev->VendorId, HdaCodecDev->RevisionId), 0);
   DEBUG((DEBUG_INFO, "Codec name: %s\n", HdaCodecDev->Name));
 
   // Get function group count.

@@ -28,8 +28,11 @@
 #include "HdaCodec/HdaCodec.h"
 #include "HdaCodec/HdaCodecComponentName.h"
 
-// HdaController Driver Binding.
-EFI_DRIVER_BINDING_PROTOCOL gHdaControllerDriverBinding = {
+/**
+  HdaController Driver Binding.
+**/
+EFI_DRIVER_BINDING_PROTOCOL
+gHdaControllerDriverBinding = {
   HdaControllerDriverBindingSupported,
   HdaControllerDriverBindingStart,
   HdaControllerDriverBindingStop,
@@ -38,8 +41,11 @@ EFI_DRIVER_BINDING_PROTOCOL gHdaControllerDriverBinding = {
   NULL
 };
 
-// HdaCodec Driver Binding.
-EFI_DRIVER_BINDING_PROTOCOL gHdaCodecDriverBinding = {
+/**
+  HdaCodec Driver Binding.
+**/
+EFI_DRIVER_BINDING_PROTOCOL
+gHdaCodecDriverBinding = {
   HdaCodecDriverBindingSupported,
   HdaCodecDriverBindingStart,
   HdaCodecDriverBindingStop,
@@ -52,25 +58,43 @@ EFI_STATUS
 EFIAPI
 AudioDxeInit(
   IN EFI_HANDLE ImageHandle,
-  IN EFI_SYSTEM_TABLE *SystemTable) {
-  DEBUG((DEBUG_INFO, "Starting AudioDxe...\n"));
+  IN EFI_SYSTEM_TABLE *SystemTable
+  )
+{
+  EFI_STATUS  Status;
 
-  // Create variables.
-  EFI_STATUS Status;
-
+  //
   // Register HdaController Driver Binding.
-  Status = EfiLibInstallDriverBindingComponentName2(ImageHandle, SystemTable, &gHdaControllerDriverBinding,
-    ImageHandle, &gHdaControllerComponentName, &gHdaControllerComponentName2);
-  ASSERT_EFI_ERROR(Status);
-  if (EFI_ERROR(Status))
-    return Status;
+  //
+  Status = EfiLibInstallDriverBindingComponentName2 (
+    ImageHandle,
+    SystemTable,
+    &gHdaControllerDriverBinding,
+    ImageHandle,
+    &gHdaControllerComponentName,
+    &gHdaControllerComponentName2
+    );
 
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  //
   // Register HdaCodec Driver Binding.
-  Status = EfiLibInstallDriverBindingComponentName2(ImageHandle, SystemTable, &gHdaCodecDriverBinding,
-    NULL, &gHdaCodecComponentName, &gHdaCodecComponentName2);
-  ASSERT_EFI_ERROR(Status);
-  if (EFI_ERROR(Status))
-    return Status;
+  //
+  Status = EfiLibInstallDriverBindingComponentName2 (
+    ImageHandle,
+    SystemTable,
+    &gHdaCodecDriverBinding,
+    NULL,
+    &gHdaCodecComponentName,
+    &gHdaCodecComponentName2
+    );
 
-  return Status;
+  ASSERT_EFI_ERROR(Status);
+  if (EFI_ERROR(Status)) {
+    return Status;
+  }
+
+  return EFI_SUCCESS;
 }

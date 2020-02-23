@@ -27,7 +27,6 @@
 
 #include "AudioDxe.h"
 #include <IndustryStandard/HdaRegisters.h>
-#include <IndustryStandard/HdaModels.h>
 
 //
 // Consumed protocols.
@@ -334,7 +333,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerInfoGetName(
   IN  EFI_HDA_CONTROLLER_INFO_PROTOCOL *This,
-  OUT CHAR16 **ControllerName);
+  OUT CONST CHAR16 **ControllerName);
 
 //
 // HDA controller internal functions.

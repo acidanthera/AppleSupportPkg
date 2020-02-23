@@ -23,7 +23,6 @@
  */
 
 #include "HdaCodecComponentName.h"
-#include <IndustryStandard/HdaModels.h>
 
 GLOBAL_REMOVE_IF_UNREFERENCED
 EFI_UNICODE_STRING_TABLE gHdaCodecDriverNameTable[] = {
@@ -78,5 +77,5 @@ HdaCodecComponentNameGetControllerName(
     return Status;
 
   // Get codec name.
-  return HdaCodecInfo->GetName(HdaCodecInfo, ControllerName);
+  return HdaCodecInfo->GetName(HdaCodecInfo, (CONST CHAR16 **) ControllerName);
 }

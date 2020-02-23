@@ -84,5 +84,5 @@ HdaControllerComponentNameGetControllerName(
     return Status;
 
   // Get controller name.
-  return HdaControllerInfo->GetName(HdaControllerInfo, ControllerName);
+  return HdaControllerInfo->GetName(HdaControllerInfo, (CONST CHAR16**) ControllerName);
 }

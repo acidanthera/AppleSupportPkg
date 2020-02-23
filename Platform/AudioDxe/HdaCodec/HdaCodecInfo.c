@@ -37,7 +37,7 @@ EFI_STATUS
 EFIAPI
 HdaCodecInfoGetCodecName(
   IN  EFI_HDA_CODEC_INFO_PROTOCOL *This,
-  OUT CHAR16 **CodecName) {
+  OUT CONST CHAR16 **CodecName) {
   //DEBUG((DEBUG_INFO, "HdaCodecInfoGetCodecName(): start\n"));
 
   // Create variables.
