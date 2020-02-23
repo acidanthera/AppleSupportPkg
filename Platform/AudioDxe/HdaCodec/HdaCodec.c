@@ -523,9 +523,8 @@ HdaCodecFindUpstreamOutput(
   for (UINT8 c = 0; c < HdaWidget->ConnectionCount; c++) {
     // Get connected widget.
     HdaConnectedWidget = HdaWidget->WidgetConnections[c];
-    for (UINT8 i = 0; i <= Level; i++)
-      DEBUG((DEBUG_INFO, "  "));
-    DEBUG((DEBUG_INFO, "Widget @ 0x%X (type 0x%X)\n", HdaConnectedWidget->NodeId, HdaConnectedWidget->Type));
+    DEBUG((DEBUG_INFO, "%*aWidget @ 0x%X (type 0x%X)\n",
+      Level, " ", HdaConnectedWidget->NodeId, HdaConnectedWidget->Type));
 
     // If this is an Output, we are done.
     if (HdaConnectedWidget->Type == HDA_WIDGET_TYPE_OUTPUT) {

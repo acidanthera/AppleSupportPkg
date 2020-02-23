@@ -253,6 +253,8 @@ HdaCodecAudioIoSetupPlayback(
   UINT32 SupportedRates;
   UINT8 HdaStreamId;
 
+  //TODO: Implement caching to avoid resetting parameters!
+
   // Stream.
   UINT8 StreamBits, StreamDiv, StreamMult = 0;
   BOOLEAN StreamBase44kHz = FALSE;
