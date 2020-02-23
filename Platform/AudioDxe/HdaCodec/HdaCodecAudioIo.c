@@ -339,7 +339,7 @@ HdaCodecAudioIoSetupPlayback(
     case EfiAudioIoFreq11kHz:
       if (!(SupportedRates & HDA_PARAMETER_SUPPORTED_PCM_SIZE_RATES_11KHZ))
         return EFI_UNSUPPORTED;
-      StreamBase44kHz = FALSE;
+      StreamBase44kHz = FALSE; ///< TODO: Why does Clover has TRUE here?
       StreamDiv = 4;
       StreamMult = 1;
       break;
@@ -357,7 +357,7 @@ HdaCodecAudioIoSetupPlayback(
     case EfiAudioIoFreq22kHz:
       if (!(SupportedRates & HDA_PARAMETER_SUPPORTED_PCM_SIZE_RATES_22KHZ))
         return EFI_UNSUPPORTED;
-      StreamBase44kHz = FALSE;
+      StreamBase44kHz = FALSE; ///< TODO: Why does Clover has TRUE here?
       StreamDiv = 2;
       StreamMult = 1;
       break;
@@ -551,9 +551,7 @@ HdaCodecAudioIoStartPlaybackAsync(
   // Start stream.
   Status = HdaIo->StartStream(HdaIo, EfiHdaIoTypeOutput, Data, DataLength, Position,
     (VOID*)HdaCodecHdaIoStreamCallback, (VOID*)This, (VOID*)Callback, Context);
-  if (EFI_ERROR(Status))
-    return Status;
-  return EFI_SUCCESS;
+  return Status;
 }
 
 /**

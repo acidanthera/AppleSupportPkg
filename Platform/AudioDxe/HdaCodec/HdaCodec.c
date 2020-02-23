@@ -41,6 +41,8 @@ HdaCodecProbeWidget(
   UINT8 ConnectionListThresh;
   UINT8 AmpInCount;
 
+  Response = 0;
+
   // Get widget capabilities.
   Status = HdaIo->SendCommand(HdaIo, HdaWidget->NodeId,
     HDA_CODEC_VERB(HDA_VERB_GET_PARAMETER, HDA_PARAMETER_WIDGET_CAPS), &HdaWidget->Capabilities);
@@ -241,6 +243,8 @@ HdaCodecProbeWidget(
       if (EFI_ERROR(Status))
         return Status;
       HdaWidget->DefaultEapd = (UINT8)Response;
+      HdaWidget->DefaultEapd &= 0x7;
+      HdaWidget->DefaultEapd |= HDA_EAPD_BTL_ENABLE_EAPD;
       //DEBUG((DEBUG_INFO, "Widget @ 0x%X EAPD: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultEapd));
     }
 
@@ -638,8 +642,8 @@ HdaCodecParsePorts(
     }
   }
 
-  // Wait 750ms for all widgets to fully come on.
-  gBS->Stall(MS_TO_MICROSECOND(750));
+  // Wait 1000ms for all widgets to fully come on.
+  gBS->Stall(MS_TO_MICROSECOND(1000));
 
   return EFI_SUCCESS;
 }

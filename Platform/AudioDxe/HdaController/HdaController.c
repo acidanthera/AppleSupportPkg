@@ -130,6 +130,8 @@ HdaControllerInitPciHw(
   UINT8 HdaTcSel;
   UINT16 HdaDevC;
 
+  PciSupports = 0;
+
   // Get original PCI I/O attributes.
   Status = PciIo->Attributes(PciIo, EfiPciIoAttributeOperationGet, 0, &HdaControllerDev->OriginalPciAttributes);
   if (EFI_ERROR(Status))
@@ -288,6 +290,10 @@ HdaControllerScanCodecs(
   // Protocols.
   HDA_IO_PRIVATE_DATA *HdaIoPrivateData;
   VOID *TmpProtocol;
+
+  if (!HdaControllerDev) {
+    return EFI_INVALID_PARAMETER;
+  }
 
   // Get STATESTS register.
   Status = PciIo->Mem.Read(PciIo, EfiPciIoWidthUint16, PCI_HDA_BAR, HDA_REG_STATESTS, 1, &HdaStatests);
