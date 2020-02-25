@@ -398,7 +398,7 @@ HdaControllerHdaIoStartStream(
   // Fill rest of current block.
   HdaStreamDmaRemainingLength = HDA_BDL_BLOCKSIZE - (HdaStreamDmaPos - (HdaStreamCurrentBlock * HDA_BDL_BLOCKSIZE));
   if ((HdaStream->BufferSourcePosition + HdaStreamDmaRemainingLength) > BufferLength)
-    HdaStreamDmaRemainingLength = BufferLength;
+    HdaStreamDmaRemainingLength = BufferLength - HdaStream->BufferSourcePosition;
   CopyMem(HdaStream->BufferData + HdaStreamDmaPos, HdaStream->BufferSource + HdaStream->BufferSourcePosition, HdaStreamDmaRemainingLength);
   HdaStream->BufferSourcePosition += HdaStreamDmaRemainingLength;
   DEBUG((DEBUG_INFO, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
@@ -408,7 +408,7 @@ HdaControllerHdaIoStartStream(
   if (HdaStream->BufferSourcePosition < BufferLength) {
     HdaStreamDmaRemainingLength = HDA_BDL_BLOCKSIZE;
     if ((HdaStream->BufferSourcePosition + HdaStreamDmaRemainingLength) > BufferLength)
-      HdaStreamDmaRemainingLength = BufferLength;
+      HdaStreamDmaRemainingLength = BufferLength - HdaStream->BufferSourcePosition;
     CopyMem(HdaStream->BufferData + (HdaStreamNextBlock * HDA_BDL_BLOCKSIZE), HdaStream->BufferSource + HdaStream->BufferSourcePosition, HdaStreamDmaRemainingLength);
     HdaStream->BufferSourcePosition += HdaStreamDmaRemainingLength;
     DEBUG((DEBUG_INFO, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
