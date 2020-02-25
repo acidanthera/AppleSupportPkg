@@ -16,6 +16,9 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 ## VBoxHfs
 This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
+## AudioDxe
+Improved audio driver.
+
 ## Credits
 - [Brad Conte](https://github.com/B-Con) for Sha256 implementation
 - [Chromium OS project](https://github.com/chromium) for Rsa2048Sha256 signature verification implementation
@@ -25,3 +28,4 @@ This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/sr
 - [savvas](https://github.com/savvamitrofanov)
 - [VirtualBox OSE project](https://www.virtualbox.org) for original VBoxHfs driver
 - [vit9696](https://github.com/vit9696) for codereview and support in the development
+- [Goldfish64](https://github.com/Goldfish64) for AudioDxe
