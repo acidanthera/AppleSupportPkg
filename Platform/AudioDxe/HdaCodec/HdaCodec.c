@@ -468,7 +468,7 @@ HdaCodecProbeCodec(
     return Status;
 
   // Try to match codec name.
-  HdaCodecDev->Name = AsciiStrCopyToUnicode (OcHdaCodecGetName (HdaCodecDev->VendorId, HdaCodecDev->RevisionId), 0);
+  HdaCodecDev->Name = AsciiStrCopyToUnicode (OcHdaCodecGetName (HdaCodecDev->VendorId, (UINT16) HdaCodecDev->RevisionId), 0);
   DEBUG((DEBUG_INFO, "Codec name: %s\n", HdaCodecDev->Name));
 
   // Get function group count.
