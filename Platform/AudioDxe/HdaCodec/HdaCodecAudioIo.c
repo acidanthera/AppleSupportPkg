@@ -552,7 +552,7 @@ HdaCodecAudioIoStartPlaybackAsync(
 
   // Start stream.
   Status = HdaIo->StartStream(HdaIo, EfiHdaIoTypeOutput, Data, DataLength, Position,
-    (VOID*)HdaCodecHdaIoStreamCallback, (VOID*)This, (VOID*)Callback, Context);
+    HdaCodecHdaIoStreamCallback, (VOID*)This, (VOID*)Callback, Context);
   return Status;
 }
 
