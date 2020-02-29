@@ -28,7 +28,7 @@ package() {
 cd $(dirname "$0")
 ARCHS=(X64 IA32)
 SELFPKG=AppleSupportPkg
-DEPNAMES=('EfiPkg' 'OcSupportPkg')
-DEPURLS=('https://github.com/acidanthera/EfiPkg' 'https://github.com/acidanthera/OcSupportPkg')
+DEPNAMES=('EfiPkg' 'OpenCorePkg')
+DEPURLS=('https://github.com/acidanthera/EfiPkg' 'https://github.com/acidanthera/OpenCorePkg')
 DEPBRANCHES=('master' 'master')
 src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/efibuild.sh) && eval "$src" || exit 1

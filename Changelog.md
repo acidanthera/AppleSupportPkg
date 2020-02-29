@@ -3,6 +3,7 @@ AppleSupport Changelog
 #### v2.1.6
 - Added SSE2 support in memory intrinsics for better performance
 - Added AudioDxe to the list of bundled drivers
+- Switch to merged OpenCorePkg instead of OcSupportPkg
 
 #### v2.1.5
 - Fixed assertions in AppleUsbKbDxe driver

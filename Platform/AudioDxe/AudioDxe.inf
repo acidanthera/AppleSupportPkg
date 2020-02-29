@@ -33,7 +33,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   AppleSupportPkg/AppleSupportPkg.dec
-  OcSupportPkg/OcSupportPkg.dec
+  OpenCorePkg/OpenCorePkg.dec
 
 [LibraryClasses]
   BaseMemoryLib
