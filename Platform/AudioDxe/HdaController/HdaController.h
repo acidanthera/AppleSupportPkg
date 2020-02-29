@@ -56,9 +56,6 @@ typedef struct {
 } HDA_PCI_CLASSREG;
 #pragma pack()
 
-// HDA controller subclass.
-#define PCI_CLASS_MEDIA_HDA 0x3
-
 // HDA controller is accessed via MMIO on BAR #0.
 #define PCI_HDA_BAR 0
 
@@ -174,6 +171,7 @@ struct _HDA_CONTROLLER_DEV {
   EFI_DEVICE_PATH_PROTOCOL *DevicePath;
   EFI_DRIVER_BINDING_PROTOCOL *DriverBinding;
   EFI_HANDLE ControllerHandle;
+  UINT32  OpenMode;
 
   // PCI.
   UINT64 OriginalPciAttributes;

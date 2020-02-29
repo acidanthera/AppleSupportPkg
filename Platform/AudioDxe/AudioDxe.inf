@@ -54,6 +54,7 @@
   gEfiHdaIoProtocolGuid               # PRODUCES
   gEfiHdaCodecInfoProtocolGuid        # PRODUCES
   gEfiAudioIoProtocolGuid             # PRODUCES
+  gVMwareHdaProtocolGuid              # SOMETIMES_CONSUMES
 
 [Sources]
   HdaCodec/HdaCodecComponentName.h
