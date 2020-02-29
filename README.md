@@ -17,7 +17,7 @@ Open source apfs.efi loader based on reverse-engineered Apple's ApfsJumpStart dr
 This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
 ## AudioDxe
-Improved audio driver (currently only Intel HD audio).
+Improved audio driver (currently only Intel HD audio).  
 HDMI or other digital outputs don't work.
 
 ## Credits
