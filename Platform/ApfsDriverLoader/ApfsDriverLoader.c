@@ -1182,7 +1182,8 @@ ApfsDriverLoaderStop (
     Status = gBS->UninstallMultipleProtocolInterfaces (
       EfiBootRecordLocationInfo->ControllerHandle,
       &gApfsEfiBootRecordInfoProtocolGuid,
-      EfiBootRecordLocationInfo
+      EfiBootRecordLocationInfo,
+      NULL
       );
   }
 
