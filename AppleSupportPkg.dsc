@@ -51,7 +51,6 @@
   OcAppleRamDiskLib|OpenCorePkg/Library/OcAppleRamDiskLib/OcAppleRamDiskLib.inf
   OcBootManagementLib|OpenCorePkg/Library/OcBootManagementLib/OcBootManagementLib.inf
   OcCompressionLib|OpenCorePkg/Library/OcCompressionLib/OcCompressionLib.inf
-  OcConsoleControlEntryModeLib|OpenCorePkg/Library/OcConsoleControlEntryModeLib/OcConsoleControlEntryModeLib.inf
   OcConsoleLib|OpenCorePkg/Library/OcConsoleLib/OcConsoleLib.inf
   OcCpuLib|OpenCorePkg/Library/OcCpuLib/OcCpuLib.inf
   OcCryptoLib|OpenCorePkg/Library/OcCryptoLib/OcCryptoLib.inf
