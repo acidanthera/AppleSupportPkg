@@ -46,7 +46,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include "EfiComponentName.h"
 
 STATIC BOOLEAN  LegacyScan       = FALSE;
-STATIC UINT64   LegacyBaseOffset = 0;
+STATIC UINT64   LegacyBaseLBA    = 0;
 
 UINT64
 ApfsBlockChecksumCalculate (
@@ -245,7 +245,7 @@ LegacyApfsContainerScan (
   //
   Status = OcDiskRead (
     DiskContext,
-    DiskContext->BlockSize,
+    1,
     DiskContext->BlockSize,
     Block
     );
@@ -288,7 +288,7 @@ LegacyApfsContainerScan (
 
  Status = OcDiskRead (
     DiskContext,
-    MultU64x32 (Lba, DiskContext->BlockSize),
+    Lba,
     PartitionNumber * PartitionEntrySize,
     Block
     );
@@ -319,7 +319,7 @@ LegacyApfsContainerScan (
     DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: ApfsGptEntry is null\n", Status));
     return EFI_UNSUPPORTED;
   }
-  LegacyBaseOffset = MultU64x32 (ApfsGptEntry->StartingLBA, DiskContext->BlockSize);
+  LegacyBaseLBA = ApfsGptEntry->StartingLBA;
   FreePool(Block);
 
   return EFI_SUCCESS;
@@ -428,8 +428,8 @@ ApfsDriverLoaderSupported (
    }
 
   Status = OcDiskInitializeContext (&DiskContext, ControllerHandle, TRUE, TRUE);
-  if (EFI_ERROR(Status)) {
-    return Status;
+  if (EFI_ERROR (Status)) {
+    return EFI_UNSUPPORTED;
   }
 
   if (LegacyScan) {
@@ -539,7 +539,7 @@ ApfsDriverLoaderStart (
   UINT32                            ApfsBlockSize                = 0;
   UINT8                             *ApfsBlock                   = NULL;
   EFI_GUID                          ContainerUuid;
-  UINT64                            EfiBootRecordBlockOffset     = 0;
+  UINT64                            EfiBootRecordBlockLBA        = 0;
   UINT64                            EfiBootRecordBlockPtr        = 0;
   APFS_EFI_BOOT_RECORD              *EfiBootRecordBlock          = NULL;
   APFS_CSB                          *ContainerSuperBlock         = NULL;
@@ -586,7 +586,7 @@ ApfsDriverLoaderStart (
   //
   Status = OcDiskRead (
     &DiskContext,
-    LegacyBaseOffset,
+    LegacyBaseLBA,
     2048,
     ApfsBlock
     );
@@ -660,7 +660,7 @@ ApfsDriverLoaderStart (
   //
   Status = OcDiskRead (
     &DiskContext,
-    LegacyBaseOffset,
+    LegacyBaseLBA,
     ApfsBlockSize,
     ApfsBlock
     );
@@ -687,13 +687,14 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock
   //
-  EfiBootRecordBlockOffset = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize)
-                              + LegacyBaseOffset;
+  EfiBootRecordBlockLBA = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize)
+                              / DiskContext.BlockSize
+                              + LegacyBaseLBA;
 
   DEBUG ((
     DEBUG_VERBOSE,
-    "EfiBootRecordBlock offset: %08llx \n",
-     EfiBootRecordBlockOffset
+    "EfiBootRecordBlock LBA: %08llx \n",
+     EfiBootRecordBlockLBA
      ));
 
   //
@@ -701,7 +702,7 @@ ApfsDriverLoaderStart (
   //
   Status = OcDiskRead (
     &DiskContext,
-    EfiBootRecordBlockOffset,
+    EfiBootRecordBlockLBA,
     ApfsBlockSize,
     ApfsBlock
     );
@@ -755,7 +756,7 @@ ApfsDriverLoaderStart (
     EfiFileCurrentExtentOffset = MultU64x32 (
                                 EfiBootRecordBlock->RecordExtents[Index].StartPhysicalAddr,
                                 ApfsBlockSize
-                                )  + LegacyBaseOffset;
+                                ) + LegacyBaseLBA * DiskContext.BlockSize;
 
     EfiFileCurrentExtentSize = (UINTN) MultU64x32 (
                                 EfiBootRecordBlock->RecordExtents[Index].BlockCount,
@@ -780,7 +781,7 @@ ApfsDriverLoaderStart (
     //
     Status = OcDiskRead (
       &DiskContext,
-      EfiFileCurrentExtentOffset,
+      EfiFileCurrentExtentOffset / DiskContext.BlockSize,
       EfiFileCurrentExtentSize,
       EfiFileBuffer + CurPos
       );
@@ -979,7 +980,7 @@ EFIAPI
 ApfsDriverLoaderInit (
   IN EFI_HANDLE        ImageHandle,
   IN EFI_SYSTEM_TABLE  *SystemTable
-)
+  )
 {
   EFI_STATUS                          Status;
   VOID                                *PartitionInfoInterface;
@@ -1014,7 +1015,7 @@ ApfsDriverLoaderInit (
     }
   }
 
-  if (EFI_ERROR(Status)) {
+  if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_VERBOSE,
       "No partition info protocol, using Legacy scan\n"
