@@ -1,5 +1,8 @@
 AppleSupport Changelog
 ======================
+#### v2.1.7
+- Added unaligned and custom-size I/O support
+
 #### v2.1.6
 - Added SSE2 support in memory intrinsics for better performance
 - Added AudioDxe to the list of bundled drivers

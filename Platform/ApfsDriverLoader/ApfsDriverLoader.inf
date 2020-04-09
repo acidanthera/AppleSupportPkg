@@ -50,6 +50,7 @@
   OcAppleImageVerificationLib
   OcBootManagementLib
   OcConsoleLib
+  OcFileLib
   OcMiscLib
   OcGuardLib
 
