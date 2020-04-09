@@ -233,22 +233,10 @@ LegacyApfsContainerScan (
   EFI_PARTITION_ENTRY         *ApfsGptEntry       = NULL;
 
   DEBUG ((DEBUG_VERBOSE, "LegacyApfsContainerScan: Entrypoint\n"));
-
-  Status = OcDiskInitializeContext (
-    DiskContext,
-    ControllerHandle,
-    TRUE,
-    TRUE
-    );
-
-  if (EFI_ERROR (Status)) {
-    return EFI_UNSUPPORTED;
-  }
-
   DEBUG ((DEBUG_VERBOSE, "BlockSize: %lu", DiskContext->BlockSize));
   Block = AllocateZeroPool ((UINTN) DiskContext->BlockSize);
   if (Block == NULL) {
-    DEBUG ((DEBUG_ERROR, "LegacyApfsContainerScan: Allocation error %r\n", Status));
+    DEBUG ((DEBUG_ERROR, "LegacyApfsContainerScan: Allocation error\n"));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -943,20 +931,7 @@ ApfsDriverLoaderStop (
     EFI_OPEN_PROTOCOL_GET_PROTOCOL
     );
 
-  if (EFI_ERROR (Status)) {
-    Status = gBS->CloseProtocol (
-      ControllerHandle,
-      &gEfiDiskIoProtocolGuid,
-      This->DriverBindingHandle,
-      ControllerHandle
-      );
-    Status = gBS->CloseProtocol (
-      ControllerHandle,
-      &gEfiDiskIo2ProtocolGuid,
-      This->DriverBindingHandle,
-      ControllerHandle
-      );
-  } else {
+  if (!EFI_ERROR (Status)) {
     Status = gBS->UninstallMultipleProtocolInterfaces (
       EfiBootRecordLocationInfo->ControllerHandle,
       &gApfsEfiBootRecordInfoProtocolGuid,
