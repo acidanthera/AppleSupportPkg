@@ -687,9 +687,10 @@ ApfsDriverLoaderStart (
   //
   // Calculate Offset of EfiBootRecordBlock
   //
-  EfiBootRecordBlockLBA = MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize)
-                              / DiskContext.BlockSize
-                              + LegacyBaseLBA;
+  EfiBootRecordBlockLBA = DivU64x32 (
+    MultU64x32 (EfiBootRecordBlockPtr, ApfsBlockSize),
+    DiskContext.BlockSize
+    ) + LegacyBaseLBA;
 
   DEBUG ((
     DEBUG_VERBOSE,
@@ -781,7 +782,7 @@ ApfsDriverLoaderStart (
     //
     Status = OcDiskRead (
       &DiskContext,
-      EfiFileCurrentExtentOffset / DiskContext.BlockSize,
+      DivU64x32 (EfiFileCurrentExtentOffset, DiskContext.BlockSize),
       EfiFileCurrentExtentSize,
       EfiFileBuffer + CurPos
       );
