@@ -90,7 +90,6 @@
 [Components]
   AppleSupportPkg/Platform/AudioDxe/AudioDxe.inf
   AppleSupportPkg/Platform/AppleImageLoader/AppleImageLoader.inf
-  AppleSupportPkg/Platform/ApfsDriverLoader/ApfsDriverLoader.inf
   AppleSupportPkg/Platform/VBoxHfs/VBoxHfs.inf
 
 [LibraryClasses]
