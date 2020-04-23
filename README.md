@@ -4,7 +4,7 @@ AppleSupportPkg
 [![Build Status](https://travis-ci.com/acidanthera/AppleSupportPkg.svg?branch=master)](https://travis-ci.com/acidanthera/AppleSupportPkg) [![Scan Status](https://scan.coverity.com/projects/16467/badge.svg?flat=1)](https://scan.coverity.com/projects/16467)
 
 ## VBoxHfs
-This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/FirmwareNew/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
+This driver, based on [VBoxHfs](https://www.virtualbox.org/browser/vbox/trunk/src/VBox/Devices/EFI/Firmware/VBoxPkg/VBoxFsDxe) from [VirtualBox OSE](https://www.virtualbox.org) project driver, implements HFS+ support with bless extensions. Commit history can be found in [VBoxFsDxe](https://github.com/nms42/VBoxFsDxe) repository. Note, that unlike other drivers, its source code is licensed under GPLv2.
 
 ## AudioDxe
 Improved audio driver (currently only Intel HD audio).  
