@@ -541,6 +541,10 @@ FREE_BUFFER:
   FreePool(HdaControllerDev->BidirStreams);
   FreePool(HdaControllerDev->InputStreams);
   FreePool(HdaControllerDev->OutputStreams);
+  HdaControllerDev->BidirStreams = NULL;
+  HdaControllerDev->InputStreams = NULL;
+  HdaControllerDev->OutputStreams = NULL;
+  HdaControllerDev->TotalStreamsCount = 0;
   return Status;
 }
 
@@ -570,37 +574,31 @@ HdaControllerResetStream(
 
   // Get value of control register.
   Status = PciIo->Mem.Read(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index), 1, &HdaStreamCtl1);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
 
   // Reset stream and wait for bit to be set.
   HdaStreamCtl1 |= HDA_REG_SDNCTL1_SRST;
   Status = PciIo->Mem.Write(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index), 1, &HdaStreamCtl1);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
   Status = PciIo->PollMem(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index),
     HDA_REG_SDNCTL1_SRST, HDA_REG_SDNCTL1_SRST, MS_TO_NANOSECOND(100), &Tmp);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
 
   // Get value of control register.
   Status = PciIo->Mem.Read(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index), 1, &HdaStreamCtl1);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
 
   // Docs state we need to clear the bit and wait for it to clear.
   HdaStreamCtl1 &= ~HDA_REG_SDNCTL1_SRST;
   Status = PciIo->Mem.Write(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index), 1, &HdaStreamCtl1);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
   Status = PciIo->PollMem(PciIo, EfiPciIoWidthUint8, PCI_HDA_BAR, HDA_REG_SDNCTL1(HdaStream->Index),
     HDA_REG_SDNCTL1_SRST, 0, MS_TO_NANOSECOND(100), &Tmp);
-  ASSERT_EFI_ERROR(Status);
   if (EFI_ERROR(Status))
     return Status;
 
