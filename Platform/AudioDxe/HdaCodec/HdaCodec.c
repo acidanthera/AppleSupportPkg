@@ -711,7 +711,7 @@ EFIAPI
 HdaCodecGetOutputDac(
   IN  HDA_WIDGET_DEV *HdaWidget,
   OUT HDA_WIDGET_DEV **HdaOutputWidget) {
-  DEBUG((DEBUG_INFO, "HdaCodecGetOutputDac(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecGetOutputDac(): start\n"));
 
   // Check that parameters are valid.
   if ((HdaWidget == NULL) || (HdaOutputWidget == NULL))
@@ -738,7 +738,7 @@ EFIAPI
 HdaCodecGetSupportedPcmRates(
   IN  HDA_WIDGET_DEV *HdaPinWidget,
   OUT UINT32 *SupportedRates) {
-  DEBUG((DEBUG_INFO, "HdaCodecGetSupportedPcmRates(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecGetSupportedPcmRates(): start\n"));
 
   // Check that parameters are valid.
   if ((HdaPinWidget == NULL) || (SupportedRates == NULL))
@@ -944,7 +944,7 @@ VOID
 EFIAPI
 HdaCodecCleanup(
   IN HDA_CODEC_DEV *HdaCodecDev) {
-  DEBUG((DEBUG_INFO, "HdaCodecCleanup(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecCleanup(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -958,7 +958,7 @@ HdaCodecCleanup(
   // Clean HDA Codec Info protocol.
   if (HdaCodecDev->HdaCodecInfoData != NULL) {
     // Uninstall protocol.
-    DEBUG((DEBUG_INFO, "HdaCodecCleanup(): clean Hda Codec Info\n"));
+    DEBUG((DEBUG_VERBOSE, "HdaCodecCleanup(): clean Hda Codec Info\n"));
     Status = gBS->UninstallProtocolInterface(HdaCodecDev->ControllerHandle,
       &gEfiHdaCodecInfoProtocolGuid, &HdaCodecDev->HdaCodecInfoData->HdaCodecInfo);
     ASSERT_EFI_ERROR(Status);
@@ -970,7 +970,7 @@ HdaCodecCleanup(
   // Clean Audio I/O protocol.
   if (HdaCodecDev->AudioIoData != NULL) {
     // Uninstall protocol.
-    DEBUG((DEBUG_INFO, "HdaCodecCleanup(): clean Audio I/O\n"));
+    DEBUG((DEBUG_VERBOSE, "HdaCodecCleanup(): clean Audio I/O\n"));
     Status = gBS->UninstallProtocolInterface(HdaCodecDev->ControllerHandle,
       &gEfiAudioIoProtocolGuid, &HdaCodecDev->AudioIoData->AudioIo);
     ASSERT_EFI_ERROR(Status);
@@ -1063,7 +1063,7 @@ HdaCodecDriverBindingStart(
   IN EFI_DRIVER_BINDING_PROTOCOL *This,
   IN EFI_HANDLE ControllerHandle,
   IN EFI_DEVICE_PATH_PROTOCOL *RemainingDevicePath OPTIONAL) {
-  DEBUG((DEBUG_INFO, "HdaCodecDriverBindingStart(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecDriverBindingStart(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -1133,7 +1133,7 @@ HdaCodecDriverBindingStop(
   IN EFI_HANDLE ControllerHandle,
   IN UINTN NumberOfChildren,
   IN EFI_HANDLE *ChildHandleBuffer OPTIONAL) {
-  DEBUG((DEBUG_INFO, "HdaCodecDriverBindingStop(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecDriverBindingStop(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;

@@ -186,7 +186,7 @@ HdaControllerHdaIoSetupStream(
   // Reset stream if format has changed.
   if (Format != HdaStreamFormat) {
     // Reset stream.
-    DEBUG((DEBUG_INFO, "HdaControllerHdaIoSetupStream(): format changed, resetting stream\n"));
+    DEBUG((DEBUG_VERBOSE, "HdaControllerHdaIoSetupStream(): format changed, resetting stream\n"));
     HdaControllerDev->DmaPositions[HdaStream->Index].Position = 0;
     Status = HdaControllerResetStream(HdaStream);
     if (EFI_ERROR(Status))
@@ -380,7 +380,7 @@ HdaControllerHdaIoStartStream(
   HdaStreamCurrentBlock = HdaStreamDmaPos / HDA_BDL_BLOCKSIZE;
   HdaStreamNextBlock = HdaStreamCurrentBlock + 1;
   HdaStreamNextBlock %= HDA_BDL_ENTRY_COUNT;
-  DEBUG((DEBUG_INFO, "HdaControllerHdaIoStartStream(): stream %u DMA pos 0x%X\n",
+  DEBUG((DEBUG_VERBOSE, "HdaControllerHdaIoStartStream(): stream %u DMA pos 0x%X\n",
     HdaStream->Index, HdaStreamDmaPos));
 
   // Save pointer to buffer.
@@ -401,7 +401,7 @@ HdaControllerHdaIoStartStream(
     HdaStreamDmaRemainingLength = BufferLength - HdaStream->BufferSourcePosition;
   CopyMem(HdaStream->BufferData + HdaStreamDmaPos, HdaStream->BufferSource + HdaStream->BufferSourcePosition, HdaStreamDmaRemainingLength);
   HdaStream->BufferSourcePosition += HdaStreamDmaRemainingLength;
-  DEBUG((DEBUG_INFO, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
+  DEBUG((DEBUG_VERBOSE, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
     HdaStream->BufferData + HdaStreamDmaPos, HdaStreamCurrentBlock, HDA_BDL_ENTRY_COUNT));
 
   // Fill next block.
@@ -411,7 +411,7 @@ HdaControllerHdaIoStartStream(
       HdaStreamDmaRemainingLength = BufferLength - HdaStream->BufferSourcePosition;
     CopyMem(HdaStream->BufferData + (HdaStreamNextBlock * HDA_BDL_BLOCKSIZE), HdaStream->BufferSource + HdaStream->BufferSourcePosition, HdaStreamDmaRemainingLength);
     HdaStream->BufferSourcePosition += HdaStreamDmaRemainingLength;
-    DEBUG((DEBUG_INFO, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
+    DEBUG((DEBUG_VERBOSE, "%u (0x%X) bytes written to 0x%X (block %u of %u)\n", HdaStreamDmaRemainingLength, HdaStreamDmaRemainingLength,
       HdaStream->BufferData + (HdaStreamNextBlock * HDA_BDL_BLOCKSIZE), HdaStreamNextBlock, HDA_BDL_ENTRY_COUNT));
   }
 

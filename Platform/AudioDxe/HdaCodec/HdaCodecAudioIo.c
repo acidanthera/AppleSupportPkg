@@ -32,7 +32,7 @@ HdaCodecHdaIoStreamCallback(
   IN VOID *Context1,
   IN VOID *Context2,
   IN VOID *Context3) {
-  DEBUG((DEBUG_INFO, "HdaCodecHdaIoStreamCallback(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecHdaIoStreamCallback(): start\n"));
 
   // Create variables.
   EFI_AUDIO_IO_PROTOCOL *AudioIo = (EFI_AUDIO_IO_PROTOCOL*)Context1;
@@ -62,7 +62,7 @@ HdaCodecAudioIoGetOutputs(
   IN  EFI_AUDIO_IO_PROTOCOL *This,
   OUT EFI_AUDIO_IO_PROTOCOL_PORT **OutputPorts,
   OUT UINTN *OutputPortsCount) {
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoGetOutputs(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoGetOutputs(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -239,7 +239,7 @@ HdaCodecAudioIoSetupPlayback(
   IN EFI_AUDIO_IO_PROTOCOL_FREQ Freq,
   IN EFI_AUDIO_IO_PROTOCOL_BITS Bits,
   IN UINT8 Channels) {
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoSetupPlayback(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoSetupPlayback(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -440,7 +440,7 @@ HdaCodecAudioIoSetupPlayback(
   // Calculate stream format and setup stream.
   StreamFmt = HDA_CONVERTER_FORMAT_SET(Channels - 1, StreamBits,
     StreamDiv - 1, StreamMult - 1, StreamBase44kHz);
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoPlay(): Stream format 0x%X\n", StreamFmt));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoPlay(): Stream format 0x%X\n", StreamFmt));
   Status = HdaIo->SetupStream(HdaIo, EfiHdaIoTypeOutput, StreamFmt, &HdaStreamId);
   if (EFI_ERROR(Status))
     return Status;
@@ -476,7 +476,7 @@ HdaCodecAudioIoStartPlayback(
   IN VOID *Data,
   IN UINTN DataLength,
   IN UINTN Position OPTIONAL) {
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoStartPlayback(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoStartPlayback(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -535,7 +535,7 @@ HdaCodecAudioIoStartPlaybackAsync(
   IN UINTN Position OPTIONAL,
   IN EFI_AUDIO_IO_CALLBACK Callback OPTIONAL,
   IN VOID *Context OPTIONAL) {
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoStartPlaybackAsync(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoStartPlaybackAsync(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -568,7 +568,7 @@ EFI_STATUS
 EFIAPI
 HdaCodecAudioIoStopPlayback(
   IN EFI_AUDIO_IO_PROTOCOL *This) {
-  DEBUG((DEBUG_INFO, "HdaCodecAudioIoStopPlayback(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaCodecAudioIoStopPlayback(): start\n"));
 
   // Create variables.
   AUDIO_IO_PRIVATE_DATA *AudioIoPrivateData;

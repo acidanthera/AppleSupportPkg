@@ -84,7 +84,7 @@ HdaControllerStreamPollTimerHandler(
 
       // Set flag to stop stream on the next block.
       HdaStream->BufferSourceDone = TRUE;
-      DEBUG((DEBUG_INFO, "Block %u of %u is the last! (current position 0x%X, buffer 0x%X)\n",
+      DEBUG((DEBUG_VERBOSE, "Block %u of %u is the last! (current position 0x%X, buffer 0x%X)\n",
         HdaStreamDmaPos / HDA_BDL_BLOCKSIZE, HDA_BDL_ENTRY_COUNT, HdaStreamDmaPos, HdaStream->BufferSourcePosition));
       goto CLEAR_BIT;
     }
@@ -107,7 +107,7 @@ HdaControllerStreamPollTimerHandler(
 
     // Increase source position.
     HdaStream->BufferSourcePosition += HdaSourceLength;
-    DEBUG((DEBUG_INFO, "Block %u of %u filled! (current position 0x%X, buffer 0x%X)\n",
+    DEBUG((DEBUG_VERBOSE, "Block %u of %u filled! (current position 0x%X, buffer 0x%X)\n",
       HdaStreamDmaPos / HDA_BDL_BLOCKSIZE, HDA_BDL_ENTRY_COUNT, HdaStreamDmaPos, HdaStream->BufferSourcePosition));
 
 CLEAR_BIT:
@@ -122,7 +122,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerInitPciHw(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerInitPciHw(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitPciHw(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -155,7 +155,7 @@ HdaControllerInitPciHw(
   if (EFI_ERROR (Status))
     return Status;
 
-  DEBUG((DEBUG_INFO, "HdaControllerInitPciHw(): controller %4X:%4X\n",
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitPciHw(): controller %4X:%4X\n",
     GET_PCI_VENDOR_ID(HdaControllerDev->VendorId), GET_PCI_DEVICE_ID(HdaControllerDev->VendorId)));
 
   // Is this an Intel controller?
@@ -218,7 +218,7 @@ VOID
 EFIAPI
 HdaControllerGetName(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerGetName(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerGetName(): start\n"));
 
   // Try to match controller name.
   HdaControllerDev->Name = AsciiStrCopyToUnicode (OcHdaControllerGetName (HdaControllerDev->VendorId), 0);
@@ -229,7 +229,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerReset(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerReset(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerReset(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -266,7 +266,7 @@ HdaControllerReset(
   gBS->Stall(MS_TO_MICROSECOND(100));
 
   // Controller is reset.
-  DEBUG((DEBUG_INFO, "HdaControllerReset(): done\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerReset(): done\n"));
   return EFI_SUCCESS;
 }
 
@@ -274,7 +274,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerScanCodecs(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerScanCodecs(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerScanCodecs(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -312,7 +312,7 @@ HdaControllerScanCodecs(
   for (UINT8 i = 0; i < HDA_MAX_CODECS; i++) {
     // Do we have a codec at this address?
     if (HdaStatests & (1 << i)) {
-      DEBUG((DEBUG_INFO, "HdaControllerScanCodecs(): found codec @ 0x%X\n", i));
+      DEBUG((DEBUG_VERBOSE, "HdaControllerScanCodecs(): found codec @ 0x%X\n", i));
 
       // Try to get the vendor ID. If this fails, ignore the codec.
       VendorResponse = 0;
@@ -341,14 +341,14 @@ HdaControllerScanCodecs(
 
       // Assign output stream.
       if (CurrentOutputStreamIndex < HdaControllerDev->OutputStreamsCount) {
-        DEBUG((DEBUG_INFO, "Assigning output stream %u to codec\n", CurrentOutputStreamIndex));
+        DEBUG((DEBUG_VERBOSE, "Assigning output stream %u to codec\n", CurrentOutputStreamIndex));
         HdaIoPrivateData->HdaOutputStream = HdaControllerDev->OutputStreams + CurrentOutputStreamIndex;
         CurrentOutputStreamIndex++;
       }
 
       // Assign input stream.
       if (CurrentInputStreamIndex < HdaControllerDev->InputStreamsCount) {
-        DEBUG((DEBUG_INFO, "Assigning input stream %u to codec\n", CurrentInputStreamIndex));
+        DEBUG((DEBUG_VERBOSE, "Assigning input stream %u to codec\n", CurrentInputStreamIndex));
         HdaIoPrivateData->HdaInputStream = HdaControllerDev->InputStreams + CurrentInputStreamIndex;
         CurrentInputStreamIndex++;
       }
@@ -577,7 +577,7 @@ VOID
 EFIAPI
 HdaControllerCleanup(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerCleanup(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerCleanup(): start\n"));
 
   // If controller device is already free, we are done.
   if (HdaControllerDev == NULL)
@@ -591,7 +591,7 @@ HdaControllerCleanup(
   // Clean HDA Controller info protocol.
   if (HdaControllerDev->HdaControllerInfoData != NULL) {
     // Uninstall protocol.
-    DEBUG((DEBUG_INFO, "HdaControllerCleanup(): clean HDA Controller Info\n"));
+    DEBUG((DEBUG_VERBOSE, "HdaControllerCleanup(): clean HDA Controller Info\n"));
     Status = gBS->UninstallProtocolInterface(HdaControllerDev->ControllerHandle,
       &gEfiHdaControllerInfoProtocolGuid, &HdaControllerDev->HdaControllerInfoData->HdaControllerInfo);
     ASSERT_EFI_ERROR(Status);
@@ -605,7 +605,7 @@ HdaControllerCleanup(
     // Clean Device Path protocol.
     if (HdaControllerDev->HdaIoChildren[i].DevicePath != NULL) {
       // Uninstall protocol.
-      DEBUG((DEBUG_INFO, "HdaControllerCleanup(): clean Device Path index %u\n", i));
+      DEBUG((DEBUG_VERBOSE, "HdaControllerCleanup(): clean Device Path index %u\n", i));
       Status = gBS->UninstallProtocolInterface(HdaControllerDev->HdaIoChildren[i].Handle,
         &gEfiDevicePathProtocolGuid, HdaControllerDev->HdaIoChildren[i].DevicePath);
       ASSERT_EFI_ERROR(Status);
@@ -617,7 +617,7 @@ HdaControllerCleanup(
     // Clean HDA I/O protocol.
     if (HdaControllerDev->HdaIoChildren[i].PrivateData != NULL) {
       // Uninstall protocol.
-      DEBUG((DEBUG_INFO, "HdaControllerCleanup(): clean HDA I/O index %u\n", i));
+      DEBUG((DEBUG_VERBOSE, "HdaControllerCleanup(): clean HDA I/O index %u\n", i));
       Status = gBS->UninstallProtocolInterface(HdaControllerDev->HdaIoChildren[i].Handle,
         &gEfiHdaIoProtocolGuid, &HdaControllerDev->HdaIoChildren[i].PrivateData->HdaIo);
       ASSERT_EFI_ERROR(Status);

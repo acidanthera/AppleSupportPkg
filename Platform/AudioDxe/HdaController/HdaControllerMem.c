@@ -29,7 +29,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerInitCorb(
   IN HDA_CONTROLLER_DEV *HdaDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerInitCorb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitCorb(): start\n"));
 
   // Status and PCI I/O protocol.
   EFI_STATUS Status;
@@ -141,7 +141,7 @@ HdaControllerInitCorb(
   HdaDev->CorbWritePointer = HdaCorbWp;
 
   // Buffer allocation successful.
-  DEBUG((DEBUG_INFO, "HDA controller CORB allocated @ 0x%p (0x%p) (%u entries)\n",
+  DEBUG((DEBUG_VERBOSE, "HDA controller CORB allocated @ 0x%p (0x%p) (%u entries)\n",
     HdaDev->CorbBuffer, HdaDev->CorbPhysAddr, HdaDev->CorbEntryCount));
   return EFI_SUCCESS;
 
@@ -159,7 +159,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerCleanupCorb(
   IN HDA_CONTROLLER_DEV *HdaDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerCleanupCorb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerCleanupCorb(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -189,7 +189,7 @@ EFIAPI
 HdaControllerSetCorb(
   IN HDA_CONTROLLER_DEV *HdaDev,
   IN BOOLEAN Enable) {
-  DEBUG((DEBUG_INFO, "HdaControllerSetCorb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerSetCorb(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -220,7 +220,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerInitRirb(
   IN HDA_CONTROLLER_DEV *HdaDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerInitRirb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitRirb(): start\n"));
 
   // Status and PCI I/O protocol.
   EFI_STATUS Status;
@@ -311,7 +311,7 @@ HdaControllerInitRirb(
   HdaDev->RirbReadPointer = 0;
 
   // Buffer allocation successful.
-  DEBUG((DEBUG_INFO, "HDA controller RIRB allocated @ 0x%p (0x%p) (%u entries)\n",
+  DEBUG((DEBUG_VERBOSE, "HDA controller RIRB allocated @ 0x%p (0x%p) (%u entries)\n",
     HdaDev->RirbBuffer, HdaDev->RirbPhysAddr, HdaDev->RirbEntryCount));
   return EFI_SUCCESS;
 
@@ -329,7 +329,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerCleanupRirb(
   IN HDA_CONTROLLER_DEV *HdaDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerCleanupRirb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerCleanupRirb(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -359,7 +359,7 @@ EFIAPI
 HdaControllerSetRirb(
   IN HDA_CONTROLLER_DEV *HdaDev,
   IN BOOLEAN Enable) {
-  DEBUG((DEBUG_INFO, "HdaControllerSetRirb(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerSetRirb(): start\n"));
 
   // Create variables.
   EFI_STATUS Status;
@@ -390,7 +390,7 @@ EFI_STATUS
 EFIAPI
 HdaControllerInitStreams(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerInitStreams(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitStreams(): start\n"));
 
   // Status and PCI I/O protocol.
   EFI_STATUS Status;
@@ -423,7 +423,7 @@ HdaControllerInitStreams(
   // Initialize streams.
   UINT8 InputStreamsOffset = HdaControllerDev->BidirStreamsCount;
   UINT8 OutputStreamsOffset = InputStreamsOffset + HdaControllerDev->InputStreamsCount;
-  DEBUG((DEBUG_INFO, "HdaControllerInitStreams(): in offset %u, out offset %u\n", InputStreamsOffset, OutputStreamsOffset));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitStreams(): in offset %u, out offset %u\n", InputStreamsOffset, OutputStreamsOffset));
   for (UINT8 i = 0; i < HdaControllerDev->TotalStreamsCount; i++) {
     // Get pointer to stream and set type.
     if (i < InputStreamsOffset) {
@@ -637,7 +637,7 @@ VOID
 EFIAPI
 HdaControllerCleanupStreams(
   IN HDA_CONTROLLER_DEV *HdaControllerDev) {
-  DEBUG((DEBUG_INFO, "HdaControllerInitStreams(): start\n"));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerInitStreams(): start\n"));
 
   // Status and PCI I/O protocol.
   EFI_PCI_IO_PROTOCOL *PciIo = HdaControllerDev->PciIo;
@@ -725,7 +725,7 @@ HdaControllerSetStream(
   IN BOOLEAN Run) {
   if (HdaStream == NULL)
     return EFI_INVALID_PARAMETER;
-  DEBUG((DEBUG_INFO, "HdaControllerSetStream(%u, %u): start\n", HdaStream->Index, Run));
+  DEBUG((DEBUG_VERBOSE, "HdaControllerSetStream(%u, %u): start\n", HdaStream->Index, Run));
 
   // Create variables.
   EFI_STATUS Status;
