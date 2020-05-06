@@ -27,6 +27,7 @@
 
 // HDA I/O Stream callback.
 VOID
+EFIAPI
 HdaCodecHdaIoStreamCallback(
   IN EFI_HDA_IO_PROTOCOL_TYPE Type,
   IN VOID *Context1,

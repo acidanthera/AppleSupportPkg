@@ -7,7 +7,7 @@ env:
 matrix:
   include:
   - os: osx
-    name: "Build"
+    name: "Build macOS XCODE5"
     osx_image: xcode10.2
     compiler: clang
 
@@ -25,6 +25,45 @@ matrix:
         tags: true
       api_key:
         secure: Dtk7GX0mJlhbmYtpPaR5kTFCcRdBOEl5lEMSIODnxb+Oznwdjuj1iXsgG3WtmFY1yLShgHWAuVdHFCLcWWJIZ9bXRrkkZ75Tl3WPpNG48GVdc+ayyQrkCLYne3WIYTxd1NmXNceKfrQpD8O9R4IYQ5SJEY9d0L4KgLYvERtD5V6rsSX/T+OZZI1gTXFa9MvO6EQqfSGptXNTLZnkogZDB7bp/YZi46lFFaj3eutwEVEm9lEPjiND0L/zUjZXsEII7H7NocBSayJGWPGfFuiYa1lsQsEFAQyqbdgTa4+O1eby9qDJOaCHoFwbe2Fs7pi3fzegy2Jk4+zIleyuM0qXv26yS+gnDqmaruphXhXz+PtAkmw0sov40pKrbcHuRPfGx1lUX68PhqEg3S2vtKELPMhmLpRmy5dC8+dr4D7MJ3kQWCLy2vwrNg/EJJtsRhxg+h8Xo504g3aD7a4MOB/sAX0ITeiOZf9r0agxB69vpMaF5Jve7RrF9s0qGSSFA1L82U+WXywZr4qk/RG+ZjpnxlDJb3mMeTnAF1YrpIdsZrSL6eUWZACLpGrDLTTLGmMvgkqUEsXnFMQUovAIkEP3fzxU5mORTtLQu6kYP2fHJZXfI/HLmEFxnh4N43c7Tgh9biPAKHnABlA4csUl8Y4rRu72fQdEEq9cYxR4wFmAkhs=
+
+
+  - os: linux
+    name: "Build Linux CLANGPDB/GCC5"
+    dist: xenial
+    addons:
+      apt:
+        packages:
+        - nasm
+        - uuid-dev
+
+    script:
+    - export PYTHON_COMMAND=python3 # Something is broken in Travis CI environment, it asks for python3.7.
+    - llvmfile="clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04"
+    - curl -LO "https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/${llvmfile}.tar.xz" || exit 1
+    - llvmsum=$(shasum -a 256 "${llvmfile}.tar.xz" | cut -f1 -d' ')
+    - llvmexpsum="1af280e96fec62acf5f3bb525e36baafe09f95f940dc9806e22809a83dfff4f8"
+    - if [ "$llvmsum" != "$llvmexpsum" ]; then echo "Invalid LLVM checksum $llvmsum" ; exit 1 ; fi
+    - tar -xf "${llvmfile}.tar.xz" || exit 1
+    - export PATH="$(pwd)/${llvmfile}/bin:$PATH"
+    - "./macbuild.tool"
+
+  - os: linux
+    name: "Build Linux CLANG38"
+    dist: xenial
+    addons:
+      apt:
+        packages:
+        - nasm
+        - uuid-dev
+        - clang-8
+        - llvm-8-dev
+
+    script:
+    - export PYTHON_COMMAND=python3 # Something is broken in Travis CI environment, it asks for python3.7.
+    - sudo apt-get remove llvm-3.8 libllvm3.8 # Move LLVM 3.8 out of the way.
+    - export PATH="/usr/lib/llvm-8/bin:$PATH" # Default compiler (7.0 or 3.8) has no LTO plugin.
+    - export TOOLCHAINS=CLANG38
+    - "./macbuild.tool"
 
   - os: osx
     name: "Analyze Coverity"
