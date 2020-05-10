@@ -1,5 +1,8 @@
 AppleSupport Changelog
 ======================
+#### v2.1.8
+- AudioDxe: Rewrite ring buffer handling
+
 #### v2.1.7
 - Moved ApfsDriverLoader into OpenCore mainline
 
