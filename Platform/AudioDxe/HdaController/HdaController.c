@@ -363,7 +363,7 @@ HdaControllerScanCodecs (
       // Try to get the vendor ID. If this fails, ignore the codec.
       //
       VendorResponse = 0;
-      Status = HdaControllerSendCommands (HdaControllerDev, Index, HDA_NID_ROOT, &HdaCodecVerbList);
+      Status = HdaControllerSendCommands (HdaControllerDev, (UINT8) Index, HDA_NID_ROOT, &HdaCodecVerbList);
       if ((EFI_ERROR (Status)) || (VendorResponse == 0)) {
         continue;
       }
@@ -375,7 +375,7 @@ HdaControllerScanCodecs (
       }
 
       HdaIoPrivateData->Signature         = HDA_CONTROLLER_PRIVATE_DATA_SIGNATURE;
-      HdaIoPrivateData->HdaCodecAddress   = Index;
+      HdaIoPrivateData->HdaCodecAddress   = (UINT8) Index;
       HdaIoPrivateData->HdaControllerDev  = HdaControllerDev;
       HdaIoPrivateData->HdaIo.GetAddress  = HdaControllerHdaIoGetAddress;
       HdaIoPrivateData->HdaIo.SendCommand = HdaControllerHdaIoSendCommand;
@@ -425,7 +425,7 @@ HdaControllerScanCodecs (
       HdaIoDevicePathNode.Header.Length[0]  = (UINT8)(sizeof (EFI_HDA_IO_DEVICE_PATH));
       HdaIoDevicePathNode.Header.Length[1]  = (UINT8)((sizeof (EFI_HDA_IO_DEVICE_PATH)) >> 8);
       HdaIoDevicePathNode.Guid              = gEfiHdaIoDevicePathGuid;
-      HdaIoDevicePathNode.Address           = Index;
+      HdaIoDevicePathNode.Address           = (UINT8) Index;
       HdaControllerDev->HdaIoChildren[Index].DevicePath = AppendDevicePathNode (HdaControllerDev->DevicePath, (EFI_DEVICE_PATH_PROTOCOL*)&HdaIoDevicePathNode);
       if (HdaControllerDev->HdaIoChildren[Index].DevicePath == NULL) {
         Status = EFI_INVALID_PARAMETER;
