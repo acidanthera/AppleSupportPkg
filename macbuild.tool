@@ -30,4 +30,4 @@ SELFPKG=AppleSupportPkg
 DEPNAMES=('EfiPkg' 'OpenCorePkg')
 DEPURLS=('https://github.com/acidanthera/EfiPkg' 'https://github.com/acidanthera/OpenCorePkg')
 DEPBRANCHES=('master' 'master')
-src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/efibuild.sh) && eval "$src" || exit 1
+src=$(curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/efibuild.sh) && eval "$src" || exit 1
